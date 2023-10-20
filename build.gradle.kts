@@ -21,12 +21,17 @@ repositories {
 }
 
 dependencies {
+	// spring-boot framework
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-mustache")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("io.github.cdimascio:dotenv-java:3.0.0")
+
+	// bcrypt
+	implementation("org.mindrot:jbcrypt:0.4")
+
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")

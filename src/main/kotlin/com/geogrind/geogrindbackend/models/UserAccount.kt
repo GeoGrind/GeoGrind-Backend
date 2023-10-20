@@ -11,10 +11,10 @@ import java.util.Date
 @Entity
 @Table(name = "user")
 @EntityListeners(AuditingEntityListener::class)
-data class User(
+data class UserAccount(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: UUID?,
+    val id: UUID? = null,
 
     @Column(name = "email", unique = true, nullable = false)
     val email: String,
@@ -55,9 +55,9 @@ data class User(
 
     override fun equals(other: Any?): Boolean {
         if(this === other) return true
-        if(other !is User) return false
+        if(other !is UserAccount) return false
 
-        other as User
+        other as UserAccount
 
         if(id != other.id) return false
         if(username != other.username) return false
