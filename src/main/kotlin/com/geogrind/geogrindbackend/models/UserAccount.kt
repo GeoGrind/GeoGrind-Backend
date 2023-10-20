@@ -25,6 +25,14 @@ data class UserAccount(
     @Column(name = "hashed_password", unique = true, nullable = false)
     val hashed_password: String,
 
+    @Column(name = "account_verified", unique = false, nullable = false)
+    val account_verified: Boolean? = false,
+
+    @Column(name = "temp_token", unique = true, nullable = true)
+    val temp_token: String? = null,
+
+    // TO-DO: permissions whether user can go into a certain resource
+
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")

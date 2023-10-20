@@ -1,8 +1,8 @@
 package com.geogrind.geogrindbackend.data
 
 import com.geogrind.geogrindbackend.models.UserAccount
-import com.geogrind.geogrindbackend.repository.UserAccountRepository
-import com.geogrind.geogrindbackend.utils.GenerateRandomAccountHelperImpl
+import com.geogrind.geogrindbackend.repositories.UserAccountRepository
+import com.geogrind.geogrindbackend.utils.GenerateAccount.GenerateRandomAccountHelperImpl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner

@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.utils
+package com.geogrind.geogrindbackend.utils.BCrypt
 
 import org.mindrot.jbcrypt.BCrypt
 

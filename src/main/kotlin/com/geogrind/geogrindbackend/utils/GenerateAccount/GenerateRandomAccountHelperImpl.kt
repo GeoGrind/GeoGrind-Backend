@@ -1,7 +1,8 @@
-package com.geogrind.geogrindbackend.utils
+package com.geogrind.geogrindbackend.utils.GenerateAccount
 
 import com.geogrind.geogrindbackend.models.UserAccount
-import org.apache.catalina.User
+import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
+import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 
 class GenerateRandomAccountHelperImpl : GenerateRandomAccountHelper {
     override fun generateRandomString(length: Int): String {

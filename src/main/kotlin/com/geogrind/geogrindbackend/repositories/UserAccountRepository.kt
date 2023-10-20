@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.repository
+package com.geogrind.geogrindbackend.repositories
 
 import com.geogrind.geogrindbackend.models.UserAccount
 import org.springframework.data.jpa.repository.JpaRepository
