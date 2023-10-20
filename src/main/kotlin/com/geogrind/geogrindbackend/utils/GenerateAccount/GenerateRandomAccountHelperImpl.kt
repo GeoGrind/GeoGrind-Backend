@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.utils.GenerateAccount
 
-import com.geogrind.geogrindbackend.models.UserAccount
+import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 

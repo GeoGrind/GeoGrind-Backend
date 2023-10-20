@@ -1,6 +1,7 @@
-package com.geogrind.geogrindbackend.models
+package com.geogrind.geogrindbackend.models.user_account
 
 import jakarta.persistence.*
+import jakarta.validation.constraints.Size
 import java.util.UUID
 
 import org.springframework.data.annotation.CreatedDate
@@ -14,22 +15,27 @@ import java.util.Date
 data class UserAccount(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: UUID? = null,
+    @Size(min = 5)
+    var id: UUID? = null,
 
-    @Column(name = "email", unique = true, nullable = false)
-    val email: String,
+    @Column(name = "email", length = 100, unique = true, nullable = false)
+    @Size(min = 5)
+    var email: String,
 
-    @Column(name = "username", unique = true, nullable = false)
-    val username: String,
+    @Column(name = "username", length = 50, unique = true, nullable = false)
+    @Size(min = 3)
+    var username: String,
 
-    @Column(name = "hashed_password", unique = true, nullable = false)
-    val hashed_password: String,
+    @Column(name = "hashed_password", length = 100, unique = true, nullable = false)
+    @Size(min = 8)
+    var hashed_password: String,
 
     @Column(name = "account_verified", unique = false, nullable = false)
-    val account_verified: Boolean? = false,
+    var account_verified: Boolean? = false,
 
-    @Column(name = "temp_token", unique = true, nullable = true)
-    val temp_token: String? = null,
+    @Column(name = "temp_token", length = 100, unique = true, nullable = true)
+    @Size(min = 3)
+    var temp_token: String? = null,
 
     // TO-DO: permissions whether user can go into a certain resource
 
@@ -59,6 +65,22 @@ data class UserAccount(
 
     fun getHashedPassword(): String? {
         return this.hashed_password
+    }
+
+    fun setId(in_UUID: UUID) {
+        this.id = in_UUID
+    }
+
+    fun setEmail(in_Email: String) {
+        this.email = in_Email
+    }
+
+    fun setUsername(in_username: String) {
+        this.username = in_username
+    }
+
+    fun setHashedPassword(in_hashpassword: String) {
+        this.hashed_password = in_hashpassword
     }
 
     override fun equals(other: Any?): Boolean {

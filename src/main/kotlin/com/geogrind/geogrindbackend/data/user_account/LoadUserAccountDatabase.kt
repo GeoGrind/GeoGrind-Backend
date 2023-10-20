@@ -1,6 +1,6 @@
-package com.geogrind.geogrindbackend.data
+package com.geogrind.geogrindbackend.data.user_account
 
-import com.geogrind.geogrindbackend.repositories.UserAccountRepository
+import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

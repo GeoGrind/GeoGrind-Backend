@@ -28,6 +28,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("io.github.cdimascio:dotenv-java:3.0.0")
+	implementation("org.springframework.boot:spring-boot-starter-validation")
 
 	// bcrypt
 	implementation("org.mindrot:jbcrypt:0.4")
