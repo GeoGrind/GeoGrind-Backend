@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.config
+package com.geogrind.geogrindbackend.config.database
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
