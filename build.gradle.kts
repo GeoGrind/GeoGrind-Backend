@@ -47,6 +47,9 @@ dependencies {
 	// spring-webflux
 	implementation("org.springframework.boot:spring-boot-starter-webflux")
 
+	// flywaydb-migration
+	implementation("org.flywaydb:flyway-core")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("com.mysql:mysql-connector-j")

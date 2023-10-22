@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.config
+package com.geogrind.geogrindbackend.config.database
 
 import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.context.annotation.Bean
