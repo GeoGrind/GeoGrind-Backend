@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.models.user_account
 
+import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import java.util.UUID
@@ -10,11 +11,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.util.Date
 
 @Entity
-@Table(name = "user")
+@Table(name = "user_account")
 @EntityListeners(AuditingEntityListener::class)
 data class UserAccount(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", unique = true, nullable = false)
     @Size(min = 5)
     var id: UUID? = null,
 
@@ -51,38 +53,6 @@ data class UserAccount(
 ) {
 
     // Custom methods
-    fun getId(): UUID? {
-        return this.id
-    }
-
-    fun getEmail(): String? {
-        return this.email
-    }
-
-    fun getUsername(): String? {
-        return this.username
-    }
-
-    fun getHashedPassword(): String? {
-        return this.hashed_password
-    }
-
-    fun setId(in_UUID: UUID) {
-        this.id = in_UUID
-    }
-
-    fun setEmail(in_Email: String) {
-        this.email = in_Email
-    }
-
-    fun setUsername(in_username: String) {
-        this.username = in_username
-    }
-
-    fun setHashedPassword(in_hashpassword: String) {
-        this.hashed_password = in_hashpassword
-    }
-
     override fun equals(other: Any?): Boolean {
         if(this === other) return true
         if(other !is UserAccount) return false
@@ -108,5 +78,25 @@ data class UserAccount(
 
     override fun toString(): String {
         return "User(id=${this.id}, email=${this.email}, username=${this.username})"
+    }
+}
+
+fun UserAccount.toSuccessHttpResponse(): SuccessUserAccountResponse {
+    return SuccessUserAccountResponse(
+        id = this.id,
+        username = this.username,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+    )
+}
+
+fun List<UserAccount>.toSuccessHttpResponseList(): List<SuccessUserAccountResponse> {
+    return this.map {
+        SuccessUserAccountResponse(
+            id = it.id,
+            username = it.username,
+            createdAt = it.createdAt,
+            updatedAt = it.updatedAt,
+        )
     }
 }

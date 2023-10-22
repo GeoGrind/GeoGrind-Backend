@@ -29,10 +29,24 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("io.github.cdimascio:dotenv-java:3.0.0")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-devtools")
 
 	// bcrypt
 	implementation("org.mindrot:jbcrypt:0.4")
 
+	// springfox
+	implementation("io.springfox:springfox-boot-starter:3.0.0")
+
+	// kotlinx-coroutines
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.2")
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.7.1")
+
+	// spring-hateoas
+	implementation("org.springframework.boot:spring-boot-starter-hateoas")
+
+	// spring-webflux
+	implementation("org.springframework.boot:spring-boot-starter-webflux")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")

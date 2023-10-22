@@ -3,6 +3,7 @@ package com.geogrind.geogrindbackend.utils.GenerateAccount
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
+import java.util.*
 
 class GenerateRandomAccountHelperImpl : GenerateRandomAccountHelper {
     override fun generateRandomString(length: Int): String {
@@ -25,7 +26,9 @@ class GenerateRandomAccountHelperImpl : GenerateRandomAccountHelper {
         return UserAccount(
             email = email,
             username = username,
-            hashed_password = hashedPassword
+            hashed_password = hashedPassword,
+            createdAt = Date(),
+            updatedAt = Date()
         )
     }
 }

@@ -14,11 +14,10 @@ import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelper
 import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelperImpl
 import jakarta.validation.Valid
-import org.apache.catalina.User
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.MethodArgumentNotValidException
-import java.util.UUID
+import java.util.*
+import kotlin.collections.HashMap
 
 @Service
 class UserAccountServiceImpl(private val userAccoutRepository: UserAccountRepository) : UserAccountService {
@@ -62,8 +61,8 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
         )
 
         validationObj.validatePassword(
-            username,
             password,
+            username,
             registration_form_validation
         )
 
@@ -79,9 +78,8 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
         }
 
         // check if the email has already been used
-        val find_user_with_email = userAccoutRepository.findUserAccountByEmail(email)
-
-        val find_user_with_username = userAccoutRepository.findUserAccountByUsername(username)
+        val find_user_with_email = userAccoutRepository.findUserAccountByEmail(email).orElse(null)
+        val find_user_with_username = userAccoutRepository.findUserAccountByUsername(username).orElse(null)
 
         if(find_user_with_email != null || find_user_with_username != null) {
             val conflictingField: String = find_user_with_email?.email ?: find_user_with_username?.username ?: ""
@@ -95,7 +93,9 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
         val newUserAccount = UserAccount(
             email = email,
             username = username,
-            hashed_password = hashed_password
+            hashed_password = hashed_password,
+            createdAt = Date(),
+            updatedAt = Date(),
         )
 
         val savedUserAccount = userAccoutRepository.save(newUserAccount)
@@ -104,21 +104,31 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
 
     @Transactional
     override suspend fun updateUserAccountById(
+        user_id: UUID,
         @Valid requestDto: UpdateUserAccountDto
     ): UserAccount {
-        var user_id: UUID = requestDto.user_id
         var update_password: String = requestDto.update_password
         var confirm_update_password: String = requestDto.confirm_update_password
 
         // check whether the user id exists in the database
-        var findUserAccount = getUserAccountById(GetUserAccountByIdDto(user_id))
+        var findUserAccount = userAccoutRepository.findById(user_id)
+
+        if(findUserAccount == null) {
+            throw UserAccountNotFoundException(user_id.toString())
+        }
 
         var update_registration_form: MutableMap<String, String> = java.util.HashMap()
 
         validationObj.validatePassword(
-            findUserAccount.username,
             update_password,
+            findUserAccount.get().username,
             update_registration_form
+        )
+
+        validationObj.validateConfirmPassword(
+            confirm_update_password,
+            update_password,
+            update_registration_form,
         )
 
         if(update_registration_form.isNotEmpty()) {
@@ -126,7 +136,7 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
         }
 
         // check if the new password is the same as old password
-        if(BCryptObj.verifyPassword(update_password, findUserAccount.hashed_password)) {
+        if(BCryptObj.verifyPassword(update_password, findUserAccount.get().hashed_password)) {
             throw UserAccountConflictException("New password must be different from old password!")
         }
 
@@ -134,9 +144,9 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
         val hash_new_password = BCryptObj.hashPassword(
             password = update_password
         )
-        findUserAccount.hashed_password = hash_new_password
+        findUserAccount.get().hashed_password = hash_new_password
 
-        return userAccoutRepository.save(findUserAccount)
+        return userAccoutRepository.save(findUserAccount.get())
     }
 
     @Transactional
