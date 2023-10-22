@@ -17,7 +17,6 @@ java {
 
 repositories {
 	mavenCentral()
-	google()
 }
 
 dependencies {
