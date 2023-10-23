@@ -50,6 +50,15 @@ dependencies {
 	// flywaydb-migration
 	implementation("org.flywaydb:flyway-core")
 
+	// sendgrid
+	implementation("com.sendgrid:sendgrid-java:4.9.3")
+
+	// jwt token
+	implementation("io.jsonwebtoken:jjwt:0.12.3")
+
+	// okhttp3
+	implementation("com.squareup.okhttp3:okhttp:4.9.1")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("com.mysql:mysql-connector-j")
