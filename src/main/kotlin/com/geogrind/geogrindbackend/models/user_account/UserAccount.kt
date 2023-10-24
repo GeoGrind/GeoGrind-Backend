@@ -35,7 +35,7 @@ data class UserAccount(
     @Column(name = "account_verified", unique = false, nullable = false)
     var account_verified: Boolean? = false,
 
-    @Column(name = "temp_token", length = 100, unique = true, nullable = true)
+    @Column(name = "temp_token", length = 1000, unique = true, nullable = true)
     @Size(min = 3)
     var temp_token: String? = null,
 
@@ -44,12 +44,12 @@ data class UserAccount(
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
-    val createdAt: Date? = null,
+    var createdAt: Date? = null,
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
-    val updatedAt: Date? = null,
+    var updatedAt: Date? = null,
 ) {
 
     // Custom methods

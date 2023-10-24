@@ -6,22 +6,21 @@ import org.springframework.stereotype.Service
 
 @Service
 interface EmailService {
-    fun sendEmailConfirmation(
+    suspend fun sendEmailConfirmation(
         user_email: String,
-        geogrind_otp_code: Int,
+        geogrind_otp_code: String,
         user_id: String
     ): SendGridResponseDto
 
-    fun sendChangePassword(
+    suspend fun sendChangePassword(
         user_email: String,
-        geogrind_otp_code: Int,
-        new_password: String,
+        geogrind_otp_code: String,
         user_id: String,
     ): SendGridResponseDto
 
-    fun sendDeleteAccount(
+    suspend fun sendDeleteAccount(
         user_email: String,
-        geogrind_otp_code: Int,
+        geogrind_otp_code: String,
         user_id: String,
     ): SendGridResponseDto
 }

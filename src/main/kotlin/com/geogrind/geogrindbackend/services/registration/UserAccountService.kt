@@ -16,4 +16,9 @@ interface UserAccountService {
     suspend fun createUserAccount(@Valid requestDto: CreateUserAccountDto): UserAccount
     suspend fun updateUserAccountById(user_id: UUID, @Valid requestDto: UpdateUserAccountDto): UserAccount
     suspend fun deleteUserAccountById(@Valid requestDto: DeleteUserAccountDto): Unit
+
+    // email verification
+    suspend fun getEmailVerification(token: String): UserAccount
+    suspend fun getConfirmPasswordChangeVerification(token: String): UserAccount
+    suspend fun getDeleteAccountVerification(token: String): UserAccount
 }

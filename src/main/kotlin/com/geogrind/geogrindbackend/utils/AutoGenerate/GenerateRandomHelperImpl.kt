@@ -1,11 +1,13 @@
-package com.geogrind.geogrindbackend.utils.GenerateAccount
+package com.geogrind.geogrindbackend.utils.AutoGenerate
 
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 import java.util.*
+import kotlin.math.pow
+import kotlin.random.Random
 
-class GenerateRandomAccountHelperImpl : GenerateRandomAccountHelper {
+class GenerateRandomHelperImpl : GenerateRandomHelper {
     override fun generateRandomString(length: Int): String {
         val charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
         return (1..length)
@@ -30,6 +32,16 @@ class GenerateRandomAccountHelperImpl : GenerateRandomAccountHelper {
             createdAt = Date(),
             updatedAt = Date()
         )
+    }
+
+    override fun generateOTP(length: Int): String {
+        require(length > 0) { "Number of digits must be greater than 0" }
+
+        val min = 10.0.pow(length-1).toInt()
+        val max = 10.0.pow(length).toInt()
+
+        val randomOTP = Random.nextInt(min, max)
+        return String.format("%0${length}d", randomOTP)
     }
 }
 

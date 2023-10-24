@@ -4,6 +4,6 @@ import java.time.Instant
 
 data class JwtSendGridEmail(
     val user_id: String,
-    val geogrind_otp_code: Int,
+    val geogrind_otp_code: String,
     val exp: Instant
 )

@@ -25,13 +25,13 @@ class EmailServiceImpl(
 ): EmailService {
 
     // send the email confirmation using SendGrid
-    override fun sendEmailConfirmation(
+    override suspend fun sendEmailConfirmation(
         user_email: String,
-        geogrind_otp_code: Int,
+        geogrind_otp_code: String,
         user_id: String
     ): SendGridResponseDto {
         val subject: String = "Verify email address with GeoGrind"
-        val templatePath = "templates/Twilio_confirm_email_template.html"
+        val templatePath = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_confirm_email_template.html"
 
         val template = File(templatePath).readText()
 
@@ -85,14 +85,13 @@ class EmailServiceImpl(
         }
     }
 
-    override fun sendChangePassword(
+    override suspend fun sendChangePassword(
         user_email: String,
-        geogrind_otp_code: Int,
-        new_password: String,
+        geogrind_otp_code: String,
         user_id: String
     ): SendGridResponseDto {
         val subject: String = "Confirm password change with GeoGrind"
-        val templatePath: String = "templates/Twilio_update_password_template.html"
+        val templatePath: String = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_update_password_template.html"
 
         val template = File(templatePath).readText()
 
@@ -144,12 +143,12 @@ class EmailServiceImpl(
         }
     }
 
-    override fun sendDeleteAccount(
+    override suspend fun sendDeleteAccount(
         user_email: String,
-        geogrind_otp_code: Int,
+        geogrind_otp_code: String,
         user_id: String): SendGridResponseDto {
         val subject: String = "Confirm account deletion with GeoGrind"
-        val templatePath = "templates/Twilio_delete_account_template.html"
+        val templatePath = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_delete_account_template.html"
 
         val template = File(templatePath).readText()
 
