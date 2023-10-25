@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.dto.registration
+package com.geogrind.geogrindbackend.dto.registration.sendgrid
 
 data class SendGridResponseDto(
     val statusCode: Int,

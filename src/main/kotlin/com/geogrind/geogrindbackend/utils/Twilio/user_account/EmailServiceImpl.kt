@@ -1,7 +1,7 @@
 package com.geogrind.geogrindbackend.utils.Twilio.user_account
 
-import com.geogrind.geogrindbackend.dto.registration.JwtSendGridEmail
-import com.geogrind.geogrindbackend.dto.registration.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.JwtSendGridEmail
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import com.sendgrid.Method
 import com.sendgrid.Response
 import com.sendgrid.SendGrid
@@ -44,7 +44,8 @@ class EmailServiceImpl(
         val jwtEncodeData: JwtSendGridEmail = JwtSendGridEmail(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
-            exp = expirationTime
+            new_password = null,
+            exp = expirationTime,
         )
 
         val token = Jwts.builder()
@@ -88,7 +89,8 @@ class EmailServiceImpl(
     override suspend fun sendChangePassword(
         user_email: String,
         geogrind_otp_code: String,
-        user_id: String
+        user_id: String,
+        new_password: String,
     ): SendGridResponseDto {
         val subject: String = "Confirm password change with GeoGrind"
         val templatePath: String = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_update_password_template.html"
@@ -102,12 +104,14 @@ class EmailServiceImpl(
         val jwtEncodeData : JwtSendGridEmail = JwtSendGridEmail(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
+            new_password = new_password,
             exp = expirationTime
         )
 
         val token = Jwts.builder()
             .claim("user_id", jwtEncodeData.user_id)
-            .claim("geogrind_otp_code", jwtEncodeData)
+            .claim("geogrind_otp_code", jwtEncodeData.geogrind_otp_code)
+            .claim("new_password", jwtEncodeData.new_password)
             .issuedAt(Date.from(Instant.now()))
             .expiration(Date.from(jwtEncodeData.exp))
             .signWith(key)
@@ -161,6 +165,7 @@ class EmailServiceImpl(
         val jwtEncodeData: JwtSendGridEmail = JwtSendGridEmail(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
+            new_password = null,
             exp = expirationTime
         )
 

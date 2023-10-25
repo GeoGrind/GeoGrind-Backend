@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.models.user_account
 
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import java.util.UUID
@@ -8,6 +9,7 @@ import java.util.UUID
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import org.springframework.http.HttpStatus
 import java.util.Date
 
 @Entity
