@@ -1,6 +1,10 @@
 package com.geogrind.geogrindbackend.controllers.registration
 
 import com.geogrind.geogrindbackend.dto.registration.*
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountConfirmationDto
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.registration.UserAccountService
@@ -66,7 +70,7 @@ class UserAccountControllerImpl(
         operationId = "createUserAccount",
         description = "Create new user account for user"
     )
-    override suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto) : ResponseEntity<SuccessUserAccountResponse> = withTimeout(
+    override suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto) : ResponseEntity<SendGridResponseDto> = withTimeout(
         timeOutMillis) {
         // create a new user
         ResponseEntity
@@ -78,9 +82,9 @@ class UserAccountControllerImpl(
                     username = req.username,
                     password = req.password,
                     confirm_password = req.confirm_password,
-                )).toSuccessHttpResponse()
+                ))
             )
-            .also { log.info("Successfully registered the user with the system: $it") }
+            .also { log.info("Send the confirmation email successfully: $it") }
     }
 
     @PatchMapping(path = ["/change_password/{user_id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -90,7 +94,7 @@ class UserAccountControllerImpl(
         operationId = "updateUserAccount",
         description = "Update user account's password"
     )
-    override suspend fun updateUserAccountById(@PathVariable(required = true) user_id: String, @Valid @RequestBody req: UpdateUserAccountDto): ResponseEntity<SuccessUserAccountResponse> = withTimeout(
+    override suspend fun updateUserAccountById(@PathVariable(required = true) user_id: String, @Valid @RequestBody req: UpdateUserAccountDto): ResponseEntity<SendGridResponseDto> = withTimeout(
         timeOutMillis) {
         ResponseEntity
             .status(HttpStatus.CREATED)
@@ -102,9 +106,9 @@ class UserAccountControllerImpl(
                         update_password = req.update_password,
                         confirm_update_password = req.confirm_update_password,
                     )
-                ).toSuccessHttpResponse()
+                )
             )
-            .also { log.info("Successfully updated the user's password with the system: $it") }
+            .also { log.info("Send the confirmation email successfully: $it") }
     }
 
     @DeleteMapping(path = ["/delete_account/{user_id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -114,7 +118,7 @@ class UserAccountControllerImpl(
         operationId = "deleteUserAccount",
         description = "Delete user account"
     )
-    override suspend fun deleteUserAccount(@PathVariable(required = true) user_id: String): ResponseEntity<Unit> = withTimeout(timeOutMillis) {
+    override suspend fun deleteUserAccount(@PathVariable(required = true) user_id: String): ResponseEntity<SendGridResponseDto> = withTimeout(timeOutMillis) {
         ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
@@ -125,7 +129,74 @@ class UserAccountControllerImpl(
                     )
                 )
             )
-            .also { log.info("Successfully deleted the user account with the system: $it") }
+            .also { log.info("Send the confirmation email successfully: $it") }
+    }
+
+    // send the email confirmation
+    @GetMapping(path = ["/confirm-email/{token}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        method = "GET",
+        summary = "Verify user account",
+        operationId = "verifyUserEmail",
+        description = "Verify user email"
+    )
+    override suspend fun verifyUserEmail(@PathVariable(required = true) token: String): ResponseEntity<SuccessUserAccountResponse> = withTimeout(
+        timeOutMillis) {
+        ResponseEntity
+            .status(HttpStatus.ACCEPTED)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                userAccountService.getEmailVerification(
+                    VerifyEmailUserAccountDto(
+                        token = token
+                    )
+                ).toSuccessHttpResponse()
+            )
+            .also { log.info("Successfully register the user's account with the system: $it") }
+    }
+
+    @GetMapping(path = ["/confirm-password-change/{token}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        method = "GET",
+        summary = "Update password confirm",
+        operationId = "updatePasswordConfirmation",
+        description = "Update password confirmation"
+    )
+    override suspend fun updatePasswordConfirmation(@PathVariable(required = true) token: String): ResponseEntity<SuccessUserAccountResponse> = withTimeout(
+        timeOutMillis) {
+        ResponseEntity
+            .status(HttpStatus.ACCEPTED)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                userAccountService.getConfirmPasswordChangeVerification(
+                    UpdatePasswordConfirmationDto(
+                        token = token,
+                    )
+                ).toSuccessHttpResponse()
+            )
+            .also { log.info("Successfully update the user's password with the system, $it") }
+    }
+
+    @GetMapping(path = ["/confirm-account-deletion/{token}"])
+    @Operation(
+        method = "GET",
+        summary = "Delete user account confirm",
+        operationId = "deleteAccountConfirmation",
+        description = "Delete user account confirmation"
+    )
+    override suspend fun deleteAccountConfirmation(@PathVariable(required = true) token: String): ResponseEntity<Unit> = withTimeout(
+        timeOutMillis) {
+        ResponseEntity
+            .status(HttpStatus.ACCEPTED)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                userAccountService.getDeleteAccountVerification(
+                    DeleteUserAccountConfirmationDto(
+                        token = token
+                    )
+                )
+            )
+            .also { log.info("Successfully delete the user's account with the system, $it") }
     }
 
     companion object {

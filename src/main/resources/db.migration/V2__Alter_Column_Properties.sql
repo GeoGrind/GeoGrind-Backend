@@ -1,0 +1,2 @@
+ALTER TABLE user_account
+ALTER COLUMN temp_token TYPE VARCHAR(1000);

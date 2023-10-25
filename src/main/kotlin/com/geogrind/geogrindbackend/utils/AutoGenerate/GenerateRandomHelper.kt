@@ -1,8 +1,9 @@
-package com.geogrind.geogrindbackend.utils.GenerateAccount
+package com.geogrind.geogrindbackend.utils.AutoGenerate
 
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 
-interface GenerateRandomAccountHelper {
+interface GenerateRandomHelper {
     fun generateRandomString(length: Int): String
     fun createFakeUserAccount(): UserAccount
+    fun generateOTP(length: Int): String
 }

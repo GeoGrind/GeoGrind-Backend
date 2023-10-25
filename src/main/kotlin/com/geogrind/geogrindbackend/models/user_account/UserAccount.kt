@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.models.user_account
 
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import java.util.UUID
@@ -8,6 +9,7 @@ import java.util.UUID
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import org.springframework.http.HttpStatus
 import java.util.Date
 
 @Entity
@@ -35,7 +37,7 @@ data class UserAccount(
     @Column(name = "account_verified", unique = false, nullable = false)
     var account_verified: Boolean? = false,
 
-    @Column(name = "temp_token", length = 100, unique = true, nullable = true)
+    @Column(name = "temp_token", length = 1000, unique = true, nullable = true)
     @Size(min = 3)
     var temp_token: String? = null,
 
@@ -44,12 +46,12 @@ data class UserAccount(
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
-    val createdAt: Date? = null,
+    var createdAt: Date? = null,
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
-    val updatedAt: Date? = null,
+    var updatedAt: Date? = null,
 ) {
 
     // Custom methods

@@ -1,9 +1,12 @@
 package com.geogrind.geogrindbackend.controllers.registration
 
 import com.geogrind.geogrindbackend.dto.registration.CreateUserAccountDto
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.dto.registration.UpdateUserAccountDto
-import com.geogrind.geogrindbackend.models.user_account.UserAccount
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountConfirmationDto
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
+import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import io.swagger.v3.oas.annotations.Operation
@@ -17,7 +20,6 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import java.util.UUID
 
 @Tag(name = "UserAccount", description = "User Account REST Controller")
 @RestController
@@ -50,7 +52,7 @@ interface UserAccountController {
         operationId = "createUserAccount",
         description = "Create new user account for user"
     )
-    suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto): ResponseEntity<SuccessUserAccountResponse>
+    suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto): ResponseEntity<SendGridResponseDto>
 
     @PatchMapping(path = ["/change_password"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -59,7 +61,7 @@ interface UserAccountController {
         operationId = "updateUserAccount",
         description = "Update user account's password"
     )
-    suspend fun updateUserAccountById(@PathVariable(required = true) user_id: String, @Valid @RequestBody updateUserAccountDto: UpdateUserAccountDto): ResponseEntity<SuccessUserAccountResponse>
+    suspend fun updateUserAccountById(@PathVariable(required = true) user_id: String, @Valid @RequestBody updateUserAccountDto: UpdateUserAccountDto): ResponseEntity<SendGridResponseDto>
 
     @DeleteMapping(path = ["/delete_account/{user_id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -68,5 +70,34 @@ interface UserAccountController {
         operationId = "deleteUserAccount",
         description = "Delete user account"
     )
-    suspend fun deleteUserAccount(@PathVariable(required = true) user_id: String): ResponseEntity<Unit>
+    suspend fun deleteUserAccount(@PathVariable(required = true) user_id: String): ResponseEntity<SendGridResponseDto>
+
+
+    // verify the email address
+    @GetMapping(path = ["/confirm-email/{token}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        method = "POST",
+        summary = "Verify user account",
+        operationId = "verifyUserEmail",
+        description = "Verify user email"
+    )
+    suspend fun verifyUserEmail(@PathVariable(required = true) token: String): ResponseEntity<SuccessUserAccountResponse>
+
+    @GetMapping(path = ["/confirm-password-change/{token}"], consumes = [MediaType.APPLICATION_FORM_URLENCODED_VALUE], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        method = "POST",
+        summary = "Update password confirm",
+        operationId = "updatePasswordConfirmation",
+        description = "Update password confirmation"
+    )
+    suspend fun updatePasswordConfirmation(@PathVariable(required = true) token: String): ResponseEntity<SuccessUserAccountResponse>
+
+    @GetMapping(path = ["/confirm-account-deletion/{token}"])
+    @Operation(
+        method = "DELETE",
+        summary = "Delete user account confirm",
+        operationId = "deleteAccountConfirmation",
+        description = "Delete user account confirmation"
+    )
+    suspend fun deleteAccountConfirmation(@PathVariable(required = true) token: String): ResponseEntity<Unit>
 }
