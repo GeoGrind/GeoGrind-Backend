@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.ResponseStatus
 
+@Order(2)
 @ControllerAdvice
 class UserAccountBadRequestAdvice {
     @ExceptionHandler(UserAccountBadRequestException::class)
