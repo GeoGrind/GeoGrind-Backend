@@ -1,17 +1,7 @@
 package com.geogrind.geogrindbackend.models.permissions
 
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EntityListeners
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.Table
-import jakarta.persistence.Temporal
-import jakarta.persistence.TemporalType
+import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.Type
 import org.springframework.data.annotation.CreatedDate
@@ -32,15 +22,12 @@ data class Permission(
 
     @Column(name = "permission_name", length = 100, unique = true, nullable = false)
     @Size(min = 5)
-    var permission_name: String,
+    @Enumerated(EnumType.STRING)
+    var permission_name: PermissionName,
 
     @Column(name = "user_id", length = 1000, unique = true, nullable = false)
     @Size(min = 5)
-    var user_id: UUID,
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
-    val user_account: UserAccount,
+    var user_id: UUID?,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
@@ -51,6 +38,11 @@ data class Permission(
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
     var updatedAt: Date? = null,
+
+    // many to one relationship with the user account
+    @ManyToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
+    val user_account: UserAccount,
 ) {
 
     // Custom methods

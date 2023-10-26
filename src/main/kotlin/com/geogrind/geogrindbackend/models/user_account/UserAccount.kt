@@ -2,6 +2,7 @@ package com.geogrind.geogrindbackend.models.user_account
 
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.models.permissions.Permission
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import java.util.UUID
@@ -52,6 +53,10 @@ data class UserAccount(
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
     var updatedAt: Date? = null,
+
+    // one to many relationships with the permission entity
+    @OneToMany(mappedBy = "user_account")
+    val permissions: Set<Permission>
 ) {
 
     // Custom methods
