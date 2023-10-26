@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.advice.registration
 
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountForbiddenException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountForbiddenException
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType

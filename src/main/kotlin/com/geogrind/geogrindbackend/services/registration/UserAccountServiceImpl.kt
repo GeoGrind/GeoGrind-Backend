@@ -5,10 +5,10 @@ import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountC
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountBadRequestException
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountConflictException
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountNotFoundException
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountUnauthorizedException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountConflictException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
@@ -21,18 +21,15 @@ import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelper
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
-import io.jsonwebtoken.JwtParser
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.Key
 import java.time.Instant
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.math.log
 
 @Service
 class UserAccountServiceImpl(private val userAccoutRepository: UserAccountRepository) : UserAccountService {

@@ -1,9 +1,9 @@
 package com.geogrind.geogrindbackend.services.login
 
 import com.geogrind.geogrindbackend.dto.login.UserLoginRequestDto
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountForbiddenException
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountNotFoundException
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountUnauthorizedException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountForbiddenException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_account.UserAccount

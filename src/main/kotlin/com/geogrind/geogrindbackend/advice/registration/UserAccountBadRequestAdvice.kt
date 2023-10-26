@@ -1,15 +1,12 @@
 package com.geogrind.geogrindbackend.advice.registration
 
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountBadRequestException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
 import org.springframework.core.annotation.Order
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.ResponseStatus
 
 @Order(2)
 @ControllerAdvice
