@@ -59,6 +59,8 @@ dependencies {
 	// okhttp3
 	implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
+	implementation("javax.xml.bind:jaxb-api:2.3.0")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("com.mysql:mysql-connector-j")

@@ -4,6 +4,9 @@ import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.jdbc.datasource.DriverManagerDataSource
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
+import java.util.*
 import javax.sql.DataSource
 
 @Configuration
@@ -29,6 +32,7 @@ class DatabaseConfigImpl : DatabaseConfig {
         dataSource.url = jdbcUrl
         dataSource.username = dbUserName
         dataSource.password = dbPassword
+
         return dataSource
     }
 }

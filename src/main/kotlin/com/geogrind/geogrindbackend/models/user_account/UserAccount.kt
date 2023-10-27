@@ -1,8 +1,8 @@
 package com.geogrind.geogrindbackend.models.user_account
 
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.models.permissions.Permission
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import java.util.UUID
@@ -10,7 +10,6 @@ import java.util.UUID
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import org.springframework.http.HttpStatus
 import java.util.Date
 
 @Entity
@@ -43,6 +42,9 @@ data class UserAccount(
     var temp_token: String? = null,
 
     // TO-DO: permissions whether user can go into a certain resource
+    @OneToMany(targetEntity = Permission::class, cascade = [CascadeType.ALL])
+    @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
+    var permissions: Set<Permission> = emptySet(),
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
@@ -53,10 +55,6 @@ data class UserAccount(
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
     var updatedAt: Date? = null,
-
-    // one to many relationships with the permission entity
-    @OneToMany(mappedBy = "user_account")
-    val permissions: Set<Permission>
 ) {
 
     // Custom methods
