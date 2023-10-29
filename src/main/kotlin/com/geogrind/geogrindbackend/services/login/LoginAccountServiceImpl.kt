@@ -17,6 +17,8 @@ import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookieImpl
+import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
+import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelperImpl
 import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailServiceImpl
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
@@ -40,6 +42,8 @@ class LoginAccountServiceImpl(
     private val BcryptObj: BcryptHashPasswordHelper = BcryptHashPasswordHelperImpl()
 
     private val generateRandomHelper: GenerateRandomHelper = GenerateRandomHelperImpl()
+
+    private val grantPermissionHelper: GrantPermissionHelper = GrantPermissionHelperImpl()
 
     private val generateCookieHelper: CreateTokenCookie = CreateTokenCookieImpl()
 
@@ -78,25 +82,20 @@ class LoginAccountServiceImpl(
         }
 
         // give the user the permission to verify the otp code if the user didn't have this permission
-        val permissions = Permission(
-            permission_name = PermissionName.CAN_VERIFY_OTP,
-            fkUserAccountId = findUserAccount.id as UUID,
-            createdAt = Date(),
-            updatedAt = Date(),
+        val permissions: Set<Permission> = setOf(
+            Permission(
+                permission_name = PermissionName.CAN_VERIFY_OTP,
+                fkUserAccountId = findUserAccount.id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
+            )
         )
 
-        val all_permissions: MutableSet<Permission> = permissionRepository.findAllByFkUserAccountId(findUserAccount.id as UUID)
-
-        val all_permissions_name: MutableSet<PermissionName> = mutableSetOf()
-
-        for(current_permission in all_permissions) {
-            all_permissions_name.add(current_permission.permission_name)
-        }
-
-        if(permissions.permission_name !in all_permissions_name) {
-            permissionRepository.save(permissions)
-            findUserAccount.permissions.add(permissions)
-        }
+        grantPermissionHelper.grant_permission_helper(
+            newPermissions = permissions,
+            permissionRepository = permissionRepository,
+            currentUserAccount = findUserAccount,
+        )
 
         val savedUser: UserAccount = userAccountRepository.save(findUserAccount)
 
@@ -169,19 +168,11 @@ class LoginAccountServiceImpl(
             )
         )
 
-        val getAllCurrentPermissions: MutableSet<Permission> = permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID)
-        val getAllCurrentPermissionName: MutableSet<PermissionName> = mutableSetOf()
-
-        for(current_permission in getAllCurrentPermissions) {
-            getAllCurrentPermissionName.add(current_permission.permission_name)
-        }
-
-        for(permission in newPermissions) {
-            if(permission.permission_name !in getAllCurrentPermissionName) {
-                permissionRepository.save(permission)
-                findUserAccount.get().permissions.add(permission)
-            }
-        }
+        grantPermissionHelper.grant_permission_helper(
+            newPermissions = newPermissions,
+            permissionRepository = permissionRepository,
+            currentUserAccount = findUserAccount.get()
+        )
 
         // generate the new jwt token for the user's new session
         val jwt_token: String = generateCookieHelper.generateJwtToken(3600, findUserAccount.get().id as UUID, permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID), geogrindSecretKey)
