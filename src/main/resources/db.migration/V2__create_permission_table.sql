@@ -26,4 +26,4 @@ ALTER TABLE permissions
 ALTER TABLE permissions
 ALTER COLUMN permission_name TYPE VARCHAR(100);
 
-DROP TABLE permissions;
+DELETE FROM permissions;

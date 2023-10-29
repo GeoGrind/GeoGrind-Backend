@@ -116,7 +116,7 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
             username = username,
             hashed_password = hashed_password,
             createdAt = Date(),
-            permissions = emptySet(),
+            permissions = mutableSetOf(),
             updatedAt = Date(),
         )
 

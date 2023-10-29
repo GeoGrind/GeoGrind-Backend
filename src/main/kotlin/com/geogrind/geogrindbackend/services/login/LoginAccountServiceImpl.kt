@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.services.login
 
+import com.geogrind.geogrindbackend.dto.login.ConfirmUserLoginResquestDto
 import com.geogrind.geogrindbackend.dto.login.UserLoginRequestDto
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountForbiddenException
@@ -14,11 +15,20 @@ import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelperImpl
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
+import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
+import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookieImpl
 import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailServiceImpl
 import io.github.cdimascio.dotenv.Dotenv
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
+import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
+import okhttp3.internal.notify
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -30,6 +40,8 @@ class LoginAccountServiceImpl(
     private val BcryptObj: BcryptHashPasswordHelper = BcryptHashPasswordHelperImpl()
 
     private val generateRandomHelper: GenerateRandomHelper = GenerateRandomHelperImpl()
+
+    private val generateCookieHelper: CreateTokenCookie = CreateTokenCookieImpl()
 
     // Load environment variables from the .env file
     private val dotenv = Dotenv.configure().directory("/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/.env").load()
@@ -68,14 +80,23 @@ class LoginAccountServiceImpl(
         // give the user the permission to verify the otp code if the user didn't have this permission
         val permissions = Permission(
             permission_name = PermissionName.CAN_VERIFY_OTP,
-            fk_user_account_id = findUserAccount.id as UUID,
+            fkUserAccountId = findUserAccount.id as UUID,
             createdAt = Date(),
             updatedAt = Date(),
         )
 
-        permissionRepository.save(permissions)
+        val all_permissions: MutableSet<Permission> = permissionRepository.findAllByFkUserAccountId(findUserAccount.id as UUID)
 
-        findUserAccount.permissions.plus(permissions)
+        val all_permissions_name: MutableSet<PermissionName> = mutableSetOf()
+
+        for(current_permission in all_permissions) {
+            all_permissions_name.add(current_permission.permission_name)
+        }
+
+        if(permissions.permission_name !in all_permissions_name) {
+            permissionRepository.save(permissions)
+            findUserAccount.permissions.add(permissions)
+        }
 
         val savedUser: UserAccount = userAccountRepository.save(findUserAccount)
 
@@ -103,5 +124,74 @@ class LoginAccountServiceImpl(
         }
 
         return sendgrid_response
+    }
+
+    @Transactional
+    override suspend fun confirmLoginHandler(@Valid requestDto: ConfirmUserLoginResquestDto): Pair<UserAccount, Cookie> {
+        // decode the jwt token
+        val decoded_token: Claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
+            .build()
+            .parseSignedClaims(requestDto.token)
+            .payload
+
+        // check if the expiration time is more than the current time
+        val exp_timestamp = decoded_token["exp"] as Long
+        val exp_time = Instant.ofEpochSecond(exp_timestamp)
+        val current_time = Instant.now()
+
+        if(current_time.isAfter(exp_time)) {
+            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
+        }
+
+        val user_id: String = decoded_token["user_id"] as String
+
+        val findUserAccount = userAccountRepository.findById(UUID.fromString(user_id))
+
+        // verify the temp token
+        if(!findUserAccount.get().temp_token.equals(requestDto.token)) {
+            throw UserAccountUnauthorizedException("Unauthorized user!")
+        }
+
+        // if the user is verified -> give the user more permissions
+        val newPermissions: Set<Permission> = setOf(
+            Permission(
+                permission_name = PermissionName.CAN_VIEW_PROFILE,
+                fkUserAccountId = findUserAccount.get().id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
+            ),
+            Permission(
+                permission_name = PermissionName.CAN_EDIT_PROFILE,
+                fkUserAccountId = findUserAccount.get().id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
+            )
+        )
+
+        val getAllCurrentPermissions: MutableSet<Permission> = permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID)
+        val getAllCurrentPermissionName: MutableSet<PermissionName> = mutableSetOf()
+
+        for(current_permission in getAllCurrentPermissions) {
+            getAllCurrentPermissionName.add(current_permission.permission_name)
+        }
+
+        for(permission in newPermissions) {
+            if(permission.permission_name !in getAllCurrentPermissionName) {
+                permissionRepository.save(permission)
+                findUserAccount.get().permissions.add(permission)
+            }
+        }
+
+        // generate the new jwt token for the user's new session
+        val jwt_token: String = generateCookieHelper.generateJwtToken(3600, findUserAccount.get().id as UUID, permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID), geogrindSecretKey)
+
+        // store the token into cookies
+        val cookie: Cookie = generateCookieHelper.createTokenCookie(3600, jwt_token)
+
+        return Pair(
+            first = findUserAccount.get(),
+            second = cookie,
+        )
     }
 }

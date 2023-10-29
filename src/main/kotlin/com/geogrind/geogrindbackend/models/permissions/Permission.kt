@@ -25,7 +25,7 @@ data class Permission(
 
     @Column(name = "fk_user_account_id", nullable = false)
     @Size(min = 5)
-    var fk_user_account_id: UUID,
+    var fkUserAccountId: UUID,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

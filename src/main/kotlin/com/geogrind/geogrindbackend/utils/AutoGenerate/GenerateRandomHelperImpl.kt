@@ -31,7 +31,7 @@ class GenerateRandomHelperImpl : GenerateRandomHelper {
             hashed_password = hashedPassword,
             createdAt = Date(),
             updatedAt = Date(),
-            permissions = setOf(),
+            permissions = mutableSetOf(),
         )
     }
 

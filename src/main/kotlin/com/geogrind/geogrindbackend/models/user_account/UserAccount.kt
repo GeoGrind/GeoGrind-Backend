@@ -37,14 +37,14 @@ data class UserAccount(
     @Column(name = "account_verified", unique = false, nullable = false)
     var account_verified: Boolean? = false,
 
-    @Column(name = "temp_token", length = 1000, unique = true, nullable = true)
+    @Column(name = "temp_token", length = 100000, unique = true, nullable = true)
     @Size(min = 3)
     var temp_token: String? = null,
 
     // TO-DO: permissions whether user can go into a certain resource
     @OneToMany(targetEntity = Permission::class, cascade = [CascadeType.ALL])
     @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
-    var permissions: Set<Permission> = emptySet(),
+    var permissions: MutableSet<Permission> = mutableSetOf(),
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

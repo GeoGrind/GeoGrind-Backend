@@ -7,4 +7,6 @@ import java.util.*
 
 
 @Repository
-interface PermissionRepository : JpaRepository<Permission, UUID> {}
+interface PermissionRepository : JpaRepository<Permission, UUID> {
+    fun findAllByFkUserAccountId(user_id: UUID): MutableSet<Permission>
+}
