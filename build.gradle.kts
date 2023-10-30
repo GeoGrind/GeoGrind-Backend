@@ -32,6 +32,7 @@ dependencies {
 
 	// bcrypt and security
 	implementation("org.mindrot:jbcrypt:0.4")
+	implementation("org.springframework.boot:spring-boot-starter-security")
 
 	// springfox
 	implementation("io.springfox:springfox-boot-starter:3.0.0")
