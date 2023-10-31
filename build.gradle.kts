@@ -32,7 +32,6 @@ dependencies {
 
 	// bcrypt and security
 	implementation("org.mindrot:jbcrypt:0.4")
-	implementation("org.springframework.boot:spring-boot-starter-security")
 
 	// springfox
 	implementation("io.springfox:springfox-boot-starter:3.0.0")
@@ -60,6 +59,8 @@ dependencies {
 	// okhttp3
 	implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
+	// security
+	implementation("org.springframework.boot:spring-boot-starter-security")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")

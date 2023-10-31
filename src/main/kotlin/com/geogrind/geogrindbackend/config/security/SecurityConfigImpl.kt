@@ -1,7 +1,7 @@
 package com.geogrind.geogrindbackend.config.security
 
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
-import com.geogrind.geogrindbackend.utils.middleware.JwtAuthenticationFilterImpl
+import com.geogrind.geogrindbackend.utils.Middleware.JwtAuthenticationFilterImpl
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -10,6 +10,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
 import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher
+import org.springframework.util.AntPathMatcher
 import org.springframework.web.servlet.handler.HandlerMappingIntrospector
 
 // configure the Spring security for each endpoint
@@ -22,64 +24,56 @@ class SecurityConfigImpl : SecurityConfig {
             .authorizeHttpRequests { authorizeRequests ->
                 authorizeRequests
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/user_account/all",
+                        AntPathRequestMatcher(
+                            "/geogrind/user_account/all",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/user_account/{user_id}",
+                        AntPathRequestMatcher(
+                            "/geogrind/user_account/{user_id}",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/user_account/register",
+                        AntPathRequestMatcher(
+                            "/geogrind/user_account/register",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(), "http://localhost:8080/geogrind/user_account/change_password/{user_id}",
+                        AntPathRequestMatcher(
+                            "/geogrind/user_account/change_password/{user_id}",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/user_account/delete_account/{user_id}",
+                        AntPathRequestMatcher(
+                            "/geogrind/user_account/delete_account/{user_id}",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/confirm-email/{token}",
+                        AntPathRequestMatcher(
+                            "/geogrind/confirm-email/{token}",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/confirm-password-change/{token}",
+                        AntPathRequestMatcher(
+                            "/geogrind/confirm-password-change/{token}",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/confirm-account-deletion/{token}",
+                        AntPathRequestMatcher(
+                            "/geogrind/confirm-account-deletion/{token}",
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/user_account/login",
+                        AntPathRequestMatcher(
+                            "/geogrind/user_account/login",
+                            HttpMethod.POST.toString()
                         )
                     ).permitAll()
                     .requestMatchers(
-                        MvcRequestMatcher(
-                            HandlerMappingIntrospector(),
-                            "http://localhost:8080/geogrind/user_account/verify-login/{token}",
+                        AntPathRequestMatcher(
+                            "/geogrind/user_account/verify-login/{token}",
                         )
-                    ).hasAnyAuthority(PermissionName.CAN_VERIFY_OTP.toString())
+                    ).permitAll()
             }
             .addFilterBefore(JwtAuthenticationFilterImpl(), AnonymousAuthenticationFilter::class.java)
             .exceptionHandling { exceptionHandling ->
@@ -89,6 +83,7 @@ class SecurityConfigImpl : SecurityConfig {
                     }
             }
             .csrf(Customizer.withDefaults())
+
 
         return http.build()
     }

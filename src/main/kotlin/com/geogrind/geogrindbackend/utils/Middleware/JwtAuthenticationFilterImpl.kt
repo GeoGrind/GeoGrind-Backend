@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.utils.middleware
+package com.geogrind.geogrindbackend.utils.Middleware
 
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import com.geogrind.geogrindbackend.models.permissions.Permission
@@ -19,14 +19,21 @@ import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.WebUtils
 
+@Component
 class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
     private val dotenv: Dotenv = Dotenv.configure().directory("/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/.env").load()
 
     private val geogrindSecretKey: String = dotenv["GEOGRIND_SECRET_KEY"]
+
+    private val protected_resources: Set<String> = setOf(
+        "/geogrind/user_profile/view_profile",
+        "/geogrind/user_profile/edit_profile",
+    )
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -34,12 +41,20 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         filterChain: FilterChain
     ) {
         try {
+            val requestUri: String = request.requestURI
+
+            if(shouldNotFilter(requestUri)) {
+                log.info("The endpoint does not require authentication!")
+                println("The endpoint does not require authentication!")
+                filterChain.doFilter(request, response)
+                return
+            }
+
             val jwt_token: String? = extractToken(
                 request = request,
                 cookieName = "JWT-TOKEN",
             )
 
-            val requestUri: String = request.requestURI
             val requiredPermissions: Set<PermissionName> = determineRequiredPermissions(
                 requestUri = requestUri,
             )
@@ -57,6 +72,9 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             )
 
             if(!match_permissions) sendUnauthorizedResponse()
+
+            log.info("Verified the endpoint successfully!")
+            filterChain.doFilter(request, response)
 
         } catch (e: ExpiredJwtException) {
             log.info("Token has expired: ${e.message}")
@@ -99,8 +117,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             )
             return cookie!!.value
         } catch (e: RuntimeException) {
-            // Handle the exception
-            log.info("Cannot extract the token from the cookie!")
+            log.info("${e.message}")
         }
         return null
     }
@@ -113,11 +130,12 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             requestUri == "/geogrind/user_profile/edit_profile" -> setOf(
                 PermissionName.CAN_EDIT_PROFILE
             )
-            requestUri == "/geogrind/user_account/verify-login/{token}" -> setOf(
-                PermissionName.CAN_VERIFY_OTP
-            )
             else -> return setOf()
         }
+    }
+
+    private fun shouldNotFilter(requestUri: String): Boolean {
+        return requestUri !in protected_resources
     }
 
     private fun hasRequiredPermissions(

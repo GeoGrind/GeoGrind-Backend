@@ -27,6 +27,7 @@ import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.lang.IllegalArgumentException
 import java.time.Instant
 import java.util.*
 import kotlin.collections.HashMap
@@ -53,12 +54,18 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
 
     // get the user account by an user_id
     @Transactional(readOnly = true)
-    override suspend fun getUserAccountById(@Valid requestDto: GetUserAccountByIdDto): UserAccount = userAccoutRepository.findById(
-         requestDto.user_id
-    )
-        .orElseThrow { UserAccountNotFoundException(
-            requestDto.user_id.toString()
-        ) }
+    override suspend fun getUserAccountById(@Valid requestDto: GetUserAccountByIdDto): UserAccount {
+        try {
+            val user_account: Optional<UserAccount> = userAccoutRepository.findById(requestDto.user_id)
+            return user_account.get()
+        } catch (e: UserAccountNotFoundException) {
+            throw e
+        } catch (e: RuntimeException) {
+            val error_map: MutableMap<String, String?> = mutableMapOf()
+            error_map["error"] = e.message
+            throw UserAccountBadRequestException(error_map as MutableMap<String, String>)
+        }
+    }
 
     // create new user account in the database
     @Transactional
