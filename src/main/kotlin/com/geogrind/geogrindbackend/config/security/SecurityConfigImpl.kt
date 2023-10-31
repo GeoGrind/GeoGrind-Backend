@@ -7,12 +7,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
 import org.springframework.security.config.Customizer
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter
-import org.springframework.security.web.servlet.util.matcher.MvcRequestMatcher
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher
-import org.springframework.util.AntPathMatcher
-import org.springframework.web.servlet.handler.HandlerMappingIntrospector
 
 // configure the Spring security for each endpoint
 @Configuration
@@ -26,52 +24,61 @@ class SecurityConfigImpl : SecurityConfig {
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/all",
+                            HttpMethod.GET.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/{user_id}",
+                            HttpMethod.GET.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/register",
+                            HttpMethod.POST.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/change_password/{user_id}",
+                            HttpMethod.PATCH.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/delete_account/{user_id}",
+                            HttpMethod.DELETE.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
-                            "/geogrind/confirm-email/{token}",
+                            "/geogrind/user_account/confirm-email/{token}",
+                            HttpMethod.GET.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
-                            "/geogrind/confirm-password-change/{token}",
+                            "/geogrind/user_account/confirm-password-change/{token}",
+                            HttpMethod.GET.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
-                            "/geogrind/confirm-account-deletion/{token}",
+                            "/geogrind/user_account/confirm-account-deletion/{token}",
+                            HttpMethod.GET.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/login",
-                            HttpMethod.POST.toString()
+                            HttpMethod.POST.toString(),
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/verify-login/{token}",
+                            HttpMethod.GET.toString(),
                         )
                     ).permitAll()
             }
@@ -82,8 +89,7 @@ class SecurityConfigImpl : SecurityConfig {
                         // Handle unauthorized requests
                     }
             }
-            .csrf(Customizer.withDefaults())
-
+            .csrf { it.disable() }
 
         return http.build()
     }

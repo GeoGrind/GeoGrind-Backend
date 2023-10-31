@@ -45,7 +45,6 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
             if(shouldNotFilter(requestUri)) {
                 log.info("The endpoint does not require authentication!")
-                println("The endpoint does not require authentication!")
                 filterChain.doFilter(request, response)
                 return
             }
