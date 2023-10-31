@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.exceptions.registration
+package com.geogrind.geogrindbackend.exceptions.user_account
 
 class UserAccountBadRequestException(registration_form_errors: MutableMap<String, String>): RuntimeException("Bad request for user account registration form") {
     val errors: Map<String, String> = registration_form_errors

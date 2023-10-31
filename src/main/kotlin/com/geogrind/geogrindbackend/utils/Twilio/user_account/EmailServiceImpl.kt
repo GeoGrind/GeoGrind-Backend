@@ -2,6 +2,8 @@ package com.geogrind.geogrindbackend.utils.Twilio.user_account
 
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.JwtSendGridEmail
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.models.permissions.Permission
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.sendgrid.Method
 import com.sendgrid.Response
 import com.sendgrid.SendGrid
@@ -45,6 +47,7 @@ class EmailServiceImpl(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
             new_password = null,
+            permission = null,
             exp = expirationTime,
         )
 
@@ -105,6 +108,7 @@ class EmailServiceImpl(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
             new_password = new_password,
+            permission = null,
             exp = expirationTime
         )
 
@@ -166,6 +170,7 @@ class EmailServiceImpl(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
             new_password = null,
+            permission = null,
             exp = expirationTime
         )
 
@@ -205,5 +210,69 @@ class EmailServiceImpl(
         } catch (e: IOException) {
             throw e
         }
+    }
+
+    override suspend fun sendEmailOTP(
+        user_email: String,
+        geogrind_otp_code: String,
+        permission_lists: Set<Permission>,
+        user_id: String,
+        ): SendGridResponseDto {
+        val subject: String = "Secure your login with OTP"
+        val templatePath: String = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_login_template.html"
+
+        val template = File(templatePath).readText()
+
+        // allow up to 5 minutes of exp time
+        val expirationTime = Instant.now().plusSeconds(300)
+
+        val key = Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray())
+
+        val jwtEncodeData: JwtSendGridEmail = JwtSendGridEmail(
+            user_id = user_id,
+            geogrind_otp_code = geogrind_otp_code,
+            new_password = null,
+            permission = permission_lists,
+            exp = expirationTime,
+        )
+
+        val token = Jwts.builder()
+            .claim("user_id", jwtEncodeData.user_id)
+            .claim("geogrind_otp_code", jwtEncodeData.geogrind_otp_code)
+            .claim("permission_lists", jwtEncodeData.permission)
+            .issuedAt(Date.from(Instant.now()))
+            .expiration(Date.from(jwtEncodeData.exp))
+            .signWith(key)
+            .compact()
+
+        val content = template.replace("{{token}}", token)
+
+        val from = Email("infogeogrind@gmail.com")
+        val to = Email(user_email)
+        val mail = Mail(
+            from,
+            subject,
+            to,
+            Content("text/html", content)
+        )
+
+        // send the request to SENDGRID server for email sending
+        val sendGrid = SendGrid(sendGridApiKey)
+        val request = com.sendgrid.Request()
+        try {
+            request.method = Method.POST
+            request.endpoint = "mail/send"
+            request.body = mail.build()
+
+            val response: Response = sendGrid.api(request)
+            return SendGridResponseDto(
+                statusCode = response.statusCode,
+                sendGridResponse = response.body,
+                token = token
+            )
+        } catch (e: IOException) {
+            throw e
+        }
+
     }
 }

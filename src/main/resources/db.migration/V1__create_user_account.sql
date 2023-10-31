@@ -9,9 +9,10 @@ CREATE TABLE IF NOT EXISTS user_account
     username       VARCHAR(60)        UNIQUE  NOT NULL CHECK ( user_account.username <> '' ),
     hashed_password           VARCHAR(100) UNIQUE NOT NULL CHECK ( user_account.hashed_password <> '' ),
     account_verified         BOOLEAN       NOT NULL DEFAULT FALSE,
-    temp_token           VARCHAR(100) UNIQUE CHECK ( user_account.temp_token <> '' ),
+    temp_token           VARCHAR(1000) UNIQUE CHECK ( user_account.temp_token <> '' ),
     created_at      TIMESTAMP WITH TIME ZONE    DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP WITH TIME ZONE    DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE user_account;
+ALTER TABLE user_account
+ALTER COLUMN temp_token TYPE VARCHAR(100000)

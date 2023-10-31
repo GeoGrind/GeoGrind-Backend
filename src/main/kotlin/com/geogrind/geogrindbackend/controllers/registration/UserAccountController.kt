@@ -4,9 +4,6 @@ import com.geogrind.geogrindbackend.dto.registration.CreateUserAccountDto
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.dto.registration.UpdateUserAccountDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import io.swagger.v3.oas.annotations.Operation

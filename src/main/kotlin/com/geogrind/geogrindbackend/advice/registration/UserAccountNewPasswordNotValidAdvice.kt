@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.advice.registration
 
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountNewPasswordNotValidException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNewPasswordNotValidException
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice

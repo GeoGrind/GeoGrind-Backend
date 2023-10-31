@@ -1,7 +1,7 @@
 package com.geogrind.geogrindbackend.advice.registration
 
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountBadRequestException
-import com.geogrind.geogrindbackend.exceptions.registration.UserAccountUnauthorizedException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity

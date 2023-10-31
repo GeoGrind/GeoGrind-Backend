@@ -16,13 +16,14 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 
 @Tag(name = "UserAccount", description = "User Account REST Controller")
 @RestController
 @RequestMapping(path = ["/geogrind/user_account/"])
-class UserAccountControllerImpl(
+class UserAccountControllerImpl @Autowired constructor(
     private val userAccountService: UserAccountService
 ) : UserAccountController {
 

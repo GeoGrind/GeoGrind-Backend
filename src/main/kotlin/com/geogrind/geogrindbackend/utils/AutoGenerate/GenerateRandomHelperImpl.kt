@@ -30,7 +30,8 @@ class GenerateRandomHelperImpl : GenerateRandomHelper {
             username = username,
             hashed_password = hashedPassword,
             createdAt = Date(),
-            updatedAt = Date()
+            updatedAt = Date(),
+            permissions = mutableSetOf(),
         )
     }
 

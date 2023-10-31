@@ -1,7 +1,8 @@
 package com.geogrind.geogrindbackend.models.user_account
 
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.models.permissions.Permission
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import java.util.UUID
@@ -9,7 +10,6 @@ import java.util.UUID
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import org.springframework.http.HttpStatus
 import java.util.Date
 
 @Entity
@@ -37,11 +37,14 @@ data class UserAccount(
     @Column(name = "account_verified", unique = false, nullable = false)
     var account_verified: Boolean? = false,
 
-    @Column(name = "temp_token", length = 1000, unique = true, nullable = true)
+    @Column(name = "temp_token", length = 100000, unique = true, nullable = true)
     @Size(min = 3)
     var temp_token: String? = null,
 
     // TO-DO: permissions whether user can go into a certain resource
+    @OneToMany(targetEntity = Permission::class, cascade = [CascadeType.ALL])
+    @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
+    var permissions: MutableSet<Permission> = mutableSetOf(),
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
