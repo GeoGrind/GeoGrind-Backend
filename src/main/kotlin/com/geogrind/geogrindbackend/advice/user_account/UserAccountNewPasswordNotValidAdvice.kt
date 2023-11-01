@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.advice.registration
+package com.geogrind.geogrindbackend.advice.user_account
 
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNewPasswordNotValidException
 import org.springframework.core.annotation.Order

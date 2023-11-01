@@ -1,26 +1,23 @@
-package com.geogrind.geogrindbackend.advice.registration
+package com.geogrind.geogrindbackend.advice.user_account
 
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
-import org.springframework.core.annotation.Order
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 
-@Order(2)
 @ControllerAdvice
-class UserAccountBadRequestAdvice {
-    @ExceptionHandler(UserAccountBadRequestException::class)
-    fun userBadRequestHandler(ex: UserAccountBadRequestException): ResponseEntity<Map<String, String>> {
-        val errorMap = ex.errors
+class UserAccountUnauthorizedAdvice {
 
-        // Customize the response body
+    @ExceptionHandler(UserAccountBadRequestException::class)
+    fun userUnauthorizedHandler(ex: UserAccountUnauthorizedException): ResponseEntity<String> {
         return ResponseEntity
-            .status(HttpStatus.BAD_REQUEST)
+            .status(HttpStatus.UNAUTHORIZED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                errorMap
+                ex.message
             )
     }
 }
