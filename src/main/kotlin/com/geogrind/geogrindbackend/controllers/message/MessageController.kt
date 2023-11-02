@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.controllers.message
 
-import com.geogrind.geogrindbackend.dto.message.TestDto
+import com.geogrind.geogrindbackend.dto.message.MessageResponseDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.MediaType
@@ -15,9 +15,9 @@ interface MessageController {
     @GetMapping(path = ["/all"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
-        summary = "Retrieve test message data",
-        operationId = "retrieveTestMessage",
-        description = "Retrieve test message data"
+        summary = "Retrieve all messages",
+        operationId = "retrieveAllMessages",
+        description = "Retrieve a list of all messages"
     )
-    suspend fun getFunction(): ResponseEntity<TestDto>
+    suspend fun getAllMessages(): ResponseEntity<List<MessageResponseDto>>
 }
