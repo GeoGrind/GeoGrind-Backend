@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.services.user_profile
 
+import com.geogrind.geogrindbackend.dto.user_profile.CreateUserProfileDto
 import com.geogrind.geogrindbackend.dto.user_profile.GetUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.dto.user_profile.UpdateUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
@@ -12,6 +13,9 @@ interface UserProfileService {
     suspend fun getAllUserProfile(): List<UserProfile>
     suspend fun getUserProfileByUserAccountId(
         @Valid requestDto: GetUserProfileByUserAccountIdDto
+    ): UserProfile
+    suspend fun createEmptyUserProfile(
+        @Valid requestDto: CreateUserProfileDto
     ): UserProfile
     suspend fun updateUserProfileByUserAccountId(
         user_account_id: UUID,

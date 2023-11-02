@@ -48,7 +48,7 @@ data class UserProfile(
 
     @Column(name = "year_of_graduation", length = 4, nullable = true)
     @Size(min = 4)
-    var year_of_graduation: Int,
+    var year_of_graduation: Int? = null,
 
     @Enumerated(EnumType.STRING)
     @Column(name = "university", length = 100, nullable = false)
