@@ -26,7 +26,7 @@ import org.springframework.web.util.WebUtils
 @Component
 class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
-    private val dotenv: Dotenv = Dotenv.configure().directory("/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/.env").load()
+    private val dotenv: Dotenv = Dotenv.configure().directory("/Users/pengjingcheng/Desktop/GeoGrind-Backend/.env").load()
 
     private val geogrindSecretKey: String = dotenv["GEOGRIND_SECRET_KEY"]
 
