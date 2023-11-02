@@ -1,8 +1,8 @@
-package com.geogrind.geogrindbackend.services.user_profile
+package com.geogrind.geogrindbackend.services.profile
 
-import com.geogrind.geogrindbackend.dto.user_profile.CreateUserProfileDto
-import com.geogrind.geogrindbackend.dto.user_profile.GetUserProfileByUserAccountIdDto
-import com.geogrind.geogrindbackend.dto.user_profile.UpdateUserProfileByUserAccountIdDto
+import com.geogrind.geogrindbackend.dto.profile.CreateUserProfileDto
+import com.geogrind.geogrindbackend.dto.profile.GetUserProfileByUserAccountIdDto
+import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileBadRequestException
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
@@ -38,8 +38,23 @@ class UserProfileServiceImpl(
     @Transactional(readOnly = true)
     override suspend fun getUserProfileByUserAccountId(
         @Valid requestDto: GetUserProfileByUserAccountIdDto
-    ): UserProfile = userProfileRepository.findById(requestDto.profile_id)
-        .orElseThrow { UserProfileNotFoundException("Cannot find user profile with profile id: ${requestDto.profile_id}") }
+    ): UserProfile {
+
+        // find the user account
+        val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(requestDto.user_account_id)
+
+        if(findUserAccount.isEmpty) {
+            throw UserAccountNotFoundException(requestDto.user_account_id.toString())
+        }
+
+        val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUser_account(findUserAccount.get())
+
+        if(findUserProfile.isEmpty) {
+            throw UserProfileNotFoundException("Cannot find user profile with profile id: ${requestDto.user_account_id}")
+        }
+
+        return findUserProfile.get()
+    }
 
     // create an empty user profile
     @Transactional

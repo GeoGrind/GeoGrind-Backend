@@ -1,7 +1,6 @@
-package com.geogrind.geogrindbackend.dto.user_profile
+package com.geogrind.geogrindbackend.dto.profile
 
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
-import com.geogrind.geogrindbackend.models.user_profile.University
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 

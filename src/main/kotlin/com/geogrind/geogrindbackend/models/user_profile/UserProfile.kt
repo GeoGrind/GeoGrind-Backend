@@ -1,5 +1,7 @@
 package com.geogrind.geogrindbackend.models.user_profile
 
+import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
+import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -103,5 +105,34 @@ data class UserProfile(
 
     override fun toString(): String {
         return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.user_account}"
+    }
+}
+
+// success response
+fun UserProfile.toSuccessHttpResponse(): SuccessUserProfileResponse {
+    return SuccessUserProfileResponse(
+        profile_id = this.profile_id,
+        username = this.username,
+        emoji = this.emoji,
+        program = this.program,
+        year_of_graduation = this.year_of_graduation,
+        university = this.university,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+    )
+}
+
+fun List<UserProfile>.toSuccessHttpResponseList(): List<SuccessUserProfileResponse> {
+    return this.map {
+        SuccessUserProfileResponse(
+            profile_id = it.profile_id,
+            username = it.username,
+            emoji = it.emoji,
+            program = it.program,
+            year_of_graduation = it.year_of_graduation,
+            university = it.university,
+            createdAt = it.createdAt,
+            updatedAt = it.updatedAt,
+        )
     }
 }

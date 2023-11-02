@@ -51,7 +51,7 @@ interface UserAccountController {
     )
     suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto): ResponseEntity<SendGridResponseDto>
 
-    @PatchMapping(path = ["/change_password"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PatchMapping(path = ["/change_password/{user_id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "PATCH",
         summary = "Update user account's password",

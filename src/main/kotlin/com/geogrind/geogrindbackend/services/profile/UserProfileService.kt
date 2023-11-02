@@ -1,8 +1,8 @@
-package com.geogrind.geogrindbackend.services.user_profile
+package com.geogrind.geogrindbackend.services.profile
 
-import com.geogrind.geogrindbackend.dto.user_profile.CreateUserProfileDto
-import com.geogrind.geogrindbackend.dto.user_profile.GetUserProfileByUserAccountIdDto
-import com.geogrind.geogrindbackend.dto.user_profile.UpdateUserProfileByUserAccountIdDto
+import com.geogrind.geogrindbackend.dto.profile.CreateUserProfileDto
+import com.geogrind.geogrindbackend.dto.profile.GetUserProfileByUserAccountIdDto
+import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.validation.Valid
 import org.springframework.stereotype.Service

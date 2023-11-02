@@ -5,5 +5,5 @@ import org.jetbrains.annotations.NotNull
 import java.util.UUID
 
 data class GetUserAccountByIdDto(
-    @get:Size(min = 5) @NotNull val user_id: UUID
+    @get:Size(min = 5, max = 1000) @NotNull val user_id: UUID
 )

@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.dto.user_profile
+package com.geogrind.geogrindbackend.dto.profile
 
 import com.geogrind.geogrindbackend.models.user_profile.Program
 import com.geogrind.geogrindbackend.models.user_profile.University

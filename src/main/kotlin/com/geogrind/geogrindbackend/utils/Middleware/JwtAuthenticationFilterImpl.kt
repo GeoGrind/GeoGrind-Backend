@@ -31,8 +31,9 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
     private val geogrindSecretKey: String = dotenv["GEOGRIND_SECRET_KEY"]
 
     private val protected_resources: Set<String> = setOf(
-        "/geogrind/user_profile/view_profile",
-        "/geogrind/user_profile/edit_profile",
+        "/geogrind/user_profile/all",
+        "/geogrind/user_profile/{user_account_id}",
+        "/geogrind/user_profile/update_profile/{user_account_id}"
     )
 
     override fun doFilterInternal(
@@ -123,11 +124,15 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
     private fun determineRequiredPermissions(requestUri: String): Set<PermissionName> {
         return when {
-            requestUri == "/geogrind/user_profile/view_profile" -> setOf(
-                PermissionName.CAN_VIEW_PROFILE
+            requestUri == "/geogrind/user_profile/all" -> setOf(
+                PermissionName.CAN_VIEW_PROFILE,
             )
-            requestUri == "/geogrind/user_profile/edit_profile" -> setOf(
-                PermissionName.CAN_EDIT_PROFILE
+            requestUri == "/geogrind/user_profile/{user_account_id}" -> setOf(
+                PermissionName.CAN_VIEW_PROFILE,
+            )
+            requestUri == "/geogrind/user_profile/update_profile/{user_account_id}" -> setOf(
+                PermissionName.CAN_VIEW_PROFILE,
+                PermissionName.CAN_EDIT_PROFILE,
             )
             else -> return setOf()
         }

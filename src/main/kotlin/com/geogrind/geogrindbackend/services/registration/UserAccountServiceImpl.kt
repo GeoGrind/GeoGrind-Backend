@@ -5,7 +5,7 @@ import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountC
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
 import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
-import com.geogrind.geogrindbackend.dto.user_profile.CreateUserProfileDto
+import com.geogrind.geogrindbackend.dto.profile.CreateUserProfileDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountConflictException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
@@ -13,7 +13,7 @@ import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthori
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
-import com.geogrind.geogrindbackend.services.user_profile.UserProfileService
+import com.geogrind.geogrindbackend.services.profile.UserProfileService
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelperImpl
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
@@ -30,7 +30,6 @@ import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.lang.IllegalArgumentException
 import java.time.Instant
 import java.util.*
 import kotlin.collections.HashMap
