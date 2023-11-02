@@ -20,7 +20,7 @@ data class UserAccount(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     @Size(min = 5)
-    val id: UUID = UUID.randomUUID(),
+    val id: UUID? = null,
 
     @Column(name = "email", length = 100, unique = true, nullable = false)
     @Size(min = 5)

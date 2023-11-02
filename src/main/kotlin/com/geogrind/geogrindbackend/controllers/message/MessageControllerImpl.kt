@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.*
 
 @Tag(name = "Message", description = "Message REST Controller Implementation")
 @RestController
@@ -27,7 +28,7 @@ class MessageControllerImpl @Autowired constructor(
         val messageDtos = messages.map { message ->
             MessageResponseDto(
                 id = message.id,
-                authorId = message.userAccount.id,
+                authorId = message.userAccount.id as UUID,
                 text = message.text,
                 type = message.type,
                 createdAt = message.createdAt
