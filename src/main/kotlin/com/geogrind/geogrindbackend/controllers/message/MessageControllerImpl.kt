@@ -23,18 +23,17 @@ class MessageControllerImpl @Autowired constructor(
         description = "Implementation for retrieving a list of all messages"
     )
     override suspend fun getAllMessages(): ResponseEntity<List<MessageResponseDto>> {
-        println("Inside getAllMessages method")
-
         val messages = messageService.findAllMessages()
         val messageDtos = messages.map { message ->
             MessageResponseDto(
                 id = message.id,
-                email = message.email,
-                createdAt = message.createdAt,
-                updatedAt = message.updatedAt
+                authorId = message.userAccount.id,
+                text = message.text,
+                type = message.type,
+                createdAt = message.createdAt
             )
         }
-
         return ResponseEntity.ok(messageDtos)
     }
+
 }

@@ -1,12 +1,10 @@
 package com.geogrind.geogrindbackend.models.message
 
+import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.*
-import jakarta.validation.constraints.Size
-import java.util.UUID
-
 import org.springframework.data.annotation.CreatedDate
-import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.util.UUID
 import java.util.Date
 
 @Entity
@@ -14,28 +12,22 @@ import java.util.Date
 @EntityListeners(AuditingEntityListener::class)
 data class Message(
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", unique = true, nullable = false)
-    @Size(min = 5)
-    var id: UUID? = null,
+    var id: UUID,
 
-    @Column(name = "email", length = 100, unique = true, nullable = false)
-    @Size(min = 5)
-    var email: String,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "author", referencedColumnName = "id",nullable = false)
+    var userAccount: UserAccount,
 
-    // Every table has this
+    @Column(name = "text", nullable = false)
+    var text: String,
+
+    @Column(name = "type", nullable = false)
+    var type: String,
+
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at")
-    var createdAt: Date? = null,
-
-    // Every table has this
-    @LastModifiedDate
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "updated_at")
-    var updatedAt: Date? = null,
-) {
-
-
-}
-
+    @Column(name = "createdat", nullable = false)
+    var createdAt: Date
+)
