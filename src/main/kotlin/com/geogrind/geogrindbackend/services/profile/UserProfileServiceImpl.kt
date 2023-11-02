@@ -47,7 +47,7 @@ class UserProfileServiceImpl(
             throw UserAccountNotFoundException(requestDto.user_account_id.toString())
         }
 
-        val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUser_account(findUserAccount.get())
+        val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(findUserAccount.get())
 
         if(findUserProfile.isEmpty) {
             throw UserProfileNotFoundException("Cannot find user profile with profile id: ${requestDto.user_account_id}")
@@ -66,7 +66,7 @@ class UserProfileServiceImpl(
 
         val new_user_profile: UserProfile = UserProfile(
             username = username,
-            user_account = user_account
+            userAccount = user_account
         )
 
         return userProfileRepository.save(new_user_profile)
@@ -92,7 +92,7 @@ class UserProfileServiceImpl(
         }
 
         // find the user profile
-        var findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUser_account(
+        var findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
             user_account = findUserAccount
         )
 

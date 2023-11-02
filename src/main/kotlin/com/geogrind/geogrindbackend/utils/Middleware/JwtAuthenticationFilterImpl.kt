@@ -115,6 +115,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
                 request,
                 cookieName,
             )
+            log.info("Cookie: $cookie")
             return cookie!!.value
         } catch (e: RuntimeException) {
             log.info("${e.message}")

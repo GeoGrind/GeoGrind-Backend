@@ -8,5 +8,5 @@ import java.util.UUID
 
 interface UserProfileRepository : JpaRepository<UserProfile, UUID> {
     // find by user account
-    fun findUserProfileByUser_account(user_account: UserAccount): Optional<UserProfile>
+    fun findUserProfileByUserAccount(user_account: UserAccount): Optional<UserProfile>
 }

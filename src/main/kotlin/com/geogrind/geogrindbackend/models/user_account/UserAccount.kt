@@ -48,8 +48,8 @@ data class UserAccount(
     var permissions: MutableSet<Permission> = mutableSetOf(),
 
     // one-to-one relationship with the user_profile table
-    @OneToOne(mappedBy = "user_account")
-    var user_profile: UserProfile? = null,
+    @OneToOne(mappedBy = "userAccount")
+    var userProfile: UserProfile? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

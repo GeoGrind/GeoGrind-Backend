@@ -4,6 +4,7 @@ import com.geogrind.geogrindbackend.models.permissions.Permission
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.servlet.http.Cookie
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.*
 
@@ -32,6 +33,12 @@ class CreateTokenCookieImpl : CreateTokenCookie {
         cookie.maxAge = expirationTime
         cookie.isHttpOnly = false
 
+        log.info("Cookie set: $cookie")
+
         return cookie
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(CreateTokenCookieImpl::class.java)
     }
 }

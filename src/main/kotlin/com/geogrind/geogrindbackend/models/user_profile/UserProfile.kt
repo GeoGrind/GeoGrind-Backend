@@ -59,8 +59,8 @@ data class UserProfile(
 
     // One to one relationship with the user account
     @OneToOne(targetEntity = UserAccount::class, cascade = [CascadeType.ALL])
-    @JoinColumn(name = "id", referencedColumnName = "profile_id")
-    var user_account: UserAccount,
+    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    var userAccount: UserAccount,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
@@ -86,7 +86,7 @@ data class UserProfile(
         if(program != other.program) return false
         if(year_of_graduation != other.year_of_graduation) return false
         if(university != other.university) return false
-        if(user_account != other.user_account) return false
+        if(userAccount != other.userAccount) return false
 
         return true
     }
@@ -98,13 +98,13 @@ data class UserProfile(
         result = 31 * result + (program?.hashCode() ?: 0)
         result = 31 * result + (year_of_graduation?.hashCode() ?: 0)
         result = 31 * result + (university?.hashCode() ?: 0)
-        result = 31 * result + (user_account?.hashCode() ?: 0)
+        result = 31 * result + (userAccount?.hashCode() ?: 0)
 
         return result
     }
 
     override fun toString(): String {
-        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.user_account}"
+        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}"
     }
 }
 
