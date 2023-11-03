@@ -1,8 +1,10 @@
 package com.geogrind.geogrindbackend.models.message
 
+import com.geogrind.geogrindbackend.dto.message.SuccessUserMessageResponse
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.*
 import org.springframework.data.annotation.CreatedDate
+import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.util.UUID
 import java.util.Date
@@ -28,6 +30,23 @@ data class Message(
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "createdat", nullable = false)
-    var createdAt: Date
+    @Column(name = "created_at", nullable = false)
+    var createdAt: Date,
+
+    @LastModifiedDate
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updated_at")
+    var updatedAt: Date? = null,
 )
+fun List<Message>.toSuccessHttpResponseList(): List<SuccessUserMessageResponse> {
+    return this.map {
+        SuccessUserMessageResponse(
+            id = it.id,
+            authorId = it.userAccount.id as UUID,
+            text = it.text,
+            type = it.type,
+            createdAt = it.createdAt,
+            updatedAt = it.updatedAt
+        )
+    }
+}
