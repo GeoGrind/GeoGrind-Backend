@@ -31,5 +31,5 @@ interface LoginAccountController {
         operationId = "confirmUserLoginAccount",
         description = "Confirm user login account"
     )
-    suspend fun confirmUserLoginAccount(@PathVariable(required = true) token: String) : ResponseEntity<SuccessUserAccountResponse>
+    suspend fun confirmUserLoginAccount(@PathVariable(required = true) token: String, response: HttpServletResponse) : ResponseEntity<SuccessUserAccountResponse>
 }

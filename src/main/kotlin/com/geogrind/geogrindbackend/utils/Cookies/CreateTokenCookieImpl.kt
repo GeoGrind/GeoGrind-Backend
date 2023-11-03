@@ -31,9 +31,9 @@ class CreateTokenCookieImpl : CreateTokenCookie {
         val cookie = Cookie("JWT-TOKEN", token)
         cookie.path = "/"
         cookie.maxAge = expirationTime
-        cookie.isHttpOnly = false
+        cookie.isHttpOnly = true
 
-        log.info("Cookie set: $cookie")
+        log.info("Cookie set: $cookie, ${cookie.name}, ${cookie.path}")
 
         return cookie
     }

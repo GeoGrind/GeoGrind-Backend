@@ -111,12 +111,11 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         cookieName: String,
     ): String? {
         try {
-            val cookie: Cookie? = WebUtils.getCookie(
-                request,
-                cookieName,
-            )
-            log.info("Cookie: $cookie")
-            return cookie!!.value
+            log.info("Request: $request")
+            val cookie = request.cookies
+            val cookieValue = cookie?.find { it.name == cookieName }?.value
+            log.info("Cookie extracted: $cookieValue")
+            return cookieValue
         } catch (e: RuntimeException) {
             log.info("${e.message}")
         }
@@ -147,14 +146,25 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         decoded_token: Claims,
         permissionList: Set<PermissionName>,
     ): Boolean {
-        val permissions: Set<Permission> = decoded_token["permissions"] as Set<Permission>
 
-        for(permission in permissions) {
-            if(permission.permission_name !in permissionList) {
-                return false
+        val permissionsInToken = decoded_token["permissions"] as? ArrayList<Permission>
+
+        log.info(permissionsInToken!!::class.simpleName)
+
+        if(permissionsInToken != null) {
+            val permissions = permissionsInToken.toSet()
+
+            log.info("Permissions Set: $permissions, ${permissions::class.simpleName}")
+
+            for(permission in permissions) {
+                if(permission.permission_name !in permissionList) {
+                    return false
+                }
             }
+            return true
         }
-        return true
+
+        return false
     }
 
     private fun sendUnauthorizedResponse() {

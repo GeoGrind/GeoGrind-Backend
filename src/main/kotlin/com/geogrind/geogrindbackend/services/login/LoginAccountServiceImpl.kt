@@ -28,6 +28,7 @@ import io.jsonwebtoken.security.Keys
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
 import okhttp3.internal.notify
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -179,10 +180,14 @@ class LoginAccountServiceImpl(
 
         // store the token into cookies
         val cookie: Cookie = generateCookieHelper.createTokenCookie(3600, jwt_token)
-
+        log.info("Cookie in login: $cookie, ${cookie.name}, ${cookie.path}")
         return Pair(
             first = findUserAccount.get(),
             second = cookie,
         )
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(LoginAccountServiceImpl::class.java)
     }
 }
