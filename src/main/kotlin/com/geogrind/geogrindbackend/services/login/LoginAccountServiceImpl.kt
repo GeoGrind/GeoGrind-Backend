@@ -48,7 +48,7 @@ class LoginAccountServiceImpl(
     private val generateCookieHelper: CreateTokenCookie = CreateTokenCookieImpl()
 
     // Load environment variables from the .env file
-    private val dotenv = Dotenv.configure().directory("/Users/pengjingcheng/Desktop/GeoGrind-Backend/.env").load()
+    private val dotenv = Dotenv.configure().directory(".").load()
 
     private val sendGridApiKey = dotenv["SENDGRID_API_KEY"]
 
