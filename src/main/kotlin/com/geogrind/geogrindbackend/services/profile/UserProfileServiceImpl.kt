@@ -17,8 +17,8 @@ import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelper
 import jakarta.validation.Valid
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.Optional
-import java.util.UUID
+import java.util.*
+import kotlin.collections.HashMap
 
 @Service
 class UserProfileServiceImpl(
@@ -66,7 +66,9 @@ class UserProfileServiceImpl(
 
         val new_user_profile: UserProfile = UserProfile(
             username = username,
-            userAccount = user_account
+            userAccount = user_account,
+            createdAt = Date(),
+            updatedAt = Date(),
         )
 
         return userProfileRepository.save(new_user_profile)

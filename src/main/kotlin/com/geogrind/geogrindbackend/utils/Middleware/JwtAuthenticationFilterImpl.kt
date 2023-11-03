@@ -1,5 +1,7 @@
 package com.geogrind.geogrindbackend.utils.Middleware
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
@@ -146,25 +148,27 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         decoded_token: Claims,
         permissionList: Set<PermissionName>,
     ): Boolean {
+        val permissionsInToken = decoded_token["permissions"] as ArrayList<LinkedHashMap<String, String>>
 
-        val permissionsInToken = decoded_token["permissions"] as? ArrayList<Permission>
+        log.info("$permissionsInToken")
 
-        log.info(permissionsInToken!!::class.simpleName)
+        if (permissionsInToken != null) {
+            // deserialize the linked hash map into the Permission object
+            val all_permissions: MutableSet<PermissionName> = HashSet<PermissionName>()
+            for(permission in permissionsInToken) {
+                val permission_name = permission["permission_name"] as String
+                all_permissions.add(enumValueOf<PermissionName>(permission_name))
+            }
 
-        if(permissionsInToken != null) {
-            val permissions = permissionsInToken.toSet()
-
-            log.info("Permissions Set: $permissions, ${permissions::class.simpleName}")
-
-            for(permission in permissions) {
-                if(permission.permission_name !in permissionList) {
+            permissionList.forEach { required_permission ->
+                if (required_permission !in all_permissions) {
                     return false
                 }
             }
-            return true
+        } else {
+            return false
         }
-
-        return false
+        return true
     }
 
     private fun sendUnauthorizedResponse() {
