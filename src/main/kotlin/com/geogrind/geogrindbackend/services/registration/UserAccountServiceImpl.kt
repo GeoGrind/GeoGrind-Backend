@@ -42,7 +42,7 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
     private val generateRandomHelper: GenerateRandomHelper = GenerateRandomHelperImpl()
 
     // Load environment variables from the .env file
-    private val dotenv = Dotenv.configure().directory("/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/.env").load()
+    private val dotenv = Dotenv.configure().directory(".").load()
 
     private val sendGridApiKey = dotenv["SENDGRID_API_KEY"]
 

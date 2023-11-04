@@ -16,7 +16,7 @@ class DatabaseConfigImpl : DatabaseConfig {
     override fun dataSource(): DataSource {
 
         // Load environment variables from the .env file
-        val dotenv = Dotenv.configure().directory("/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/.env").load()
+        val dotenv = Dotenv.configure().directory(".").load()
 
         // Fetch the environment variables
         val dbHost = dotenv["DB_HOST"]

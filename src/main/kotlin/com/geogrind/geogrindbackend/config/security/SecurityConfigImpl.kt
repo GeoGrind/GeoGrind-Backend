@@ -81,6 +81,12 @@ class SecurityConfigImpl : SecurityConfig {
                             HttpMethod.GET.toString(),
                         )
                     ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/message/all",
+                            HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
             }
             .addFilterBefore(JwtAuthenticationFilterImpl(), AnonymousAuthenticationFilter::class.java)
             .exceptionHandling { exceptionHandling ->
