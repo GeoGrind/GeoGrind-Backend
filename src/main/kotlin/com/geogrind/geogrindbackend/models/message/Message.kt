@@ -20,7 +20,7 @@ data class Message(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author", referencedColumnName = "id",nullable = false)
-    var userAccount: UserAccount,
+    var auther: UserAccount,
 
     @Column(name = "text", nullable = false)
     var text: String,
@@ -42,7 +42,7 @@ fun List<Message>.toSuccessHttpResponseList(): List<SuccessUserMessageResponse> 
     return this.map {
         SuccessUserMessageResponse(
             id = it.id,
-            authorId = it.userAccount.id as UUID,
+            authorId = it.auther.id as UUID,
             text = it.text,
             type = it.type,
             createdAt = it.createdAt,
