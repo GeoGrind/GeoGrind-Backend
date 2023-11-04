@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.advice.registration
+package com.geogrind.geogrindbackend.advice.user_account
 
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler
 @ControllerAdvice
 class UserAccountUnauthorizedAdvice {
 
-    @ExceptionHandler(UserAccountBadRequestException::class)
+    @ExceptionHandler(UserAccountUnauthorizedException::class)
     fun userUnauthorizedHandler(ex: UserAccountUnauthorizedException): ResponseEntity<String> {
         return ResponseEntity
             .status(HttpStatus.UNAUTHORIZED)

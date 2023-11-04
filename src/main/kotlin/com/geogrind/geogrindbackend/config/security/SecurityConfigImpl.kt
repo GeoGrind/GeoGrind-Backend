@@ -21,6 +21,7 @@ class SecurityConfigImpl : SecurityConfig {
         http
             .authorizeHttpRequests { authorizeRequests ->
                 authorizeRequests
+                    // USER ACCOUNT ENDPOINTS
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/user_account/all",
@@ -81,6 +82,27 @@ class SecurityConfigImpl : SecurityConfig {
                             HttpMethod.GET.toString(),
                         )
                     ).permitAll()
+                    // USER PROFILE ENDPOINTS
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/user_profile/get_all_profiles",
+                            HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/user_profile/get_profile",
+                            HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/user_profile/update_profile",
+                            HttpMethod.PATCH.toString(),
+                        )
+                    ).permitAll()
+
+                    // MESSAGING ENDPOINTS
                     .requestMatchers(
                         AntPathRequestMatcher(
                             "/geogrind/message/all",

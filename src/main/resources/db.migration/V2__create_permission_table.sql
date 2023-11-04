@@ -26,4 +26,13 @@ ALTER TABLE permissions
 ALTER TABLE permissions
 ALTER COLUMN permission_name TYPE VARCHAR(100);
 
+ALTER TABLE permissions
+ADD PRIMARY KEY (permission_id);
+
+ALTER TABLE permissions
+ADD FOREIGN KEY (fk_user_account_id) REFERENCES user_account(id);
+
 DELETE FROM permissions;
+
+
+

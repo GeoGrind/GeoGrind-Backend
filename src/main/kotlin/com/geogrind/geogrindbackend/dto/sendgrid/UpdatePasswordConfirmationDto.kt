@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.dto.registration.sendgrid
+package com.geogrind.geogrindbackend.dto.sendgrid
 
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size

@@ -1,5 +1,7 @@
 package com.geogrind.geogrindbackend.utils.Middleware
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
@@ -31,8 +33,9 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
     private val geogrindSecretKey: String = dotenv["GEOGRIND_SECRET_KEY"]
 
     private val protected_resources: Set<String> = setOf(
-        "/geogrind/user_profile/view_profile",
-        "/geogrind/user_profile/edit_profile",
+        "/geogrind/user_profile/get_all_profiles",
+        "/geogrind/user_profile/get_profile", // get the user profile based on the user account id
+        "/geogrind/user_profile/update_profile"
     )
 
     override fun doFilterInternal(
@@ -42,6 +45,8 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
     ) {
         try {
             val requestUri: String = request.requestURI
+
+            log.info("$requestUri")
 
             if(shouldNotFilter(requestUri)) {
                 log.info("The endpoint does not require authentication!")
@@ -58,12 +63,9 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
                 requestUri = requestUri,
             )
 
-            // decode the token to get the claims
-            val decoded_token: Claims = Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-                .build()
-                .parseSignedClaims(jwt_token)
-                .payload
+            val decoded_token: Claims = decodeToken(
+                token = jwt_token!!,
+            )
 
             val match_permissions: Boolean = hasRequiredPermissions(
                 decoded_token = decoded_token,
@@ -74,7 +76,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
             log.info("Verified the endpoint successfully!")
             filterChain.doFilter(request, response)
-
+            return
         } catch (e: ExpiredJwtException) {
             log.info("Token has expired: ${e.message}")
             sendExpiredTokenResponse(
@@ -105,29 +107,46 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         }
     }
 
-    private fun extractToken(
+    fun extractToken(
         request: HttpServletRequest,
         cookieName: String,
     ): String? {
         try {
-            val cookie: Cookie? = WebUtils.getCookie(
-                request,
-                cookieName,
-            )
-            return cookie!!.value
+            log.info("Request: $request")
+            val cookie = request.cookies
+            val cookieValue = cookie?.find { it.name == cookieName }?.value
+            log.info("Cookie extracted: $cookieValue")
+            return cookieValue
         } catch (e: RuntimeException) {
             log.info("${e.message}")
         }
         return null
     }
 
+    fun decodeToken(
+        token: String
+    ): Claims {
+        // decode the token to get the claims
+        val decoded_token: Claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        return decoded_token
+    }
+
     private fun determineRequiredPermissions(requestUri: String): Set<PermissionName> {
         return when {
-            requestUri == "/geogrind/user_profile/view_profile" -> setOf(
-                PermissionName.CAN_VIEW_PROFILE
+            requestUri == "/geogrind/user_profile/all" -> setOf(
+                PermissionName.CAN_VIEW_PROFILE,
             )
-            requestUri == "/geogrind/user_profile/edit_profile" -> setOf(
-                PermissionName.CAN_EDIT_PROFILE
+            requestUri == "/geogrind/user_profile/{user_account_id}" -> setOf(
+                PermissionName.CAN_VIEW_PROFILE,
+            )
+            requestUri == "/geogrind/user_profile/update_profile/{user_account_id}" -> setOf(
+                PermissionName.CAN_VIEW_PROFILE,
+                PermissionName.CAN_EDIT_PROFILE,
             )
             else -> return setOf()
         }
@@ -141,12 +160,25 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         decoded_token: Claims,
         permissionList: Set<PermissionName>,
     ): Boolean {
-        val permissions: Set<Permission> = decoded_token["permissions"] as Set<Permission>
+        val permissionsInToken = decoded_token["permissions"] as ArrayList<LinkedHashMap<String, String>>
 
-        for(permission in permissions) {
-            if(permission.permission_name !in permissionList) {
-                return false
+        log.info("$permissionsInToken")
+
+        if (permissionsInToken != null) {
+            // deserialize the linked hash map into the Permission object
+            val all_permissions: MutableSet<PermissionName> = HashSet<PermissionName>()
+            for(permission in permissionsInToken) {
+                val permission_name = permission["permission_name"] as String
+                all_permissions.add(enumValueOf<PermissionName>(permission_name))
             }
+
+            permissionList.forEach { required_permission ->
+                if (required_permission !in all_permissions) {
+                    return false
+                }
+            }
+        } else {
+            return false
         }
         return true
     }

@@ -1,10 +1,10 @@
 package com.geogrind.geogrindbackend.controllers.registration
 
 import com.geogrind.geogrindbackend.dto.registration.*
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
+import com.geogrind.geogrindbackend.dto.sendgrid.DeleteUserAccountConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.UpdatePasswordConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.VerifyEmailUserAccountDto
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.registration.UserAccountService

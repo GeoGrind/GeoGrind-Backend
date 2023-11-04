@@ -3,6 +3,7 @@ package com.geogrind.geogrindbackend.models.user_account
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
+import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import java.util.UUID
@@ -45,6 +46,10 @@ data class UserAccount(
     @OneToMany(targetEntity = Permission::class, cascade = [CascadeType.ALL])
     @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
     var permissions: MutableSet<Permission> = mutableSetOf(),
+
+    // one-to-one relationship with the user_profile table
+    @OneToOne(mappedBy = "userAccount")
+    var userProfile: UserProfile? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

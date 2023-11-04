@@ -2,7 +2,7 @@ package com.geogrind.geogrindbackend.controllers.login
 
 import com.geogrind.geogrindbackend.dto.login.UserLoginRequestDto
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletResponse
@@ -31,5 +31,5 @@ interface LoginAccountController {
         operationId = "confirmUserLoginAccount",
         description = "Confirm user login account"
     )
-    suspend fun confirmUserLoginAccount(@PathVariable(required = true) token: String) : ResponseEntity<SuccessUserAccountResponse>
+    suspend fun confirmUserLoginAccount(@PathVariable(required = true) token: String, response: HttpServletResponse) : ResponseEntity<SuccessUserAccountResponse>
 }

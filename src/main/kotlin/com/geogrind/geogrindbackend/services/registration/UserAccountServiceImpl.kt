@@ -1,23 +1,26 @@
 package com.geogrind.geogrindbackend.services.registration
 
 import com.geogrind.geogrindbackend.dto.registration.*
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
+import com.geogrind.geogrindbackend.dto.sendgrid.DeleteUserAccountConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.UpdatePasswordConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.VerifyEmailUserAccountDto
+import com.geogrind.geogrindbackend.dto.profile.CreateUserProfileDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountConflictException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
+import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
+import com.geogrind.geogrindbackend.services.profile.UserProfileService
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelperImpl
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailServiceImpl
-import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelper
-import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelperImpl
+import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelper
+import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelperImpl
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
@@ -27,13 +30,15 @@ import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.lang.IllegalArgumentException
 import java.time.Instant
 import java.util.*
 import kotlin.collections.HashMap
 
 @Service
-class UserAccountServiceImpl(private val userAccoutRepository: UserAccountRepository) : UserAccountService {
+class UserAccountServiceImpl(
+    private val userAccoutRepository: UserAccountRepository,
+    private val userProfileService: UserProfileService,
+) : UserAccountService {
 
     private val validationObj: UserAccountValidationHelper = UserAccountValidationHelperImpl()
 
@@ -290,6 +295,14 @@ class UserAccountServiceImpl(private val userAccoutRepository: UserAccountReposi
         // verify the user to the system
         findUserAccount.get().account_verified = true
         findUserAccount.get().updatedAt = Date()
+
+        // create an empty profile for the user
+        val empty_user_profile: UserProfile = userProfileService.createEmptyUserProfile(
+            CreateUserProfileDto(
+                username = findUserAccount.get().username,
+                user_account = findUserAccount.get(),
+            )
+        )
 
         return findUserAccount.get()
     }

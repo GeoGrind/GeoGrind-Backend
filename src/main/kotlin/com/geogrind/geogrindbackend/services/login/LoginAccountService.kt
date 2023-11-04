@@ -2,9 +2,10 @@ package com.geogrind.geogrindbackend.services.login
 
 import com.geogrind.geogrindbackend.dto.login.ConfirmUserLoginResquestDto
 import com.geogrind.geogrindbackend.dto.login.UserLoginRequestDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

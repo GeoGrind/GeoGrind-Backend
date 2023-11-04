@@ -3,13 +3,14 @@ package com.geogrind.geogrindbackend.controllers.login
 import com.geogrind.geogrindbackend.dto.login.ConfirmUserLoginResquestDto
 import com.geogrind.geogrindbackend.dto.login.UserLoginRequestDto
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.services.login.LoginAccountService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
@@ -54,6 +55,7 @@ class LoginAccountControllerImpl @Autowired constructor(
     )
     override suspend fun confirmUserLoginAccount(
         @PathVariable(required = true) token: String,
+        response: HttpServletResponse
     ): ResponseEntity<SuccessUserAccountResponse> = withTimeout(timeOutMillis) {
         // generate the new jwt token for the user
         val service_response: Pair<UserAccount, Cookie> = loginAccountService.confirmLoginHandler(
@@ -62,10 +64,14 @@ class LoginAccountControllerImpl @Autowired constructor(
             )
         )
 
+        log.info("Cookie in loginAccountController: ${service_response.second}, ${service_response.second.name}, ${service_response.second.path}")
+
+        // inject the cookie into the response
+        response.addCookie(service_response.second)
+
         ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
-            .header("Set-Cookie", service_response.second.toString())
             .body(
                 service_response.first.toSuccessHttpResponse()
             )

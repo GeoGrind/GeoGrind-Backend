@@ -1,7 +1,7 @@
 package com.geogrind.geogrindbackend.controllers.registration
 
 import com.geogrind.geogrindbackend.dto.registration.CreateUserAccountDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.dto.registration.UpdateUserAccountDto
 import org.springframework.web.bind.annotation.GetMapping
@@ -51,7 +51,7 @@ interface UserAccountController {
     )
     suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto): ResponseEntity<SendGridResponseDto>
 
-    @PatchMapping(path = ["/change_password"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PatchMapping(path = ["/change_password/{user_id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "PATCH",
         summary = "Update user account's password",
