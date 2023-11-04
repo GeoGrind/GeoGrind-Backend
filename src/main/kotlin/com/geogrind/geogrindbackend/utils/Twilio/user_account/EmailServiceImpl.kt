@@ -33,8 +33,7 @@ class EmailServiceImpl(
         user_id: String
     ): SendGridResponseDto {
         val subject: String = "Verify email address with GeoGrind"
-        val templatePath = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_confirm_email_template.html"
-
+        val templatePath = "src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_confirm_email_template.html"
         val template = File(templatePath).readText()
 
         // allow up to 10 minutes of expiration time
@@ -96,7 +95,7 @@ class EmailServiceImpl(
         new_password: String,
     ): SendGridResponseDto {
         val subject: String = "Confirm password change with GeoGrind"
-        val templatePath: String = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_update_password_template.html"
+        val templatePath: String = "src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_update_password_template.html"
 
         val template = File(templatePath).readText()
 
@@ -156,7 +155,7 @@ class EmailServiceImpl(
         geogrind_otp_code: String,
         user_id: String): SendGridResponseDto {
         val subject: String = "Confirm account deletion with GeoGrind"
-        val templatePath = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_delete_account_template.html"
+        val templatePath = "src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_delete_account_template.html"
 
         val template = File(templatePath).readText()
 
@@ -219,7 +218,7 @@ class EmailServiceImpl(
         user_id: String,
         ): SendGridResponseDto {
         val subject: String = "Secure your login with OTP"
-        val templatePath: String = "/Users/kenttran/Desktop/Desktop_Folders/side_projects/GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_login_template.html"
+        val templatePath: String = "src/main/kotlin/com/geogrind/geogrindbackend/utils/Twilio/templates/Twilio_login_template.html"
 
         val template = File(templatePath).readText()
 

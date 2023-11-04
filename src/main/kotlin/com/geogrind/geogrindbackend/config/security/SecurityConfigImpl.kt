@@ -82,7 +82,6 @@ class SecurityConfigImpl : SecurityConfig {
                             HttpMethod.GET.toString(),
                         )
                     ).permitAll()
-
                     // USER PROFILE ENDPOINTS
                     .requestMatchers(
                         AntPathRequestMatcher(
@@ -100,6 +99,14 @@ class SecurityConfigImpl : SecurityConfig {
                         AntPathRequestMatcher(
                             "/geogrind/user_profile/update_profile",
                             HttpMethod.PATCH.toString(),
+                        )
+                    ).permitAll()
+
+                    // MESSAGING ENDPOINTS
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/message/all",
+                            HttpMethod.GET.toString(),
                         )
                     ).permitAll()
             }

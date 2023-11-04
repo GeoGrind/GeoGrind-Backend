@@ -21,7 +21,7 @@ data class UserAccount(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     @Size(min = 5)
-    var id: UUID? = null,
+    val id: UUID? = null,
 
     @Column(name = "email", length = 100, unique = true, nullable = false)
     @Size(min = 5)
