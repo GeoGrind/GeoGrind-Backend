@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.utils.Validation
+package com.geogrind.geogrindbackend.utils.Validation.registration
 
 interface UserAccountValidationHelper {
     fun validateEmail(email: String, registration_form_errors: MutableMap<String, String>)

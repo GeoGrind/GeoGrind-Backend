@@ -3,7 +3,7 @@ package com.geogrind.geogrindbackend.controllers.login
 import com.geogrind.geogrindbackend.dto.login.ConfirmUserLoginResquestDto
 import com.geogrind.geogrindbackend.dto.login.UserLoginRequestDto
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.services.login.LoginAccountService

@@ -1,10 +1,10 @@
 package com.geogrind.geogrindbackend.services.registration
 
 import com.geogrind.geogrindbackend.dto.registration.*
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
+import com.geogrind.geogrindbackend.dto.sendgrid.DeleteUserAccountConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.UpdatePasswordConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.VerifyEmailUserAccountDto
 import com.geogrind.geogrindbackend.dto.profile.CreateUserProfileDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountConflictException
@@ -19,8 +19,8 @@ import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelperImpl
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailServiceImpl
-import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelper
-import com.geogrind.geogrindbackend.utils.Validation.UserAccountValidationHelperImpl
+import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelper
+import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelperImpl
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException

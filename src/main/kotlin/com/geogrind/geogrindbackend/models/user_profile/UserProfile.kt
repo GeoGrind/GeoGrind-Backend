@@ -43,23 +43,21 @@ data class UserProfile(
     @Size(min = 3)
     var emoji: String? = "No emoji set",
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "program", length = 100, nullable = true)
     @Size(min = 5)
-    var program: Program? = null,
+    var program: String? = null,
 
     @Column(name = "year_of_graduation", length = 4, nullable = true)
     @Size(min = 4)
     var year_of_graduation: Int? = null,
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "university", length = 100, nullable = false)
     @Size(min = 5)
-    var university: University? = University.UNIVERSITY_OF_WATERLOO,
+    var university: String? = "University of Waterloo",
 
     // One to one relationship with the user account
     @OneToOne(targetEntity = UserAccount::class, cascade = [CascadeType.ALL])
-    @JoinColumn(name = "profile_id", referencedColumnName = "id")
+    @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
     var userAccount: UserAccount,
 
     @CreatedDate

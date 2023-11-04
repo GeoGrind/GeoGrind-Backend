@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.dto.registration.sendgrid
+package com.geogrind.geogrindbackend.dto.sendgrid
 
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName

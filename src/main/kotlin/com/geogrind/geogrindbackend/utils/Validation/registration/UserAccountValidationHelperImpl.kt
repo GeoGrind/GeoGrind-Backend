@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.utils.Validation
+package com.geogrind.geogrindbackend.utils.Validation.registration
 
 class UserAccountValidationHelperImpl : UserAccountValidationHelper {
 

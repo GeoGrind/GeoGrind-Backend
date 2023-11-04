@@ -2,7 +2,7 @@ package com.geogrind.geogrindbackend.services.login
 
 import com.geogrind.geogrindbackend.dto.login.ConfirmUserLoginResquestDto
 import com.geogrind.geogrindbackend.dto.login.UserLoginRequestDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountForbiddenException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException

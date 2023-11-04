@@ -1,7 +1,7 @@
 package com.geogrind.geogrindbackend.controllers.registration
 
 import com.geogrind.geogrindbackend.dto.registration.CreateUserAccountDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.dto.registration.UpdateUserAccountDto
 import org.springframework.web.bind.annotation.GetMapping

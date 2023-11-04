@@ -6,8 +6,11 @@ import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountId
 import com.geogrind.geogrindbackend.models.user_profile.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.user_profile.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.profile.UserProfileService
+import com.geogrind.geogrindbackend.utils.Middleware.JwtAuthenticationFilterImpl
+import io.jsonwebtoken.Claims
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
@@ -27,10 +30,11 @@ import java.util.UUID
 @RestController
 @RequestMapping(path = ["/geogrind/user_profile"])
 class UserProfileControllerImpl @Autowired constructor(
-    private val userProfileService: UserProfileService
+    private val userProfileService: UserProfileService,
+    private val jwtTokenMiddleWare : JwtAuthenticationFilterImpl,
 ) : UserProfileController {
 
-    @GetMapping(path = ["/all"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(path = ["/get_all_profiles"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
         summary = "Find all user profiles exist in the database",
@@ -48,7 +52,7 @@ class UserProfileControllerImpl @Autowired constructor(
             .also { log.info("Successfully get all user accounts: $it") }
     }
 
-    @GetMapping(path = ["/{user_account_id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(path = ["/get_profile"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
         summary = "Get user profile by id",
@@ -56,8 +60,20 @@ class UserProfileControllerImpl @Autowired constructor(
         description = "Get user profile by given user account id"
     )
     override suspend fun getUserProfileByUserAccountId(
-        @PathVariable(required = true) user_account_id: String
+        request: HttpServletRequest
     ): ResponseEntity<SuccessUserProfileResponse> = withTimeout(timeOutMillis) {
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val user_account_id = decoded_token["user_id"] as String
+
         ResponseEntity
             .status(HttpStatus.OK)
             .contentType(MediaType.APPLICATION_JSON)
@@ -71,7 +87,7 @@ class UserProfileControllerImpl @Autowired constructor(
             .also { log.info("Successfully get the user profile with ${user_account_id}: $it") }
     }
 
-    @PatchMapping(path = ["/update_profile/{user_account_id}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PatchMapping(path = ["/update_profile"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "PATCH",
         summary = "Update user profile by id",
@@ -79,11 +95,23 @@ class UserProfileControllerImpl @Autowired constructor(
         description = "Update user profile by given user account id"
     )
     override suspend fun updateUserProfileByUserAccountId(
-        @PathVariable(required = true) user_account_id: String,
+        request: HttpServletRequest,
         @Valid
         @RequestBody
         updateUserProfileDto: UpdateUserProfileByUserAccountIdDto
     ): ResponseEntity<SuccessUserProfileResponse> = withTimeout(timeOutMillis) {
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val user_account_id = decoded_token["user_id"] as String
+
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)

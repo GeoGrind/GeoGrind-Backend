@@ -33,9 +33,9 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
     private val geogrindSecretKey: String = dotenv["GEOGRIND_SECRET_KEY"]
 
     private val protected_resources: Set<String> = setOf(
-        "/geogrind/user_profile/all",
-        "/geogrind/user_profile/{user_account_id}",
-        "/geogrind/user_profile/update_profile/{user_account_id}"
+        "/geogrind/user_profile/get_all_profiles",
+        "/geogrind/user_profile/get_profile", // get the user profile based on the user account id
+        "/geogrind/user_profile/update_profile"
     )
 
     override fun doFilterInternal(
@@ -45,6 +45,8 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
     ) {
         try {
             val requestUri: String = request.requestURI
+
+            log.info("$requestUri")
 
             if(shouldNotFilter(requestUri)) {
                 log.info("The endpoint does not require authentication!")
@@ -61,12 +63,9 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
                 requestUri = requestUri,
             )
 
-            // decode the token to get the claims
-            val decoded_token: Claims = Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-                .build()
-                .parseSignedClaims(jwt_token)
-                .payload
+            val decoded_token: Claims = decodeToken(
+                token = jwt_token!!,
+            )
 
             val match_permissions: Boolean = hasRequiredPermissions(
                 decoded_token = decoded_token,
@@ -77,7 +76,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
             log.info("Verified the endpoint successfully!")
             filterChain.doFilter(request, response)
-
+            return
         } catch (e: ExpiredJwtException) {
             log.info("Token has expired: ${e.message}")
             sendExpiredTokenResponse(
@@ -108,7 +107,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         }
     }
 
-    private fun extractToken(
+    fun extractToken(
         request: HttpServletRequest,
         cookieName: String,
     ): String? {
@@ -122,6 +121,19 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             log.info("${e.message}")
         }
         return null
+    }
+
+    fun decodeToken(
+        token: String
+    ): Claims {
+        // decode the token to get the claims
+        val decoded_token: Claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        return decoded_token
     }
 
     private fun determineRequiredPermissions(requestUri: String): Set<PermissionName> {

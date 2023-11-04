@@ -4,10 +4,10 @@ import com.geogrind.geogrindbackend.dto.registration.CreateUserAccountDto
 import com.geogrind.geogrindbackend.dto.registration.DeleteUserAccountDto
 import com.geogrind.geogrindbackend.dto.registration.GetUserAccountByIdDto
 import com.geogrind.geogrindbackend.dto.registration.UpdateUserAccountDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.DeleteUserAccountConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.UpdatePasswordConfirmationDto
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.VerifyEmailUserAccountDto
+import com.geogrind.geogrindbackend.dto.sendgrid.DeleteUserAccountConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.UpdatePasswordConfirmationDto
+import com.geogrind.geogrindbackend.dto.sendgrid.VerifyEmailUserAccountDto
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import org.springframework.stereotype.Service
 import jakarta.validation.Valid

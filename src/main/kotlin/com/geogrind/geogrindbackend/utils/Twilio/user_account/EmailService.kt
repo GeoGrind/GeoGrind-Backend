@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.utils.Twilio.user_account
 
-import com.geogrind.geogrindbackend.dto.registration.sendgrid.SendGridResponseDto
+import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import org.springframework.stereotype.Service
