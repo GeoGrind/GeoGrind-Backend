@@ -7,5 +7,6 @@ import java.util.UUID
 
 @Repository
 interface MessageRepository : JpaRepository<Message, UUID> {
+    fun findByAuthorId(authorId: UUID): List<Message>
 
 }
