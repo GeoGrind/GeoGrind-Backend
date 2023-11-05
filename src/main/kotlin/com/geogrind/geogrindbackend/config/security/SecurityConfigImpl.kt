@@ -102,6 +102,14 @@ class SecurityConfigImpl : SecurityConfig {
                         )
                     ).permitAll()
 
+                    // S3 ENDPOINTS
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/s3/upload_file/{bucket}",
+                            HttpMethod.POST.toString(),
+                        )
+                    ).permitAll()
+
                     // MESSAGING ENDPOINTS
                     .requestMatchers(
                         AntPathRequestMatcher(

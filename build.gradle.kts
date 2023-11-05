@@ -62,6 +62,10 @@ dependencies {
 	// security
 	implementation("org.springframework.boot:spring-boot-starter-security")
 
+	// AWS S3
+	implementation(platform("software.amazon.awssdk:bom:2.15.14"))
+	implementation ("software.amazon.awssdk:s3:2.15.14")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("com.mysql:mysql-connector-j")
