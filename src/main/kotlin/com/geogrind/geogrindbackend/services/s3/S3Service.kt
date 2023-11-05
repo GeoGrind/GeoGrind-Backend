@@ -8,7 +8,7 @@ import software.amazon.awssdk.http.SdkHttpResponse
 interface S3Service {
 
     suspend fun getBucketFileList(bucketName: String) : List<String>
-    suspend fun downloadFile(bucketName: String, fileKey: String): ByteArray
+    suspend fun downloadFile(bucketName: String, fileKey: String): ByteArray?
     suspend fun deleteFile(bucketName: String, fileKey: String): SdkHttpResponse
     suspend fun uploadFiles(bucketName: String, files: Array<MultipartFile>) : List<S3BulkResponseDto>
 }

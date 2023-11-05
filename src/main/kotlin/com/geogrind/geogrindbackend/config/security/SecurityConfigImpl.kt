@@ -105,6 +105,24 @@ class SecurityConfigImpl : SecurityConfig {
                     // S3 ENDPOINTS
                     .requestMatchers(
                         AntPathRequestMatcher(
+                            "/geogrind/s3/download_all_files/{bucket}",
+                            HttpMethod.GET.toString()
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/s3/download_file/{bucket}/{file}",
+                            HttpMethod.GET.toString()
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/s3/delete_file/{bucket}",
+                            HttpMethod.DELETE.toString()
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
                             "/geogrind/s3/upload_file/{bucket}",
                             HttpMethod.POST.toString(),
                         )

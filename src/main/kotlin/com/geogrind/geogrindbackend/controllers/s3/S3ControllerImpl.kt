@@ -72,8 +72,8 @@ class S3ControllerImpl(
         description = "Get a provided file from a provided S3 Bucket"
     )
     override suspend fun downloadFile(
-        @PathVariable(required = true) bucket: String,
-        @PathVariable(required = true) fileKey: String,
+        @PathVariable("bucket", required = true) bucket: String,
+        @PathVariable("file", required = true) fileKey: String,
     ) : ResponseEntity<ByteArray> = withTimeout(timeoutMillis) {
         ResponseEntity
             .status(HttpStatus.OK)
