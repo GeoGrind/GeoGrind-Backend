@@ -45,10 +45,10 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         "/geogrind/user_profile/update_profile",
 
         // file upload to S3 bucket
-        "/geogrind/s3/download_all_files/**",
-        "/geogrind/s3/delete_file/**",
-        "/geogrind/s3/download_file/**",
-        "/geogrind/s3/upload_file/**",
+        "/geogrind/profile_image/download_all_profile_images",
+        "/geogrind/profile_image/download_profile_image",
+        "/geogrind/profile_image/delete_profile_image",
+        "/geogrind/profile_image/upload_profile_image",
     )
 
     override fun doFilterInternal(
@@ -167,16 +167,16 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
                 PermissionName.CAN_VIEW_PROFILE,
                 PermissionName.CAN_EDIT_PROFILE,
             )
-            requestUri == "/geogrind/s3/download_all_files/{bucket}" -> setOf(
+            requestUri == "/geogrind/profile_image/download_all_profile_images" -> setOf(
                 PermissionName.CAN_VIEW_FILES,
             )
-            requestUri == "/geogrind/s3/download_file/{bucket}/{file}" -> setOf(
+            requestUri == "/geogrind/profile_image/download_profile_image" -> setOf(
                 PermissionName.CAN_VIEW_FILES,
             )
-            requestUri == "/geogrind/s3/delete_file/{bucket}/{file}" -> setOf(
+            requestUri == "/geogrind/profile_image/delete_profile_image" -> setOf(
                 PermissionName.CAN_DELETE_FILES,
             )
-            requestUri == "/geogrind/s3/upload_file/{bucket}" -> setOf(
+            requestUri == "/geogrind/profile_image/upload_profile_image" -> setOf(
                 PermissionName.CAN_UPLOAD_FILES,
             )
             else -> return setOf()
@@ -184,7 +184,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
     }
 
     private fun shouldNotFilter(requestUri: String): Boolean {
-        return protected_resources.any { pathMatcher.match(it, requestUri) }
+        return requestUri !in protected_resources
     }
 
     private fun hasRequiredPermissions(

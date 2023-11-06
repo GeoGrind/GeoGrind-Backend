@@ -1,28 +1,27 @@
-package com.geogrind.geogrindbackend.controllers.s3
+package com.geogrind.geogrindbackend.controllers.s3ProfileImage
 
 import com.geogrind.geogrindbackend.dto.s3.S3BulkResponseDto
 import io.swagger.annotations.ApiImplicitParam
 import io.swagger.annotations.ApiImplicitParams
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
-import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.http.SdkHttpResponse
 
 @Tag(name = "S3", description = "S3 REST Controller")
 @RestController
-@RequestMapping(path = ["/geogrind/s3/"])
-interface S3Controller {
+@RequestMapping(path = ["/geogrind/profile_image/"])
+interface S3ProfileImageController {
 
-    @GetMapping(path = ["download_all_files/{bucket}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(path = ["download_all_profile_images"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
         summary = "Get all files exist in the S3 bucket",
@@ -30,10 +29,10 @@ interface S3Controller {
         description = "Get all S3 files from a given bucket"
     )
     suspend fun getFileList(
-        @PathVariable("bucket", required = true) bucket: String
+        request: HttpServletRequest
     ) : ResponseEntity<List<String>>
 
-    @DeleteMapping(path = ["delete_file/{bucket}/{file}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @DeleteMapping(path = ["delete_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "DELETE",
         summary = "Delete a file from the S3 bucket",
@@ -41,11 +40,10 @@ interface S3Controller {
         description = "Delete a provided file from a provided S3 Bucket"
     )
     suspend fun deleteFile(
-        @PathVariable("bucket", required = true) bucket: String,
-        @PathVariable("file", required = true) fileKey: String
+        request: HttpServletRequest
     ) : ResponseEntity<SdkHttpResponse>
 
-    @GetMapping(path = ["download_file/{bucket}/{file}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(path = ["download_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
         summary = "Get a file from the S3 bucket",
@@ -53,15 +51,14 @@ interface S3Controller {
         description = "Get a provided file from a provided S3 Bucket"
     )
     suspend fun downloadFile(
-        @PathVariable("bucket", required = true) bucket: String,
-        @PathVariable("file", required = true) fileKey: String,
+        request: HttpServletRequest
     ) : ResponseEntity<ByteArray>
 
     @ApiImplicitParams(*[
         ApiImplicitParam(value = "AWS Bucket name", name = "bucket", dataType = "String", paramType = "query"),
         ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "String", paramType = "form")
     ])
-    @PostMapping(path = ["upload_file/{bucket}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(path = ["upload_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "POST",
         summary = "Upload a file to the S3 bucket",
@@ -69,7 +66,7 @@ interface S3Controller {
         description = "Upload a file to a provided S3 Bucket"
     )
     suspend fun uploadFile(
-        @PathVariable(required = true) bucket: String,
-        @RequestPart("files") uploadFiles : Array<String>
+        @RequestPart("files") uploadFiles : Array<String>,
+        request: HttpServletRequest,
     ) : ResponseEntity<List<S3BulkResponseDto>>
 }

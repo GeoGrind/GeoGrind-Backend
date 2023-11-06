@@ -9,7 +9,7 @@ import java.time.Instant
 import java.util.*
 
 class CreateTokenCookieImpl : CreateTokenCookie {
-    override fun generateJwtToken(expirationTime: Long, user_id: UUID, permissions: Set<Permission>, secret_key: String): String {
+    override fun generateJwtToken(expirationTime: Long, user_id: UUID, permissions: Set<Permission>, secret_key: String, bucketName: String): String {
         val set_expired_time = Instant.now().plusSeconds(expirationTime)
 
         val key = Keys.hmacShaKeyFor(secret_key.toByteArray())
@@ -17,6 +17,7 @@ class CreateTokenCookieImpl : CreateTokenCookie {
         val token = Jwts.builder()
             .claim("user_id", user_id)
             .claim("permissions", permissions)
+            .claim("s3_profile_image_bucket_name", bucketName)
             .issuedAt(Date.from(Instant.now()))
             .expiration(Date.from(set_expired_time))
             .signWith(key)

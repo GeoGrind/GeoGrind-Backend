@@ -1,6 +1,12 @@
 package com.geogrind.geogrindbackend.services.s3
 
 import com.geogrind.geogrindbackend.dto.s3.*
+import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
+import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
+import com.geogrind.geogrindbackend.models.user_account.UserAccount
+import com.geogrind.geogrindbackend.models.user_profile.UserProfile
+import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
+import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import io.github.cdimascio.dotenv.Dotenv
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -23,7 +29,9 @@ import kotlin.collections.ArrayList
 
 @Service
 class S3ServiceImpl(
-    private var s3Client: S3Client
+    private var s3Client: S3Client,
+    private val userProfileRepository: UserProfileRepository,
+    private val userAccountRepository: UserAccountRepository,
 ) : S3Service {
 
     // Load environment variables from the .env file
@@ -45,9 +53,19 @@ class S3ServiceImpl(
 //        ).readAllBytes()
 
         // generate CDN caching for faster access
+        val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
+            requestDto.user_account_id
+        )
+
+        val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
+            user_account = findUserAccount.get()
+        )
+
+        val fileKey: String? = findUserProfile.get().profileImage
+
         try {
             val cloudFrontUrl: String = "https://$cloudFrontUrl"
-            val url = URI(cloudFrontUrl + "/" + requestDto.fileKey)
+            val url = URI(cloudFrontUrl + "/" + fileKey)
             val connection = url.toURL().openConnection() as HttpURLConnection
             connection.requestMethod = "GET"
 
@@ -74,14 +92,23 @@ class S3ServiceImpl(
     }
 
     override suspend fun deleteFile(@Valid requestDto: DeleteFileDto): SdkHttpResponse {
+        val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
+            requestDto.user_account_id
+        )
+
+        val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
+            user_account = findUserAccount.get()
+        )
+
+        val fileKey: String? = findUserProfile.get().profileImage
+
         return s3Client.deleteObject(
-            DeleteObjectRequest.builder().bucket(requestDto.bucketName).key(requestDto.fileKey).build()
+            DeleteObjectRequest.builder().bucket(requestDto.bucketName).key(fileKey).build()
         ).sdkHttpResponse()
     }
 
     override suspend fun uploadFiles(@Valid requestDto: UploadFileDto): List<S3BulkResponseDto> {
-
-        val tempDir = File("../../asset/")
+        val tempDir = File("GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/asset")
 
         // Create an array to hold the MultipartFile objects
         val multipartFiles: List<MultipartFile> = requestDto.files.mapIndexed { index, base64Data ->
@@ -99,6 +126,31 @@ class S3ServiceImpl(
             run {
                 val originFileName: String? = file.originalFilename
                 val uuid: String = UUID.randomUUID().toString()
+
+                // save the profile image fileKey to the database
+                val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
+                    requestDto.user_account_id
+                )
+
+                if(findUserAccount.isEmpty) {
+                    throw UserAccountNotFoundException(
+                        field = requestDto.user_account_id.toString()
+                    )
+                }
+
+                val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
+                    user_account = findUserAccount.get()
+                )
+
+                if(findUserProfile.isEmpty) {
+                    throw UserProfileNotFoundException(
+                        field = findUserAccount.get().toString()
+                    )
+                }
+
+                findUserProfile.get().profileImage = uuid
+                userProfileRepository.save(findUserProfile.get())
+
                 responses.add(
                 s3Client.putObject(
                     PutObjectRequest.builder().bucket(requestDto.bucketName).key(uuid).build(),

@@ -12,3 +12,6 @@ CREATE TABLE IF NOT EXISTS user_profile
 
     FOREIGN KEY (fk_user_account_id) REFERENCES user_account(id)
 );
+
+ALTER TABLE user_profile
+ADD COLUMN profile_image VARCHAR(1000) NOT NULL DEFAULT 'https://www.tenforums.com/geek/gars/images/2/types/thumb_15951118880user.png';

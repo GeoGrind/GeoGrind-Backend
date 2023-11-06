@@ -1,28 +1,31 @@
-package com.geogrind.geogrindbackend.controllers.s3
+package com.geogrind.geogrindbackend.controllers.s3ProfileImage
 
 import com.geogrind.geogrindbackend.dto.s3.*
 import com.geogrind.geogrindbackend.services.s3.S3Service
+import com.geogrind.geogrindbackend.utils.Middleware.JwtAuthenticationFilterImpl
+import io.jsonwebtoken.Claims
 import io.swagger.annotations.ApiImplicitParam
 import io.swagger.annotations.ApiImplicitParams
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.http.SdkHttpResponse
-import java.util.Base64
+import java.util.UUID
 
 @Tag(name = "S3", description = "S3 REST Controller")
 @RestController
-@RequestMapping(path = ["/geogrind/s3/"])
-class S3ControllerImpl(
-    private val s3service : S3Service
-) : S3Controller {
-    @GetMapping(path = ["download_all_files/{bucket}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+@RequestMapping(path = ["/geogrind/profile_image/"])
+class S3ProfileImageControllerImpl(
+    private val s3service : S3Service,
+    private val jwtTokenMiddleWare: JwtAuthenticationFilterImpl,
+) : S3ProfileImageController {
+    @GetMapping(path = ["download_all_profile_images"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
         summary = "Get all files exist in the S3 bucket",
@@ -30,15 +33,26 @@ class S3ControllerImpl(
         description = "Get all S3 files from a given bucket"
     )
     override suspend fun getFileList(
-        @PathVariable(required = true) bucket: String
+        request: HttpServletRequest
     ) : ResponseEntity<List<String>> = withTimeout(timeoutMillis) {
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val bucketName: String = decoded_token["s3_profile_image_bucket_name"] as String
+
         ResponseEntity
             .status(HttpStatus.OK)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 s3service.getBucketFileList(
                     GetBucketFileListDto(
-                        bucketName = bucket
+                        bucketName = bucketName,
                     )
                 )
             )
@@ -47,7 +61,7 @@ class S3ControllerImpl(
             }
     }
 
-    @DeleteMapping(path = ["delete_file/{bucket}/{file}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @DeleteMapping(path = ["delete_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "DELETE",
         summary = "Delete a file from the S3 bucket",
@@ -55,17 +69,29 @@ class S3ControllerImpl(
         description = "Delete a provided file from a provided S3 Bucket"
     )
     override suspend fun deleteFile(
-        @PathVariable(required = true) bucket: String,
-        @PathVariable(required = true) fileKey: String
+        request: HttpServletRequest,
     ) : ResponseEntity<SdkHttpResponse> = withTimeout(timeoutMillis) {
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!,
+        )
+
+        val user_account_id = decoded_token["user_id"] as String
+        val bucketName: String = decoded_token["s3_profile_image_bucket_name"] as String
+
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 s3service.deleteFile(
                     DeleteFileDto(
-                        bucketName = bucket,
-                        fileKey = fileKey,
+                        bucketName = bucketName,
+                        user_account_id = UUID.fromString(user_account_id)
                     )
                 )
             )
@@ -74,7 +100,7 @@ class S3ControllerImpl(
             }
     }
 
-    @GetMapping(path = ["download_file/{bucket}/{file}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @GetMapping(path = ["download_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
         summary = "Get a file from the S3 bucket",
@@ -82,17 +108,29 @@ class S3ControllerImpl(
         description = "Get a provided file from a provided S3 Bucket"
     )
     override suspend fun downloadFile(
-        @PathVariable("bucket", required = true) bucket: String,
-        @PathVariable("file", required = true) fileKey: String,
+        request: HttpServletRequest
     ) : ResponseEntity<ByteArray> = withTimeout(timeoutMillis) {
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val user_account_id = decoded_token["user_id"] as String
+        val bucketName: String = decoded_token["s3_profile_image_bucket_name"] as String
+
         ResponseEntity
             .status(HttpStatus.OK)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 s3service.downloadFile(
                     DownloadFileDto(
-                        bucketName = bucket,
-                        fileKey = fileKey,
+                        bucketName = bucketName,
+                        user_account_id = UUID.fromString(user_account_id),
                     )
                 )
             )
@@ -105,7 +143,7 @@ class S3ControllerImpl(
         ApiImplicitParam(value = "AWS Bucket name", name = "bucket", dataType = "String", paramType = "query"),
         ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "String", paramType = "form")
     ])
-    @PostMapping(path = ["upload_file/{bucket}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PostMapping(path = ["upload_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "POST",
         summary = "Upload a file to the S3 bucket",
@@ -113,17 +151,31 @@ class S3ControllerImpl(
         description = "Upload a file to a provided S3 Bucket"
     )
     override suspend fun uploadFile(
-        @PathVariable(required = true) bucket: String,
-        @RequestPart("files") uploadFiles : Array<String>
+        @RequestPart("files") uploadFiles : Array<String>,
+        request: HttpServletRequest
     ) : ResponseEntity<List<S3BulkResponseDto>> = withTimeout(timeoutMillis) {
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val user_account_id = decoded_token["user_id"] as String
+        val bucketName: String = decoded_token["s3_profile_image_bucket_name"] as String
+
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 s3service.uploadFiles(
                    UploadFileDto(
-                       bucketName = bucket,
+                       bucketName = bucketName,
                        files = uploadFiles,
+                       user_account_id = UUID.fromString(user_account_id)
                    )
                 )
             )
@@ -131,7 +183,7 @@ class S3ControllerImpl(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(S3ControllerImpl::class.java)
+        private val log = LoggerFactory.getLogger(S3ProfileImageControllerImpl::class.java)
         private const val timeoutMillis = 5000L
     }
 }
