@@ -2,6 +2,7 @@ CREATE TABLE IF NOT EXISTS user_profile
 (
     profile_id              UUID        PRIMARY KEY     UNIQUE   NOT NULL    DEFAULT uuid_generate_v4(),
     fk_user_account_id      UUID       UNIQUE   NOT NULL,
+    profile_image           VARCHAR(1000)   NOT NULL    DEFAULT 'thumb_15951118880user.webp',
     username                VARCHAR(60)     NOT NULL    UNIQUE  CHECK ( user_profile.username <> '' ),
     emoji                   VARCHAR(1000)   NULL    DEFAULT 'No emoji set',
     program                 VARCHAR(100)    NULL,
@@ -13,5 +14,3 @@ CREATE TABLE IF NOT EXISTS user_profile
     FOREIGN KEY (fk_user_account_id) REFERENCES user_account(id)
 );
 
-ALTER TABLE user_profile
-ADD COLUMN profile_image VARCHAR(1000) NOT NULL DEFAULT 'https://www.tenforums.com/geek/gars/images/2/types/thumb_15951118880user.png';

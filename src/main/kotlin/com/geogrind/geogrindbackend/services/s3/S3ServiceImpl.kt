@@ -110,22 +110,15 @@ class S3ServiceImpl(
     override suspend fun uploadFiles(@Valid requestDto: UploadFileDto): List<S3BulkResponseDto> {
         val tempDir = File("GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/asset")
 
-        // Create an array to hold the MultipartFile objects
-        val multipartFiles: List<MultipartFile> = requestDto.files.mapIndexed { index, base64Data ->
-            val fileBytes = Base64.getDecoder().decode(base64Data)
-            val fileName = UUID.randomUUID().toString() // generate a unique file name
-            val tempFile = File(tempDir, fileName)
-            tempFile.writeBytes(fileBytes)
-            val multipartFile = MockMultipartFile(fileName, fileName, null, fileBytes)
-            tempFile.deleteOnExit()
-            multipartFile
-        }
-
         val responses: ArrayList<S3BulkResponseDto> = ArrayList()
-        multipartFiles.forEach { file ->
+        requestDto.files.forEach { file ->
             run {
                 val originFileName: String? = file.originalFilename
                 val uuid: String = UUID.randomUUID().toString()
+
+                val tempFile = File(tempDir, uuid)
+                file.transferTo(tempFile) // Write the file content to the tempFile
+                tempFile // Return the tempFile
 
                 // save the profile image fileKey to the database
                 val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(

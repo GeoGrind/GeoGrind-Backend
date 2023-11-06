@@ -37,7 +37,7 @@ data class UserProfile(
 
     @Column(name = "profile_image", unique = false, nullable = false)
     @Size(min = 5)
-    var profileImage: String? = "https://www.tenforums.com/geek/gars/images/2/types/thumb_15951118880user.png",
+    var profileImage: String? = "thumb_15951118880user.webp",
 
     @Column(name = "username", length = 50, unique = true, nullable = false)
     @Size(min = 3)
