@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.http.SdkHttpResponse
 
 @Tag(name = "S3", description = "S3 REST Controller")
@@ -56,7 +57,7 @@ interface S3ProfileImageController {
 
     @ApiImplicitParams(*[
         ApiImplicitParam(value = "AWS Bucket name", name = "bucket", dataType = "String", paramType = "query"),
-        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "String", paramType = "form")
+        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "File", paramType = "form")
     ])
     @PostMapping(path = ["upload_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -66,7 +67,7 @@ interface S3ProfileImageController {
         description = "Upload a file to a provided S3 Bucket"
     )
     suspend fun uploadFile(
-        @RequestPart("files") uploadFiles : Array<String>,
+        @RequestPart("files") uploadFiles : Array<MultipartFile>,
         request: HttpServletRequest,
     ) : ResponseEntity<List<S3BulkResponseDto>>
 }

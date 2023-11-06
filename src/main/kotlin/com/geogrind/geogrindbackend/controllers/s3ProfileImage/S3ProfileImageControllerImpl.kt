@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.http.SdkHttpResponse
 import java.util.UUID
 
@@ -141,7 +142,7 @@ class S3ProfileImageControllerImpl(
 
     @ApiImplicitParams(*[
         ApiImplicitParam(value = "AWS Bucket name", name = "bucket", dataType = "String", paramType = "query"),
-        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "String", paramType = "form")
+        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "File", paramType = "form")
     ])
     @PostMapping(path = ["upload_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -151,7 +152,7 @@ class S3ProfileImageControllerImpl(
         description = "Upload a file to a provided S3 Bucket"
     )
     override suspend fun uploadFile(
-        @RequestPart("files") uploadFiles : Array<String>,
+        @RequestPart("files") uploadFiles : Array<MultipartFile>,
         request: HttpServletRequest
     ) : ResponseEntity<List<S3BulkResponseDto>> = withTimeout(timeoutMillis) {
         // get the user account id from cookie
