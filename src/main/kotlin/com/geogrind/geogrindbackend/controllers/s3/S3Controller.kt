@@ -30,7 +30,7 @@ interface S3Controller {
         description = "Get all S3 files from a given bucket"
     )
     suspend fun getFileList(
-        @PathVariable(required = true) bucket: String
+        @PathVariable("bucket", required = true) bucket: String
     ) : ResponseEntity<List<String>>
 
     @DeleteMapping(path = ["delete_file/{bucket}/{file}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -41,8 +41,8 @@ interface S3Controller {
         description = "Delete a provided file from a provided S3 Bucket"
     )
     suspend fun deleteFile(
-        @PathVariable(required = true) bucket: String,
-        @PathVariable(required = true) fileKey: String
+        @PathVariable("bucket", required = true) bucket: String,
+        @PathVariable("file", required = true) fileKey: String
     ) : ResponseEntity<SdkHttpResponse>
 
     @GetMapping(path = ["download_file/{bucket}/{file}"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -53,17 +53,23 @@ interface S3Controller {
         description = "Get a provided file from a provided S3 Bucket"
     )
     suspend fun downloadFile(
-        @PathVariable(required = true) bucket: String,
-        @PathVariable(required = true) fileKey: String,
+        @PathVariable("bucket", required = true) bucket: String,
+        @PathVariable("file", required = true) fileKey: String,
     ) : ResponseEntity<ByteArray>
 
     @ApiImplicitParams(*[
         ApiImplicitParam(value = "AWS Bucket name", name = "bucket", dataType = "String", paramType = "query"),
-        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "File", paramType = "form")
+        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "String", paramType = "form")
     ])
-    @PostMapping(path = ["upload_file/{bucket}"])
+    @PostMapping(path = ["upload_file/{bucket}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        method = "POST",
+        summary = "Upload a file to the S3 bucket",
+        operationId = "uploadS3File",
+        description = "Upload a file to a provided S3 Bucket"
+    )
     suspend fun uploadFile(
         @PathVariable(required = true) bucket: String,
-        @RequestPart("files") uploadFiles : Array<MultipartFile>
+        @RequestPart("files") uploadFiles : Array<String>
     ) : ResponseEntity<List<S3BulkResponseDto>>
 }

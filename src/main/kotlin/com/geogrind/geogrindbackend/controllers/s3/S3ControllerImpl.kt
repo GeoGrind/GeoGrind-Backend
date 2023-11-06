@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.controllers.s3
 
-import com.geogrind.geogrindbackend.dto.s3.S3BulkResponseDto
+import com.geogrind.geogrindbackend.dto.s3.*
 import com.geogrind.geogrindbackend.services.s3.S3Service
 import io.swagger.annotations.ApiImplicitParam
 import io.swagger.annotations.ApiImplicitParams
@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.http.SdkHttpResponse
+import java.util.Base64
 
 @Tag(name = "S3", description = "S3 REST Controller")
 @RestController
@@ -35,7 +36,11 @@ class S3ControllerImpl(
             .status(HttpStatus.OK)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                s3service.getBucketFileList(bucket)
+                s3service.getBucketFileList(
+                    GetBucketFileListDto(
+                        bucketName = bucket
+                    )
+                )
             )
             .also {
                 log.info("Get all files from the S3 bucket successfully: $it")
@@ -57,7 +62,12 @@ class S3ControllerImpl(
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                s3service.deleteFile(bucket, fileKey)
+                s3service.deleteFile(
+                    DeleteFileDto(
+                        bucketName = bucket,
+                        fileKey = fileKey,
+                    )
+                )
             )
             .also {
                 log.info("Successfully delete the file from the S3 bucket")
@@ -80,8 +90,10 @@ class S3ControllerImpl(
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 s3service.downloadFile(
-                    bucketName = bucket,
-                    fileKey = fileKey,
+                    DownloadFileDto(
+                        bucketName = bucket,
+                        fileKey = fileKey,
+                    )
                 )
             )
             .also {
@@ -91,20 +103,28 @@ class S3ControllerImpl(
 
     @ApiImplicitParams(*[
         ApiImplicitParam(value = "AWS Bucket name", name = "bucket", dataType = "String", paramType = "query"),
-        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "File", paramType = "form")
+        ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "String", paramType = "form")
     ])
-    @PostMapping(path = ["upload_file/{bucket}"])
+    @PostMapping(path = ["upload_file/{bucket}"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        method = "POST",
+        summary = "Upload a file to the S3 bucket",
+        operationId = "uploadS3File",
+        description = "Upload a file to a provided S3 Bucket"
+    )
     override suspend fun uploadFile(
         @PathVariable(required = true) bucket: String,
-        @RequestPart("files") uploadFiles : Array<MultipartFile>
+        @RequestPart("files") uploadFiles : Array<String>
     ) : ResponseEntity<List<S3BulkResponseDto>> = withTimeout(timeoutMillis) {
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 s3service.uploadFiles(
-                    bucketName = bucket,
-                    files = uploadFiles
+                   UploadFileDto(
+                       bucketName = bucket,
+                       files = uploadFiles,
+                   )
                 )
             )
             .also { log.info("Successfully upload the file to the bucket: $it") }

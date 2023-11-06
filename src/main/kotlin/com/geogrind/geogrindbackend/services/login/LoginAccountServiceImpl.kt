@@ -166,6 +166,18 @@ class LoginAccountServiceImpl(
                 fkUserAccountId = findUserAccount.get().id as UUID,
                 createdAt = Date(),
                 updatedAt = Date(),
+            ),
+            Permission(
+                permission_name = PermissionName.CAN_VIEW_FILES,
+                fkUserAccountId = findUserAccount.get().id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
+            ),
+            Permission(
+                permission_name = PermissionName.CAN_UPLOAD_FILES,
+                fkUserAccountId = findUserAccount.get().id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
             )
         )
 

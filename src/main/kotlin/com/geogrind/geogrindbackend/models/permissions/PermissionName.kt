@@ -10,6 +10,7 @@ enum class PermissionName {
     // Files upload
     CAN_VIEW_FILES,
     CAN_UPLOAD_FILES,
+    CAN_DELETE_FILES,
 
     // Map
     CAN_VIEW_MAP,

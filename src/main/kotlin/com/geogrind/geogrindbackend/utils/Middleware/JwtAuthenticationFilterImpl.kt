@@ -24,12 +24,15 @@ import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
+import org.springframework.util.AntPathMatcher
 import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.WebUtils
 
 @Component
 class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
+
+    private val pathMatcher = AntPathMatcher()
 
     private val dotenv: Dotenv = Dotenv.configure().directory(".").load()
 
@@ -42,7 +45,10 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         "/geogrind/user_profile/update_profile",
 
         // file upload to S3 bucket
-//        "/geogrind/s3/"
+        "/geogrind/s3/download_all_files/**",
+        "/geogrind/s3/delete_file/**",
+        "/geogrind/s3/download_file/**",
+        "/geogrind/s3/upload_file/**",
     )
 
     override fun doFilterInternal(
@@ -161,17 +167,24 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
                 PermissionName.CAN_VIEW_PROFILE,
                 PermissionName.CAN_EDIT_PROFILE,
             )
-//            requestUri == "/geogrind/s3/download_all_files/{bucket}" -> setOf(
-//                PermissionName.CAN_VIEW_PROFILE,
-//                PermissionName.CAN_VIEW_PROFILE,
-//            )
-//            requestUri == "/geogrind/s3/download_file/{bucket}/{file}"
+            requestUri == "/geogrind/s3/download_all_files/{bucket}" -> setOf(
+                PermissionName.CAN_VIEW_FILES,
+            )
+            requestUri == "/geogrind/s3/download_file/{bucket}/{file}" -> setOf(
+                PermissionName.CAN_VIEW_FILES,
+            )
+            requestUri == "/geogrind/s3/delete_file/{bucket}/{file}" -> setOf(
+                PermissionName.CAN_DELETE_FILES,
+            )
+            requestUri == "/geogrind/s3/upload_file/{bucket}" -> setOf(
+                PermissionName.CAN_UPLOAD_FILES,
+            )
             else -> return setOf()
         }
     }
 
     private fun shouldNotFilter(requestUri: String): Boolean {
-        return requestUri !in protected_resources
+        return protected_resources.any { pathMatcher.match(it, requestUri) }
     }
 
     private fun hasRequiredPermissions(
