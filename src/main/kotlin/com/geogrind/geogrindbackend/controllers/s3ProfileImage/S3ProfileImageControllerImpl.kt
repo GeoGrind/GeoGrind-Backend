@@ -141,7 +141,6 @@ class S3ProfileImageControllerImpl(
     }
 
     @ApiImplicitParams(*[
-        ApiImplicitParam(value = "AWS Bucket name", name = "bucket", dataType = "String", paramType = "query"),
         ApiImplicitParam(value = "Files", required = true, name = "files", allowMultiple = true, dataType = "File", paramType = "form")
     ])
     @PostMapping(path = ["upload_profile_image"], produces = [MediaType.APPLICATION_JSON_VALUE])

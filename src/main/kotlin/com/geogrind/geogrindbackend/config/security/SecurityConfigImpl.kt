@@ -117,13 +117,13 @@ class SecurityConfigImpl : SecurityConfig {
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
-                            "/geogrind/delete_profile_image",
+                            "/geogrind/profile_image/delete_profile_image",
                             HttpMethod.DELETE.toString()
                         )
                     ).permitAll()
                     .requestMatchers(
                         AntPathRequestMatcher(
-                            "/geogrind/upload_profile_image",
+                            "/geogrind/profile_image/upload_profile_image",
                             HttpMethod.POST.toString(),
                         )
                     ).permitAll()

@@ -10,10 +10,8 @@ import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileReposit
 import io.github.cdimascio.dotenv.Dotenv
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
-import org.springframework.mock.web.MockMultipartFile
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
-import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.http.SdkHttpResponse
 import software.amazon.awssdk.services.s3.S3Client
@@ -100,25 +98,24 @@ class S3ServiceImpl(
             user_account = findUserAccount.get()
         )
 
-        val fileKey: String? = findUserProfile.get().profileImage
+        val oldFileKey: String? = findUserProfile.get().profileImage
+
+        // change the file key back to default pfp
+        findUserProfile.get().profileImage = "thumb_15951118880user.webp"
+        userProfileRepository.save(findUserProfile.get())
 
         return s3Client.deleteObject(
-            DeleteObjectRequest.builder().bucket(requestDto.bucketName).key(fileKey).build()
+            DeleteObjectRequest.builder().bucket(requestDto.bucketName).key(oldFileKey).build()
         ).sdkHttpResponse()
     }
 
     override suspend fun uploadFiles(@Valid requestDto: UploadFileDto): List<S3BulkResponseDto> {
-        val tempDir = File("GeoGrind-Backend/src/main/kotlin/com/geogrind/geogrindbackend/asset")
 
         val responses: ArrayList<S3BulkResponseDto> = ArrayList()
         requestDto.files.forEach { file ->
             run {
                 val originFileName: String? = file.originalFilename
                 val uuid: String = UUID.randomUUID().toString()
-
-                val tempFile = File(tempDir, uuid)
-                file.transferTo(tempFile) // Write the file content to the tempFile
-                tempFile // Return the tempFile
 
                 // save the profile image fileKey to the database
                 val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(

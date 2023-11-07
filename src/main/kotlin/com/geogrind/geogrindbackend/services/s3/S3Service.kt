@@ -2,7 +2,6 @@ package com.geogrind.geogrindbackend.services.s3
 
 import com.geogrind.geogrindbackend.dto.s3.*
 import jakarta.validation.Valid
-import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.http.SdkHttpResponse
 
 // service for s3
