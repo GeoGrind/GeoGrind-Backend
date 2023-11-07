@@ -30,6 +30,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-devtools")
 
+	// database connection pool
+	implementation("com.zaxxer:HikariCP:5.0.0")
+
 	// bcrypt and security
 	implementation("org.mindrot:jbcrypt:0.4")
 
