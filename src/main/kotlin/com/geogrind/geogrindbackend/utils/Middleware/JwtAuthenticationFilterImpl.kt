@@ -3,6 +3,7 @@ package com.geogrind.geogrindbackend.utils.Middleware
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
+import com.geogrind.geogrindbackend.exceptions.user_profile.CustomMissingCookieException
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import io.github.cdimascio.dotenv.Dotenv
@@ -21,21 +22,33 @@ import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
+import org.springframework.util.AntPathMatcher
+import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.util.WebUtils
 
 @Component
 class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
+    private val pathMatcher = AntPathMatcher()
+
     private val dotenv: Dotenv = Dotenv.configure().directory(".").load()
 
     private val geogrindSecretKey: String = dotenv["GEOGRIND_SECRET_KEY"]
 
     private val protected_resources: Set<String> = setOf(
+        // user profiles
         "/geogrind/user_profile/get_all_profiles",
         "/geogrind/user_profile/get_profile", // get the user profile based on the user account id
-        "/geogrind/user_profile/update_profile"
+        "/geogrind/user_profile/update_profile",
+
+        // file upload to S3 bucket
+        "/geogrind/profile_image/download_all_profile_images",
+        "/geogrind/profile_image/download_profile_image",
+        "/geogrind/profile_image/delete_profile_image",
+        "/geogrind/profile_image/upload_profile_image",
     )
 
     override fun doFilterInternal(
@@ -58,6 +71,12 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
                 request = request,
                 cookieName = "JWT-TOKEN",
             )
+
+            if(jwt_token == null) {
+               throw CustomMissingCookieException(
+                   cookieName = "JWT-TOKEN"
+               )
+            }
 
             val requiredPermissions: Set<PermissionName> = determineRequiredPermissions(
                 requestUri = requestUri,
@@ -117,7 +136,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             val cookieValue = cookie?.find { it.name == cookieName }?.value
             log.info("Cookie extracted: $cookieValue")
             return cookieValue
-        } catch (e: RuntimeException) {
+        } catch (e: Exception) {
             log.info("${e.message}")
         }
         return null
@@ -138,15 +157,27 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
     private fun determineRequiredPermissions(requestUri: String): Set<PermissionName> {
         return when {
-            requestUri == "/geogrind/user_profile/all" -> setOf(
+            requestUri == "/geogrind/user_profile/get_all_profiles" -> setOf(
                 PermissionName.CAN_VIEW_PROFILE,
             )
-            requestUri == "/geogrind/user_profile/{user_account_id}" -> setOf(
+            requestUri == "/geogrind/user_profile/get_profile" -> setOf(
                 PermissionName.CAN_VIEW_PROFILE,
             )
-            requestUri == "/geogrind/user_profile/update_profile/{user_account_id}" -> setOf(
+            requestUri == "/geogrind/user_profile/update_profile" -> setOf(
                 PermissionName.CAN_VIEW_PROFILE,
                 PermissionName.CAN_EDIT_PROFILE,
+            )
+            requestUri == "/geogrind/profile_image/download_all_profile_images" -> setOf(
+                PermissionName.CAN_VIEW_FILES,
+            )
+            requestUri == "/geogrind/profile_image/download_profile_image" -> setOf(
+                PermissionName.CAN_VIEW_FILES,
+            )
+            requestUri == "/geogrind/profile_image/delete_profile_image" -> setOf(
+                PermissionName.CAN_DELETE_FILES,
+            )
+            requestUri == "/geogrind/profile_image/upload_profile_image" -> setOf(
+                PermissionName.CAN_UPLOAD_FILES,
             )
             else -> return setOf()
         }

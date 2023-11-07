@@ -102,6 +102,32 @@ class SecurityConfigImpl : SecurityConfig {
                         )
                     ).permitAll()
 
+                    // S3 ENDPOINTS
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/profile_image/download_all_profile_images",
+                            HttpMethod.GET.toString()
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/profile_image/download_profile_image",
+                            HttpMethod.GET.toString()
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/profile_image/delete_profile_image",
+                            HttpMethod.DELETE.toString()
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/profile_image/upload_profile_image",
+                            HttpMethod.POST.toString(),
+                        )
+                    ).permitAll()
+
                     // MESSAGING ENDPOINTS
                     .requestMatchers(
                         AntPathRequestMatcher(

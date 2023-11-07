@@ -55,6 +55,8 @@ class LoginAccountServiceImpl(
 
     private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
+    private val s3BucketName = dotenv["AWS_PFP_BUCKET_NAME"]
+
     @Transactional
     override suspend fun login(@Valid requestDto: UserLoginRequestDto): SendGridResponseDto {
 
@@ -166,6 +168,24 @@ class LoginAccountServiceImpl(
                 fkUserAccountId = findUserAccount.get().id as UUID,
                 createdAt = Date(),
                 updatedAt = Date(),
+            ),
+            Permission(
+                permission_name = PermissionName.CAN_VIEW_FILES,
+                fkUserAccountId = findUserAccount.get().id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
+            ),
+            Permission(
+                permission_name = PermissionName.CAN_DELETE_FILES,
+                fkUserAccountId = findUserAccount.get().id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
+            ),
+            Permission(
+                permission_name = PermissionName.CAN_UPLOAD_FILES,
+                fkUserAccountId = findUserAccount.get().id as UUID,
+                createdAt = Date(),
+                updatedAt = Date(),
             )
         )
 
@@ -176,7 +196,13 @@ class LoginAccountServiceImpl(
         )
 
         // generate the new jwt token for the user's new session
-        val jwt_token: String = generateCookieHelper.generateJwtToken(3600, findUserAccount.get().id as UUID, permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID), geogrindSecretKey)
+        val jwt_token: String = generateCookieHelper.generateJwtToken(
+            3600,
+            findUserAccount.get().id as UUID,
+            permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID),
+            geogrindSecretKey,
+            bucketName = s3BucketName
+        )
 
         // store the token into cookies
         val cookie: Cookie = generateCookieHelper.createTokenCookie(3600, jwt_token)

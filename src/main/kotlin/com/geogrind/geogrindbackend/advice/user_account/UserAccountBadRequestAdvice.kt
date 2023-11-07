@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.advice.user_account
 
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountBadRequestException
+import org.slf4j.LoggerFactory
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -22,5 +23,10 @@ class UserAccountBadRequestAdvice {
             .body(
                 errorMap
             )
+            .also { log.info("User registration bad request!") }
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(UserAccountBadRequestAdvice::class.java)
     }
 }

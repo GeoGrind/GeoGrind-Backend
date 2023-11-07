@@ -62,11 +62,21 @@ dependencies {
 	// security
 	implementation("org.springframework.boot:spring-boot-starter-security")
 
+	// AWS
+	implementation(platform("software.amazon.awssdk:bom:2.15.14"))
+	implementation ("software.amazon.awssdk:s3:2.15.14")
+	implementation("software.amazon.awssdk:cloudfront:2.15.14")
+
+	// Spring test to use spring mock web dependency
+	implementation("org.springframework:spring-test")
+
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("com.mysql:mysql-connector-j")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework:spring-test")
 }
 
 tasks.withType<KotlinCompile> {
