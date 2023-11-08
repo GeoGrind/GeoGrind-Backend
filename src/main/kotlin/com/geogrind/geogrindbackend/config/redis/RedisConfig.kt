@@ -17,6 +17,9 @@ import java.io.Serializable
 @EnableCaching
 interface RedisConfig {
     @Bean
+    fun redisConnectionFactory(): LettuceConnectionFactory
+
+    @Bean
     fun redisCacheTemplate(redisConnectionFactory: LettuceConnectionFactory): RedisTemplate<String, Serializable>
 
     @Bean

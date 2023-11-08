@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.cache.RedisCacheConfiguration
 import org.springframework.data.redis.cache.RedisCacheManager
 import org.springframework.data.redis.connection.RedisConnectionFactory
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
 import org.springframework.data.redis.core.RedisTemplate
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer
@@ -26,14 +27,21 @@ import java.time.Duration
 @EnableCaching
 class RedisConfigImpl : RedisConfig {
 
-//    @Autowired
-//    private lateinit var cacheManager: CacheManager
-
     // Load environment variables from the .env file
     private val dotenv = Dotenv.configure().directory(".").load()
 
     private val redisHost = dotenv["REDIS_HOST"]
-    private val redisPort = dotenv["REDIS_PORT"]
+
+    private val redisPort = dotenv["REDIS_PORT"].toInt()
+
+    private val redisPassword = dotenv["REDIS_PASSWORD"]
+
+    @Bean
+    override fun redisConnectionFactory(): LettuceConnectionFactory {
+        val configuration = RedisStandaloneConfiguration(redisHost, redisPort)
+        configuration.setPassword(redisPassword)
+        return LettuceConnectionFactory(configuration)
+    }
 
     @Bean
     override fun redisCacheTemplate(redisConnectionFactory: LettuceConnectionFactory): RedisTemplate<String, Serializable> {
