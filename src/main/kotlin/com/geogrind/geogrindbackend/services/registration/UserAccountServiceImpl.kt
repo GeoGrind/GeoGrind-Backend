@@ -28,6 +28,10 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CacheConfig
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.Caching
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -35,6 +39,7 @@ import java.util.*
 import kotlin.collections.HashMap
 
 @Service
+@CacheConfig(cacheNames = ["userAccountCache"])
 class UserAccountServiceImpl(
     private val userAccoutRepository: UserAccountRepository,
     private val userProfileService: UserProfileService,
@@ -54,13 +59,19 @@ class UserAccountServiceImpl(
     private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
     // get all user accounts
+    @Cacheable(cacheNames = ["userAccounts"])
     @Transactional(readOnly = true)
-    override suspend fun getAllUserAccounts(): List<UserAccount> = userAccoutRepository.findAll()
+    override suspend fun getAllUserAccounts(): List<UserAccount> {
+        waitSomeTime()
+        return userAccoutRepository.findAll()
+    }
 
     // get the user account by an user_id
+    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' ", unless = "#result == null")
     @Transactional(readOnly = true)
     override suspend fun getUserAccountById(@Valid requestDto: GetUserAccountByIdDto): UserAccount {
         try {
+            waitSomeTime()
             val user_account: Optional<UserAccount> = userAccoutRepository.findById(requestDto.user_id)
             return user_account.get()
         } catch (e: UserAccountNotFoundException) {
@@ -73,6 +84,7 @@ class UserAccountServiceImpl(
     }
 
     // create new user account in the database
+    @CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
     @Transactional
     override suspend fun createUserAccount(@Valid requestDto: CreateUserAccountDto): SendGridResponseDto {
         var email: String = requestDto.email
@@ -161,6 +173,7 @@ class UserAccountServiceImpl(
         return sendgrid_response
     }
 
+    @CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
     @Transactional
     override suspend fun updateUserAccountById(
         user_id: UUID,
@@ -229,6 +242,10 @@ class UserAccountServiceImpl(
         return sendgrid_response
     }
 
+    @Caching(evict = [
+        CacheEvict(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' "),
+        CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
+    ])
     @Transactional
     override suspend fun deleteUserAccountById(
         @Valid requestDto: DeleteUserAccountDto
@@ -379,5 +396,14 @@ class UserAccountServiceImpl(
 
     companion object {
         private val log = LoggerFactory.getLogger(UserAccountService::class.java)
+        private fun waitSomeTime() {
+            log.info("Long Wait Begin")
+            try {
+                Thread.sleep(3000)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            println("Long Wait End")
+        }
     }
 }

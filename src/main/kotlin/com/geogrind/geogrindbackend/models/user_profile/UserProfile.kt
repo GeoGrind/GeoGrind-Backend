@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.models.user_profile
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
@@ -61,6 +62,7 @@ data class UserProfile(
 
     // One to one relationship with the user account
     @OneToOne(targetEntity = UserAccount::class, cascade = [CascadeType.ALL])
+    @JsonIgnore
     @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
     var userAccount: UserAccount,
 

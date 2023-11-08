@@ -33,10 +33,10 @@ class S3ServiceImpl(
 ) : S3Service {
 
     // Load environment variables from the .env file
-    val dotenv = Dotenv.configure().directory(".").load()
+    private val dotenv = Dotenv.configure().directory(".").load()
 
     // CloudFront URL
-    val cloudFrontUrl: String = dotenv["AWS_CLOUDFRONT_DISTRIBUTION"]
+    private val cloudFrontUrl: String = dotenv["AWS_CLOUDFRONT_DISTRIBUTION"]
 
     override suspend fun getBucketFileList(@Valid requestDto: GetBucketFileListDto): List<String> {
         return s3Client
