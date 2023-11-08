@@ -18,7 +18,6 @@ interface UserProfileService {
         @Valid requestDto: CreateUserProfileDto
     ): UserProfile
     suspend fun updateUserProfileByUserAccountId(
-        user_account_id: UUID,
         @Valid requestDto: UpdateUserProfileByUserAccountIdDto
     ): UserProfile
 }

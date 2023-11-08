@@ -3,10 +3,12 @@ package com.geogrind.geogrindbackend.utils.AutoGenerate
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
+import org.springframework.stereotype.Service
 import java.util.*
 import kotlin.math.pow
 import kotlin.random.Random
 
+@Service
 class GenerateRandomHelperImpl : GenerateRandomHelper {
     override fun generateRandomString(length: Int): String {
         val charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"

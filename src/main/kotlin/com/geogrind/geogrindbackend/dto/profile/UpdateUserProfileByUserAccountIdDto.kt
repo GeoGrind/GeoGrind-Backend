@@ -2,9 +2,15 @@ package com.geogrind.geogrindbackend.dto.profile
 
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
+import org.jetbrains.annotations.NotNull
+import java.util.UUID
 
 data class UpdateUserProfileByUserAccountIdDto(
+    @field:NotNull
+    @field:NotBlank
+    val user_account_id: UUID,
     @get:Size(min = 0, max = 50) var username: String? = null,
     @get:Size(min = 0, max = 1000) var emoji: String? = null,
     @get:Size(min = 0, max = 100) var program: String? = null,

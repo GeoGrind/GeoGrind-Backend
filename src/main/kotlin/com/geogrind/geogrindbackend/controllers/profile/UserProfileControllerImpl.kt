@@ -117,8 +117,8 @@ class UserProfileControllerImpl @Autowired constructor(
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 userProfileService.updateUserProfileByUserAccountId(
-                    user_account_id = UUID.fromString(user_account_id),
                     requestDto = UpdateUserProfileByUserAccountIdDto(
+                        user_account_id = UUID.fromString(user_account_id),
                         username = updateUserProfileDto.username,
                         emoji = updateUserProfileDto.emoji,
                         program = updateUserProfileDto.program,

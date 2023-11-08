@@ -67,11 +67,11 @@ class UserAccountServiceImpl(
     }
 
     // get the user account by an user_id
-    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' ", unless = "#result == null")
+    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' ", unless = " '#result == null' ")
     @Transactional(readOnly = true)
     override suspend fun getUserAccountById(@Valid requestDto: GetUserAccountByIdDto): UserAccount {
         try {
-            waitSomeTime()
+            waitSomeTime() // waiting for Redis
             val user_account: Optional<UserAccount> = userAccoutRepository.findById(requestDto.user_id)
             return user_account.get()
         } catch (e: UserAccountNotFoundException) {
@@ -282,27 +282,13 @@ class UserAccountServiceImpl(
     }
 
     // sendgrid email verification service
+    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_account_id' ", unless = " '#result == null' ")
     @Transactional
     override suspend fun getEmailVerification(@Valid requestDto: VerifyEmailUserAccountDto): UserAccount {
-        // decode the jwt token
-        val decoded_token: Claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-            .build()
-            .parseSignedClaims(requestDto.token)
-            .payload
 
-        // check if the expiration time is more than the current time
-        val exp_timestamp = decoded_token["exp"] as Long
-        val exp_time = Instant.ofEpochSecond(exp_timestamp)
-        val current_time = Instant.now()
+        waitSomeTime() // wait for Redis
 
-        if(current_time.isAfter(exp_time)) {
-            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
-        }
-
-        val user_id: String = decoded_token["user_id"] as String
-
-        val findUserAccount = userAccoutRepository.findById(UUID.fromString(user_id))
+        val findUserAccount = userAccoutRepository.findById(requestDto.user_account_id)
 
         // check the temp token
         if(!findUserAccount.get().temp_token.equals(requestDto.token)) {
@@ -324,28 +310,12 @@ class UserAccountServiceImpl(
         return findUserAccount.get()
     }
 
+    @Cacheable(cacheNames = ["userAccounts"], key = " 'requestDto.user_account_id' ", unless = " '#result == null' ")
     @Transactional
     override suspend fun getConfirmPasswordChangeVerification(@Valid requestDto: UpdatePasswordConfirmationDto): UserAccount {
-        // decode the jwt token
-        val decoded_token: Claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-            .build()
-            .parseSignedClaims(requestDto.token)
-            .payload
+        waitSomeTime() // waiting for Redis
 
-        // check if the token is still valid
-        val exp_timestamp = decoded_token["exp"] as Long
-        val exp_time = Instant.ofEpochSecond(exp_timestamp)
-        val current_time = Instant.now()
-
-        if(current_time.isAfter(exp_time)) {
-            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
-        }
-
-        val user_id: String = decoded_token["user_id"] as String
-        val new_password: String = decoded_token["new_password"] as String
-
-        val findUserAccount = userAccoutRepository.findById(UUID.fromString(user_id))
+        val findUserAccount = userAccoutRepository.findById(requestDto.user_account_id)
 
         // check the temp token
         if(!findUserAccount.get().temp_token.equals(requestDto.token)) {
@@ -353,36 +323,21 @@ class UserAccountServiceImpl(
         }
 
         // hash the user new password
-        val hashed_password: String = BCryptObj.hashPassword(new_password)
+        val hashed_password: String = BCryptObj.hashPassword(requestDto.new_password)
 
         findUserAccount.get().hashed_password = hashed_password
 
         return findUserAccount.get()
     }
 
+    @Caching(evict = [
+        CacheEvict(cacheNames = ["userAccounts"], key = " '#requestDto.user_account_id' "),
+        CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
+    ])
     @Transactional
     override suspend fun getDeleteAccountVerification(@Valid requestDto: DeleteUserAccountConfirmationDto) {
-        // decode the jwt token
-        val decoded_token: Claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-            .build()
-            .parseSignedClaims(requestDto.token)
-            .payload
 
-        log.info("Decoded token: ${decoded_token}")
-
-        // check if the token is still valid
-        val exp_timestamp = decoded_token["exp"] as Long
-        val exp_time = Instant.ofEpochSecond(exp_timestamp)
-        val current_time = Instant.now()
-
-        if(current_time.isAfter(exp_time)) {
-            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
-        }
-
-        val user_id: String = decoded_token["user_id"] as String
-
-        val findUserAccount = userAccoutRepository.findById(UUID.fromString(user_id))
+        val findUserAccount = userAccoutRepository.findById(requestDto.user_account_id)
         println("Temp_token: ${findUserAccount.get().temp_token}")
 
         // check the temp token
@@ -391,7 +346,7 @@ class UserAccountServiceImpl(
         }
 
         // delete the user account
-        userAccoutRepository.deleteById(UUID.fromString(user_id))
+        userAccoutRepository.deleteById(requestDto.user_account_id)
     }
 
     companion object {

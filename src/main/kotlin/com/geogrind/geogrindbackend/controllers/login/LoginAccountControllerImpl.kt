@@ -7,6 +7,11 @@ import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.services.login.LoginAccountService
+import io.github.cdimascio.dotenv.Dotenv
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.Cookie
@@ -19,6 +24,8 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.time.Instant
+import java.util.UUID
 
 @Tag(name = "LoginAccount", description = "Login Account REST Controller")
 @RestController
@@ -26,6 +33,11 @@ import org.springframework.web.bind.annotation.*
 class LoginAccountControllerImpl @Autowired constructor(
     private val loginAccountService: LoginAccountService
 ) : LoginAccountController {
+
+    // Load environment variables from the .env file
+    private val dotenv = Dotenv.configure().directory(".").load()
+
+    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
     @PostMapping(path = ["/login"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -57,9 +69,29 @@ class LoginAccountControllerImpl @Autowired constructor(
         @PathVariable(required = true) token: String,
         response: HttpServletResponse
     ): ResponseEntity<SuccessUserAccountResponse> = withTimeout(timeOutMillis) {
+
+        // decode the token
+        val decoded_token: Claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        // check if the expiration time is more than the current time
+        val exp_timestamp = decoded_token["exp"] as Long
+        val exp_time = Instant.ofEpochSecond(exp_timestamp)
+        val current_time = Instant.now()
+
+        if(current_time.isAfter(exp_time)) {
+            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
+        }
+
+        val user_id: String = decoded_token["user_id"] as String
+
         // generate the new jwt token for the user
         val service_response: Pair<UserAccount, Cookie> = loginAccountService.confirmLoginHandler(
             ConfirmUserLoginResquestDto(
+                user_account_id = UUID.fromString(user_id),
                 token = token
             )
         )
