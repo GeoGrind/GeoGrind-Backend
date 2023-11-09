@@ -106,11 +106,14 @@ class UserProfileControllerImpl @Autowired constructor(
             cookieName = "JWT-TOKEN",
         )
 
+        println("Here")
+
         val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
             token = token!!
         )
 
         val user_account_id = decoded_token["user_id"] as String
+        log.info(user_account_id)
 
         ResponseEntity
             .status(HttpStatus.CREATED)

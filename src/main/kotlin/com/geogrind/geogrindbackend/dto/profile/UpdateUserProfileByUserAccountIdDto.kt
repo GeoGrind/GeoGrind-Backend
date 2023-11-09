@@ -8,9 +8,7 @@ import org.jetbrains.annotations.NotNull
 import java.util.UUID
 
 data class UpdateUserProfileByUserAccountIdDto(
-    @field:NotNull
-    @field:NotBlank
-    val user_account_id: UUID,
+    val user_account_id: UUID? = null,
     @get:Size(min = 0, max = 50) var username: String? = null,
     @get:Size(min = 0, max = 1000) var emoji: String? = null,
     @get:Size(min = 0, max = 100) var program: String? = null,

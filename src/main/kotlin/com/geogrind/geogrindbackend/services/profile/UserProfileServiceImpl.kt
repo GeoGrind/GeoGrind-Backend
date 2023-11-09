@@ -40,7 +40,7 @@ class UserProfileServiceImpl(
     }
 
     // get user profile by user account id
-    @Cacheable(cacheNames = ["userProfiles", "userAccounts"], key = " '#requestDto.user_account_id' ", unless = " '#result == null' ")
+    @Cacheable(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional(readOnly = true)
     override suspend fun getUserProfileByUserAccountId(
         @Valid requestDto: GetUserProfileByUserAccountIdDto
@@ -90,7 +90,7 @@ class UserProfileServiceImpl(
 
     // update user profile by user account id
     @CacheEvict(cacheNames = ["userProfiles"], allEntries = true)
-    @Cacheable(cacheNames = ["userAccounts", "userProfiles"], key = " '#requestDto.user_account_id' ", unless = " '#result == null' ")
+    @Cacheable(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional
     override suspend fun updateUserProfileByUserAccountId(
         @Valid requestDto: UpdateUserProfileByUserAccountIdDto
@@ -105,7 +105,7 @@ class UserProfileServiceImpl(
 
         // find the user account that is linked to this profile
         var findUserAccount: UserAccount = userAccountRepository.findById(
-            requestDto.user_account_id
+            requestDto.user_account_id!! // the user account id will always be presented as it is extracted from cookies
         ).orElse(null)
 
         if(findUserAccount == null) {

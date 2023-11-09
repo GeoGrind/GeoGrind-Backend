@@ -67,7 +67,7 @@ class UserAccountServiceImpl(
     }
 
     // get the user account by an user_id
-    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' ", unless = " '#result == null' ")
+    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' ", unless = " #result == null ")
     @Transactional(readOnly = true)
     override suspend fun getUserAccountById(@Valid requestDto: GetUserAccountByIdDto): UserAccount {
         try {
