@@ -1,5 +1,8 @@
 package com.geogrind.geogrindbackend.utils.Validation.registration
 
+import org.springframework.stereotype.Service
+
+@Service
 class UserAccountValidationHelperImpl : UserAccountValidationHelper {
 
     override fun validateEmail(email: String, registration_form_errors: MutableMap<String, String>) {

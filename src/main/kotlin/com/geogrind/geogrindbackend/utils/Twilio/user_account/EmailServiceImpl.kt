@@ -10,6 +10,7 @@ import com.sendgrid.SendGrid
 import com.sendgrid.helpers.mail.Mail
 import com.sendgrid.helpers.mail.objects.Content
 import com.sendgrid.helpers.mail.objects.Email
+import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
@@ -21,10 +22,14 @@ import java.io.IOException
 import java.util.*
 
 @Service
-class EmailServiceImpl(
-    @Value("\${SENDGRID_API_KEY}") private val sendGridApiKey: String,
-    @Value("\${GEOGRIND_SECRET_KEY}") private val geogrindSecretKey: String,
-): EmailService {
+class EmailServiceImpl: EmailService {
+
+    // Load environment variables from the .env file
+    private val dotenv = Dotenv.configure().directory(".").load()
+
+    private val sendGridApiKey = dotenv["SENDGRID_API_KEY"]
+
+    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
     // send the email confirmation using SendGrid
     override suspend fun sendEmailConfirmation(

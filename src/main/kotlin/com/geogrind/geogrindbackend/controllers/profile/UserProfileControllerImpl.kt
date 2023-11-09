@@ -106,19 +106,22 @@ class UserProfileControllerImpl @Autowired constructor(
             cookieName = "JWT-TOKEN",
         )
 
+        println("Here")
+
         val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
             token = token!!
         )
 
         val user_account_id = decoded_token["user_id"] as String
+        log.info(user_account_id)
 
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 userProfileService.updateUserProfileByUserAccountId(
-                    user_account_id = UUID.fromString(user_account_id),
                     requestDto = UpdateUserProfileByUserAccountIdDto(
+                        user_account_id = UUID.fromString(user_account_id),
                         username = updateUserProfileDto.username,
                         emoji = updateUserProfileDto.emoji,
                         program = updateUserProfileDto.program,

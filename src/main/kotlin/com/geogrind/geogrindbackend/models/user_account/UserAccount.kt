@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.models.user_account
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
@@ -49,6 +50,7 @@ data class UserAccount(
 
     // one-to-one relationship with the user_profile table
     @OneToOne(mappedBy = "userAccount")
+    @JsonIgnore
     var userProfile: UserProfile? = null,
 
     @CreatedDate

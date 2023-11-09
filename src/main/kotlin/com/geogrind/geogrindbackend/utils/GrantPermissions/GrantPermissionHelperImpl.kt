@@ -4,10 +4,11 @@ import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
-import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 import java.util.UUID
 
+@Service
 class GrantPermissionHelperImpl : GrantPermissionHelper {
     override fun grant_permission_helper(
         newPermissions: Set<Permission>,
