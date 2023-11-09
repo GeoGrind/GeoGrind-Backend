@@ -27,9 +27,9 @@ import kotlin.collections.HashMap
 class UserProfileServiceImpl(
     private val userProfileRepository: UserProfileRepository,
     private val userAccountRepository: UserAccountRepository,
+    private val validationObj: UserAccountValidationHelper,
 ) : UserProfileService {
 
-    private val validationObj: UserAccountValidationHelper = UserAccountValidationHelperImpl()
 
     // get all the users profiles
     @Cacheable(cacheNames = ["userProfiles"])

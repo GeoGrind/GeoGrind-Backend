@@ -18,6 +18,7 @@ import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelperImpl
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
+import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailService
 import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailServiceImpl
 import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelper
 import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelperImpl
@@ -43,20 +44,11 @@ import kotlin.collections.HashMap
 class UserAccountServiceImpl(
     private val userAccoutRepository: UserAccountRepository,
     private val userProfileService: UserProfileService,
+    private val emailService: EmailService,
+    private val validationObj: UserAccountValidationHelper,
+    private val generateRandomHelper: GenerateRandomHelper,
+    private val bcryptObj: BcryptHashPasswordHelper
 ) : UserAccountService {
-
-    private val validationObj: UserAccountValidationHelper = UserAccountValidationHelperImpl()
-
-    private val BCryptObj: BcryptHashPasswordHelper = BcryptHashPasswordHelperImpl()
-
-    private val generateRandomHelper: GenerateRandomHelper = GenerateRandomHelperImpl()
-
-    // Load environment variables from the .env file
-    private val dotenv = Dotenv.configure().directory(".").load()
-
-    private val sendGridApiKey = dotenv["SENDGRID_API_KEY"]
-
-    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
     // get all user accounts
     @Cacheable(cacheNames = ["userAccounts"])
@@ -132,7 +124,7 @@ class UserAccountServiceImpl(
         }
 
         // hash the password
-        val hashed_password = BCryptObj.hashPassword(password)
+        val hashed_password = bcryptObj.hashPassword(password)
 
         // Procceed with the user creation
         val newUserAccount = UserAccount(
@@ -149,10 +141,7 @@ class UserAccountServiceImpl(
         val otp_code: String = generateRandomHelper.generateOTP(6)
 
         // send the request to the sendgrid server to send the confirmation email to the user
-        val sendgrid_response: SendGridResponseDto = EmailServiceImpl(
-            sendGridApiKey = sendGridApiKey,
-            geogrindSecretKey = geogrindSecretKey,
-        ).sendEmailConfirmation(
+        val sendgrid_response: SendGridResponseDto = emailService.sendEmailConfirmation(
             user_email = email,
             geogrind_otp_code = otp_code,
             user_id = savedUserAccount.id.toString(),
@@ -208,17 +197,14 @@ class UserAccountServiceImpl(
         }
 
         // check if the new password is the same as old password
-        if(BCryptObj.verifyPassword(update_password, findUserAccount.get().hashed_password)) {
+        if(bcryptObj.verifyPassword(update_password, findUserAccount.get().hashed_password)) {
             throw UserAccountConflictException("New password must be different from old password!")
         }
 
         val otp_code: String = generateRandomHelper.generateOTP(6)
 
         // send the confirm password email
-        val sendgrid_response: SendGridResponseDto = EmailServiceImpl(
-            sendGridApiKey = sendGridApiKey,
-            geogrindSecretKey = geogrindSecretKey,
-        ).sendChangePassword(
+        val sendgrid_response: SendGridResponseDto = emailService.sendChangePassword(
             user_email = findUserAccount.get().email,
             geogrind_otp_code = otp_code,
             user_id = user_id.toString(),
@@ -258,10 +244,7 @@ class UserAccountServiceImpl(
             val otp_code: String = generateRandomHelper.generateOTP(6)
 
             // send the confirm account deletion email
-            val sendgrid_response: SendGridResponseDto = EmailServiceImpl(
-                sendGridApiKey = sendGridApiKey,
-                geogrindSecretKey = geogrindSecretKey,
-            ).sendDeleteAccount(
+            val sendgrid_response: SendGridResponseDto = emailService.sendDeleteAccount(
                 user_email = findUserAccount.get().email,
                 geogrind_otp_code = otp_code,
                 user_id = requestDto.user_id.toString()
@@ -323,7 +306,7 @@ class UserAccountServiceImpl(
         }
 
         // hash the user new password
-        val hashed_password: String = BCryptObj.hashPassword(requestDto.new_password)
+        val hashed_password: String = bcryptObj.hashPassword(requestDto.new_password)
 
         findUserAccount.get().hashed_password = hashed_password
 

@@ -5,9 +5,11 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.servlet.http.Cookie
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 import java.time.Instant
 import java.util.*
 
+@Service
 class CreateTokenCookieImpl : CreateTokenCookie {
     override fun generateJwtToken(expirationTime: Long, user_id: UUID, permissions: Set<Permission>, secret_key: String, bucketName: String): String {
         val set_expired_time = Instant.now().plusSeconds(expirationTime)

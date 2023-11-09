@@ -12,10 +12,12 @@ import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
+import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookieImpl
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
+import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailService
 import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailServiceImpl
 import io.github.cdimascio.dotenv.Dotenv
 import jakarta.servlet.http.Cookie
@@ -31,15 +33,13 @@ class LoginAccountServiceImpl(
     private val permissionRepository: PermissionRepository,
     private val generateRandomHelper: GenerateRandomHelper,
     private val grantPermissionHelper: GrantPermissionHelper,
-    private val bcryptObj: BcryptHashPasswordHelperImpl,
+    private val bcryptObj: BcryptHashPasswordHelper,
+    private val emailService: EmailService,
+    private val generateCookieHelper: CreateTokenCookie,
 ) : LoginAccountService {
-
-    private val generateCookieHelper: CreateTokenCookie = CreateTokenCookieImpl()
 
     // Load environment variables from the .env file
     private val dotenv = Dotenv.configure().directory(".").load()
-
-    private val sendGridApiKey = dotenv["SENDGRID_API_KEY"]
 
     private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
@@ -93,10 +93,7 @@ class LoginAccountServiceImpl(
         // send the email that contains the OTP Code to verify the user
         val otp_code: String = generateRandomHelper.generateOTP(6)
 
-        val sendgrid_response: SendGridResponseDto = EmailServiceImpl(
-            sendGridApiKey = sendGridApiKey,
-            geogrindSecretKey = geogrindSecretKey,
-        ).sendEmailOTP(
+        val sendgrid_response: SendGridResponseDto = emailService.sendEmailOTP(
             user_email = requestDto.email,
             geogrind_otp_code = otp_code,
             permission_lists = savedUser.permissions,
