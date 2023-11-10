@@ -6,7 +6,7 @@ import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountForbiddenException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
-import com.geogrind.geogrindbackend.models.permissions.Permission
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
@@ -73,8 +73,8 @@ class LoginAccountServiceImpl(
         }
 
         // give the user the permission to verify the otp code if the user didn't have this permission
-        val permissions: Set<Permission> = setOf(
-            Permission(
+        val permissions: Set<Permissions> = setOf(
+            Permissions(
                 permission_name = PermissionName.CAN_VERIFY_OTP,
                 fkUserAccountId = findUserAccount.id as UUID,
                 createdAt = Date(),
@@ -123,32 +123,32 @@ class LoginAccountServiceImpl(
         }
 
         // if the user is verified -> give the user more permissions
-        val newPermissions: Set<Permission> = setOf(
-            Permission(
+        val newPermissions: Set<Permissions> = setOf(
+            Permissions(
                 permission_name = PermissionName.CAN_VIEW_PROFILE,
                 fkUserAccountId = findUserAccount.get().id as UUID,
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_EDIT_PROFILE,
                 fkUserAccountId = findUserAccount.get().id as UUID,
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_VIEW_FILES,
                 fkUserAccountId = findUserAccount.get().id as UUID,
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_DELETE_FILES,
                 fkUserAccountId = findUserAccount.get().id as UUID,
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_UPLOAD_FILES,
                 fkUserAccountId = findUserAccount.get().id as UUID,
                 createdAt = Date(),

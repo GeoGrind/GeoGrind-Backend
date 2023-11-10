@@ -2,11 +2,11 @@ package com.geogrind.geogrindbackend.models.user_account
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
-import com.geogrind.geogrindbackend.models.permissions.Permission
-import com.geogrind.geogrindbackend.models.permissions.PermissionName
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
+import org.hibernate.annotations.GenericGenerator
 import java.util.UUID
 
 import org.springframework.data.annotation.CreatedDate
@@ -18,10 +18,11 @@ import java.util.Date
 @Table(name = "user_account")
 @EntityListeners(AuditingEntityListener::class)
 data class UserAccount(
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
-    @Size(min = 5)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
     val id: UUID? = null,
 
     @Column(name = "email", length = 100, unique = true, nullable = false)
@@ -44,9 +45,9 @@ data class UserAccount(
     var temp_token: String? = null,
 
     // TO-DO: permissions whether user can go into a certain resource
-    @OneToMany(targetEntity = Permission::class, cascade = [CascadeType.ALL])
+    @OneToMany(targetEntity = Permissions::class, cascade = [CascadeType.ALL])
     @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
-    var permissions: MutableSet<Permission> = mutableSetOf(),
+    var permissions: MutableSet<Permissions> = mutableSetOf(),
 
     // one-to-one relationship with the user_profile table
     @OneToOne(mappedBy = "userAccount")

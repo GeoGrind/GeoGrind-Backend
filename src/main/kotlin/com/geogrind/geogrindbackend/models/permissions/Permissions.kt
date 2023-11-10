@@ -1,21 +1,22 @@
 package com.geogrind.geogrindbackend.models.permissions
 
-import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
+import org.hibernate.annotations.GenericGenerator
+import org.hibernate.annotations.Type
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
-import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.util.*
 
 @Entity
 @Table(name = "permissions")
-@EntityListeners(AuditingEntityListener::class)
-data class Permission(
+//@EntityListeners(AuditingEntityListener::class)
+data class Permissions (
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "permission_id", unique = true, nullable = false)
-    @Size(min = 5)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "permission_id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
     var permission_id: UUID? = null,
 
     @Enumerated(EnumType.STRING)

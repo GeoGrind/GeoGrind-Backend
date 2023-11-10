@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.utils.GrantPermissions
 
-import com.geogrind.geogrindbackend.models.permissions.Permission
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
@@ -11,12 +11,12 @@ import java.util.UUID
 @Service
 class GrantPermissionHelperImpl : GrantPermissionHelper {
     override fun grant_permission_helper(
-        newPermissions: Set<Permission>,
+        newPermissions: Set<Permissions>,
         permissionRepository: PermissionRepository,
         userAccount: UserAccount
     ): Boolean {
         try {
-            val getAllCurrentPermissions: MutableSet<Permission> = permissionRepository.findAllByFkUserAccountId(userAccount.id as UUID)
+            val getAllCurrentPermissions: MutableSet<Permissions> = permissionRepository.findAllByFkUserAccountId(userAccount.id as UUID)
             val getAllCurrentPermissionName: MutableSet<PermissionName> = mutableSetOf()
 
             for(current_permission in getAllCurrentPermissions) {

@@ -9,3 +9,5 @@ CREATE TABLE IF NOT EXISTS courses
 
     FOREIGN KEY (fk_user_profile_id) REFERENCES user_profile(profile_id)
 );
+
+DROP TABLE courses;

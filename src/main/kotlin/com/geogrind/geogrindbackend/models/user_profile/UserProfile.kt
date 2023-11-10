@@ -19,6 +19,7 @@ import jakarta.persistence.Table
 import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import jakarta.validation.constraints.Size
+import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -30,10 +31,11 @@ import java.util.UUID
 @Table(name = "user_profile")
 @EntityListeners(AuditingEntityListener::class)
 data class UserProfile(
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id", unique = true, nullable = false)
-    @Size(min = 5)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
     var profile_id: UUID? = null,
 
     @Column(name = "profile_image", unique = false, nullable = false)

@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.utils.Cookies
 
-import com.geogrind.geogrindbackend.models.permissions.Permission
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.servlet.http.Cookie
@@ -11,7 +11,7 @@ import java.util.*
 
 @Service
 class CreateTokenCookieImpl : CreateTokenCookie {
-    override fun generateJwtToken(expirationTime: Long, user_id: UUID, permissions: Set<Permission>, secret_key: String, bucketName: String): String {
+    override fun generateJwtToken(expirationTime: Long, user_id: UUID, permissions: Set<Permissions>, secret_key: String, bucketName: String): String {
         val set_expired_time = Instant.now().plusSeconds(expirationTime)
 
         val key = Keys.hmacShaKeyFor(secret_key.toByteArray())

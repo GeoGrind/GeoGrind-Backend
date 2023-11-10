@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.ir.backend.js.compile
 
 plugins {
 	id("org.springframework.boot") version "3.1.4"
@@ -76,6 +77,8 @@ dependencies {
 	// Spring data redis dependency
 	implementation("org.springframework.boot:spring-boot-starter-data-redis:3.0.4")
 
+	// macos native library
+	runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.76.Final:osx-aarch_64")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools:3.0.4")
 	runtimeOnly("com.h2database:h2:2.1.214")
