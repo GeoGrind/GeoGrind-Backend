@@ -3,6 +3,7 @@ package com.geogrind.geogrindbackend.models.user_profile
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
+import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -14,6 +15,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Temporal
@@ -35,7 +37,7 @@ data class UserProfile(
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
+    @Column(name = "profile_id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
     var profile_id: UUID? = null,
 
     @Column(name = "profile_image", unique = false, nullable = false)
@@ -67,6 +69,12 @@ data class UserProfile(
     @JsonIgnore
     @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
     var userAccount: UserAccount,
+
+    // One to many relationship with the Courses
+    @OneToMany
+    @JoinColumn(name = "profile_id")
+    @JsonIgnore
+    var courses: MutableSet<Courses>? = HashSet(),
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

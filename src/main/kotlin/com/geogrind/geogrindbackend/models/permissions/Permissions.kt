@@ -1,16 +1,18 @@
 package com.geogrind.geogrindbackend.models.permissions
 
+import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.GenericGenerator
 import org.hibernate.annotations.Type
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.util.*
 
 @Entity
 @Table(name = "permissions")
-//@EntityListeners(AuditingEntityListener::class)
+@EntityListeners(AuditingEntityListener::class)
 data class Permissions (
 
     @Id
@@ -24,9 +26,10 @@ data class Permissions (
     @Size(min = 5)
     var permission_name: PermissionName,
 
-    @Column(name = "fk_user_account_id", nullable = false)
-    @Size(min = 5)
-    var fkUserAccountId: UUID,
+    // Many-to-one relationship with the user account entity
+    @ManyToOne
+    @JoinColumn(name = "id", insertable = false, updatable = false)
+    var userAccount: UserAccount,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

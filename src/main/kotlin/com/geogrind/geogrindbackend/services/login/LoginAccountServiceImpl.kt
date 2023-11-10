@@ -76,7 +76,7 @@ class LoginAccountServiceImpl(
         val permissions: Set<Permissions> = setOf(
             Permissions(
                 permission_name = PermissionName.CAN_VERIFY_OTP,
-                fkUserAccountId = findUserAccount.id as UUID,
+                userAccount = findUserAccount,
                 createdAt = Date(),
                 updatedAt = Date(),
             )
@@ -84,7 +84,6 @@ class LoginAccountServiceImpl(
 
         grantPermissionHelper.grant_permission_helper(
             newPermissions = permissions,
-            permissionRepository = permissionRepository,
             currentUserAccount = findUserAccount,
         )
 
@@ -96,7 +95,7 @@ class LoginAccountServiceImpl(
         val sendgrid_response: SendGridResponseDto = emailService.sendEmailOTP(
             user_email = requestDto.email,
             geogrind_otp_code = otp_code,
-            permission_lists = savedUser.permissions,
+            permission_lists = savedUser.permissions!!.toSet(),
             user_id = savedUser.id.toString(),
         )
 
@@ -126,31 +125,31 @@ class LoginAccountServiceImpl(
         val newPermissions: Set<Permissions> = setOf(
             Permissions(
                 permission_name = PermissionName.CAN_VIEW_PROFILE,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
             Permissions(
                 permission_name = PermissionName.CAN_EDIT_PROFILE,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
             Permissions(
                 permission_name = PermissionName.CAN_VIEW_FILES,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
             Permissions(
                 permission_name = PermissionName.CAN_DELETE_FILES,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
             Permissions(
                 permission_name = PermissionName.CAN_UPLOAD_FILES,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             )
@@ -158,7 +157,6 @@ class LoginAccountServiceImpl(
 
         grantPermissionHelper.grant_permission_helper(
             newPermissions = newPermissions,
-            permissionRepository = permissionRepository,
             currentUserAccount = findUserAccount.get()
         )
 
@@ -166,7 +164,7 @@ class LoginAccountServiceImpl(
         val jwt_token: String = generateCookieHelper.generateJwtToken(
             3600,
             findUserAccount.get().id as UUID,
-            permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID),
+            permissionRepository.findAllByUserAccount(findUserAccount.get()),
             geogrindSecretKey,
             bucketName = s3BucketName
         )

@@ -45,9 +45,10 @@ data class UserAccount(
     var temp_token: String? = null,
 
     // TO-DO: permissions whether user can go into a certain resource
-    @OneToMany(targetEntity = Permissions::class, cascade = [CascadeType.ALL])
-    @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
-    var permissions: MutableSet<Permissions> = mutableSetOf(),
+    @OneToMany
+    @JoinColumn(name = "id")
+    @JsonIgnore
+    var permissions: MutableSet<Permissions>? = HashSet(),
 
     // one-to-one relationship with the user_profile table
     @OneToOne(mappedBy = "userAccount")

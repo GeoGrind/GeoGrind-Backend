@@ -265,7 +265,7 @@ class UserAccountServiceImpl(
     }
 
     // sendgrid email verification service
-    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_account_id' ", unless = " '#result == null' ")
+    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional
     override suspend fun getEmailVerification(@Valid requestDto: VerifyEmailUserAccountDto): UserAccount {
 
