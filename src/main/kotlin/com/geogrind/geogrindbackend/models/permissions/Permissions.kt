@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.models.permissions
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
@@ -29,6 +30,7 @@ data class Permissions (
     // Many-to-one relationship with the user account entity
     @ManyToOne
     @JoinColumn(name = "id", insertable = false, updatable = false)
+    @JsonIgnore
     var userAccount: UserAccount,
 
     @CreatedDate

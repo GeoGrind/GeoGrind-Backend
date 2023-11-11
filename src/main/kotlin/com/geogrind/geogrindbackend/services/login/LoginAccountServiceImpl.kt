@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import kotlin.collections.HashSet
 
 @Service
 class LoginAccountServiceImpl(
@@ -160,11 +161,17 @@ class LoginAccountServiceImpl(
             currentUserAccount = findUserAccount.get()
         )
 
+        val allCurrentPermissions: MutableSet<Permissions>? = findUserAccount.get().permissions
+        val allCurrentPermissionsName: MutableSet<PermissionName> = HashSet()
+        allCurrentPermissions!!.forEach {permissions ->
+            allCurrentPermissionsName.add(permissions.permission_name)
+        }
+
         // generate the new jwt token for the user's new session
         val jwt_token: String = generateCookieHelper.generateJwtToken(
             3600,
             findUserAccount.get().id as UUID,
-            permissionRepository.findAllByUserAccount(findUserAccount.get()),
+            allCurrentPermissionsName,
             geogrindSecretKey,
             bucketName = s3BucketName
         )

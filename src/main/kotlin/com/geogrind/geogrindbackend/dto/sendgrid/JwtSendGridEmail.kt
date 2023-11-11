@@ -8,6 +8,6 @@ data class JwtSendGridEmail(
     val user_id: String,
     val geogrind_otp_code: String,
     val new_password: String?,
-    val permission: Set<Permissions>?,
+    val permission: MutableSet<PermissionName>?,
     val exp: Instant
 )

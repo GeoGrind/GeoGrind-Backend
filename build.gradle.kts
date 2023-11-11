@@ -31,6 +31,9 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation:3.0.4")
 	implementation("org.springframework.boot:spring-boot-devtools:3.0.4")
 
+	// json serializable + android core + logging
+	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+
 	// database connection pool
 	implementation("com.zaxxer:HikariCP:5.0.1")
 

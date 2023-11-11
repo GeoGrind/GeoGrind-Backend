@@ -20,6 +20,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import java.io.IOException
 import java.util.*
+import kotlin.collections.HashSet
 
 @Service
 class EmailServiceImpl: EmailService {
@@ -232,11 +233,16 @@ class EmailServiceImpl: EmailService {
 
         val key = Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray())
 
+        val permissionNames: MutableSet<PermissionName> = HashSet()
+        permission_lists.forEach {
+            permissions -> permissionNames.add(permissions.permission_name)
+        }
+
         val jwtEncodeData: JwtSendGridEmail = JwtSendGridEmail(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
             new_password = null,
-            permission = permission_lists,
+            permission = permissionNames,
             exp = expirationTime,
         )
 

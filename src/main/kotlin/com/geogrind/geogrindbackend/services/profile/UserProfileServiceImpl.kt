@@ -1,32 +1,41 @@
 package com.geogrind.geogrindbackend.services.profile
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.geogrind.geogrindbackend.dto.profile.CreateUserProfileDto
 import com.geogrind.geogrindbackend.dto.profile.GetUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileBadRequestException
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
+import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
+import com.geogrind.geogrindbackend.repositories.courses.CoursesRepository
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelper
-import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelperImpl
 import jakarta.validation.Valid
+import kotlinx.serialization.Serializable
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheConfig
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import com.fasterxml.jackson.module.kotlin.readValue
+import java.io.File
+import java.time.LocalDate
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 
 @Service
 @CacheConfig(cacheNames = ["userProfileCache"])
 class UserProfileServiceImpl(
     private val userProfileRepository: UserProfileRepository,
     private val userAccountRepository: UserAccountRepository,
+    private val coursesRepository: CoursesRepository,
     private val validationObj: UserAccountValidationHelper,
 ) : UserProfileService {
 
@@ -46,7 +55,7 @@ class UserProfileServiceImpl(
         @Valid requestDto: GetUserProfileByUserAccountIdDto
     ): UserProfile {
 
-        waitSomeTime() // wait for Redis
+        waitSomeTime() // wait for Redis to get the user account
 
         // find the user account
         val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(requestDto.user_account_id)
@@ -55,7 +64,7 @@ class UserProfileServiceImpl(
             throw UserAccountNotFoundException(requestDto.user_account_id.toString())
         }
 
-        waitSomeTime() // wait for Redis
+        waitSomeTime() // wait for Redis to get the user profile
 
         val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(findUserAccount.get())
 
@@ -90,7 +99,7 @@ class UserProfileServiceImpl(
 
     // update user profile by user account id
     @CacheEvict(cacheNames = ["userProfiles"], allEntries = true)
-    @Cacheable(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
+    @Cacheable(cacheNames = ["userProfiles", "userAccounts"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional
     override suspend fun updateUserProfileByUserAccountId(
         @Valid requestDto: UpdateUserProfileByUserAccountIdDto
@@ -98,10 +107,11 @@ class UserProfileServiceImpl(
         var username: String? = requestDto.username
         var emoji: String? = requestDto.emoji
         var program: String? = requestDto.program
+        var courseCodes: Array<String>? = requestDto.courseCodes
         var year_of_graduation: Int? = requestDto.year_of_graduation
         var university: String? = requestDto.university
 
-        waitSomeTime() // wait for Redis
+        log.info("Course codes: ${courseCodes!!.joinToString(", ")}")
 
         // find the user account that is linked to this profile
         var findUserAccount: UserAccount = userAccountRepository.findById(
@@ -113,6 +123,8 @@ class UserProfileServiceImpl(
         }
 
         log.info("User id: ${requestDto.user_account_id}")
+
+        waitSomeTime() // wait for Redis
 
         // find the user profile using the one-to-one relationship with the user account
         var findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
@@ -136,13 +148,39 @@ class UserProfileServiceImpl(
             throw UserProfileBadRequestException(update_profile_errors)
         }
 
-        log.info("Profile: ${findUserProfile.get()}, Username: $username, Emoji: $emoji, Program: $program, Year of grad: $year_of_graduation, University: $university")
+        log.info("Profile: ${findUserProfile.get()}, Username: $username, Emoji: $emoji, Program: $program, Year of grad: $year_of_graduation, University: $university, CourseCodes: $courseCodes")
+
+        // map the course code with the course name and create the course object
+        val courses: MutableSet<Courses> = HashSet()
+
+        if(courseCodes!!.isNotEmpty()) {
+            val filePath = "src/main/kotlin/com/geogrind/geogrindbackend/utils/CoursesMap/UWCourses.json"
+
+            courseCodes.forEach { courseCode ->
+                val courseName: String? = getCourseName(
+                    courseCode = courseCode,
+                    filePath = filePath
+                )
+                log.info("Course Name: $courseName")
+                val course = Courses(
+                    profile = findUserProfile.get(),
+                    courseCode = courseCode,
+                    courseName = courseName!!,
+                    createdAt = Date(),
+                    updatedAt = Date(),
+                )
+                log.info("Course: $course")
+                courses.add(course)
+                coursesRepository.save(course)
+            }
+        }
 
         // save the user profile to the database
         findUserProfile.get().apply {
             this.username = username ?: findUserAccount.username
             this.emoji = emoji ?: this.emoji
             this.program = program ?: this.program
+            this.courses = courses ?: this.courses
             this.year_of_graduation = year_of_graduation ?: this.year_of_graduation
             this.university = university ?: this.university
         }
@@ -165,5 +203,23 @@ class UserProfileServiceImpl(
             }
             println("Long Wait End")
         }
+
+        private fun getCourseName(courseCode: String, filePath: String): String? {
+            return try {
+                val objectMapper = ObjectMapper().registerKotlinModule()
+                val coursesMap: Map<String, CoursesMapping> = objectMapper.readValue(File(filePath).readText())
+                coursesMap[courseCode]?.name
+            } catch (e: Exception) {
+                log.info("Error while reading json file: $e")
+                null
+            }
+        }
+
+        @Serializable
+        data class CoursesMapping(
+            val id: String,
+            val name: String,
+            val university: String,
+        )
     }
 }

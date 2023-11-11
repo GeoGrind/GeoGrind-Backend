@@ -112,13 +112,12 @@ data class UserProfile(
         result = 31 * result + (program?.hashCode() ?: 0)
         result = 31 * result + (year_of_graduation?.hashCode() ?: 0)
         result = 31 * result + (university?.hashCode() ?: 0)
-        result = 31 * result + (userAccount?.hashCode() ?: 0)
 
         return result
     }
 
     override fun toString(): String {
-        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}"
+        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}, courses=${this.courses}"
     }
 }
 
@@ -129,6 +128,7 @@ fun UserProfile.toSuccessHttpResponse(): SuccessUserProfileResponse {
         username = this.username,
         emoji = this.emoji,
         program = this.program,
+        courses = this.courses,
         year_of_graduation = this.year_of_graduation,
         university = this.university,
         createdAt = this.createdAt,
@@ -143,6 +143,7 @@ fun List<UserProfile>.toSuccessHttpResponseList(): List<SuccessUserProfileRespon
             username = it.username,
             emoji = it.emoji,
             program = it.program,
+            courses = it.courses,
             year_of_graduation = it.year_of_graduation,
             university = it.university,
             createdAt = it.createdAt,

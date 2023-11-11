@@ -106,8 +106,6 @@ class UserProfileControllerImpl @Autowired constructor(
             cookieName = "JWT-TOKEN",
         )
 
-        println("Here")
-
         val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
             token = token!!
         )
@@ -125,6 +123,7 @@ class UserProfileControllerImpl @Autowired constructor(
                         username = updateUserProfileDto.username,
                         emoji = updateUserProfileDto.emoji,
                         program = updateUserProfileDto.program,
+                        courseCodes = updateUserProfileDto.courseCodes,
                         year_of_graduation = updateUserProfileDto.year_of_graduation,
                         university = updateUserProfileDto.university
                     )
