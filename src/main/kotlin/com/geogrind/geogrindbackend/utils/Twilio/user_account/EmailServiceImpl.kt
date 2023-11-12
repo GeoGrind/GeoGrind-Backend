@@ -2,8 +2,8 @@ package com.geogrind.geogrindbackend.utils.Twilio.user_account
 
 import com.geogrind.geogrindbackend.dto.sendgrid.JwtSendGridEmail
 import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
-import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.sendgrid.Method
 import com.sendgrid.Response
 import com.sendgrid.SendGrid
@@ -20,6 +20,7 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import java.io.IOException
 import java.util.*
+import kotlin.collections.HashSet
 
 @Service
 class EmailServiceImpl: EmailService {
@@ -219,7 +220,7 @@ class EmailServiceImpl: EmailService {
     override suspend fun sendEmailOTP(
         user_email: String,
         geogrind_otp_code: String,
-        permission_lists: Set<Permission>,
+        permission_lists: Set<Permissions>,
         user_id: String,
         ): SendGridResponseDto {
         val subject: String = "Secure your login with OTP"
@@ -232,11 +233,16 @@ class EmailServiceImpl: EmailService {
 
         val key = Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray())
 
+        val permissionNames: MutableSet<PermissionName> = HashSet()
+        permission_lists.forEach {
+            permissions -> permissionNames.add(permissions.permission_name)
+        }
+
         val jwtEncodeData: JwtSendGridEmail = JwtSendGridEmail(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
             new_password = null,
-            permission = permission_lists,
+            permission = permissionNames,
             exp = expirationTime,
         )
 

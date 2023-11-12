@@ -3,6 +3,7 @@ package com.geogrind.geogrindbackend.models.message
 import com.geogrind.geogrindbackend.dto.message.SuccessUserMessageResponse
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.*
+import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -13,9 +14,11 @@ import java.util.Date
 @Table(name = "message")
 @EntityListeners(AuditingEntityListener::class)
 data class Message(
+
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", unique = true, nullable = false)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
     var id: UUID,
 
     @ManyToOne(fetch = FetchType.LAZY)

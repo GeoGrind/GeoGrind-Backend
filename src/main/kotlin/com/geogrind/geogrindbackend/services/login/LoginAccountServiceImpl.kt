@@ -6,7 +6,7 @@ import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountForbiddenException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
-import com.geogrind.geogrindbackend.models.permissions.Permission
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.*
+import kotlin.collections.HashSet
 
 @Service
 class LoginAccountServiceImpl(
@@ -73,10 +74,10 @@ class LoginAccountServiceImpl(
         }
 
         // give the user the permission to verify the otp code if the user didn't have this permission
-        val permissions: Set<Permission> = setOf(
-            Permission(
+        val permissions: Set<Permissions> = setOf(
+            Permissions(
                 permission_name = PermissionName.CAN_VERIFY_OTP,
-                fkUserAccountId = findUserAccount.id as UUID,
+                userAccount = findUserAccount,
                 createdAt = Date(),
                 updatedAt = Date(),
             )
@@ -84,7 +85,6 @@ class LoginAccountServiceImpl(
 
         grantPermissionHelper.grant_permission_helper(
             newPermissions = permissions,
-            permissionRepository = permissionRepository,
             currentUserAccount = findUserAccount,
         )
 
@@ -96,7 +96,7 @@ class LoginAccountServiceImpl(
         val sendgrid_response: SendGridResponseDto = emailService.sendEmailOTP(
             user_email = requestDto.email,
             geogrind_otp_code = otp_code,
-            permission_lists = savedUser.permissions,
+            permission_lists = savedUser.permissions!!.toSet(),
             user_id = savedUser.id.toString(),
         )
 
@@ -123,34 +123,34 @@ class LoginAccountServiceImpl(
         }
 
         // if the user is verified -> give the user more permissions
-        val newPermissions: Set<Permission> = setOf(
-            Permission(
+        val newPermissions: Set<Permissions> = setOf(
+            Permissions(
                 permission_name = PermissionName.CAN_VIEW_PROFILE,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_EDIT_PROFILE,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_VIEW_FILES,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_DELETE_FILES,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permission(
+            Permissions(
                 permission_name = PermissionName.CAN_UPLOAD_FILES,
-                fkUserAccountId = findUserAccount.get().id as UUID,
+                userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
             )
@@ -158,15 +158,20 @@ class LoginAccountServiceImpl(
 
         grantPermissionHelper.grant_permission_helper(
             newPermissions = newPermissions,
-            permissionRepository = permissionRepository,
             currentUserAccount = findUserAccount.get()
         )
+
+        val allCurrentPermissions: MutableSet<Permissions>? = findUserAccount.get().permissions
+        val allCurrentPermissionsName: MutableSet<PermissionName> = HashSet()
+        allCurrentPermissions!!.forEach {permissions ->
+            allCurrentPermissionsName.add(permissions.permission_name)
+        }
 
         // generate the new jwt token for the user's new session
         val jwt_token: String = generateCookieHelper.generateJwtToken(
             3600,
             findUserAccount.get().id as UUID,
-            permissionRepository.findAllByFkUserAccountId(findUserAccount.get().id as UUID),
+            allCurrentPermissionsName,
             geogrindSecretKey,
             bucketName = s3BucketName
         )

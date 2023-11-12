@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.services.profile
 
 import com.geogrind.geogrindbackend.dto.profile.CreateUserProfileDto
+import com.geogrind.geogrindbackend.dto.profile.DeleteCoursesDto
 import com.geogrind.geogrindbackend.dto.profile.GetUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
@@ -20,4 +21,7 @@ interface UserProfileService {
     suspend fun updateUserProfileByUserAccountId(
         @Valid requestDto: UpdateUserProfileByUserAccountIdDto
     ): UserProfile
+    suspend fun deleteCourseFromProfile(
+        @Valid requestDto: DeleteCoursesDto
+    )
 }

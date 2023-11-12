@@ -100,6 +100,7 @@ class LoginAccountControllerImpl @Autowired constructor(
 
         // inject the cookie into the response
         response.addCookie(service_response.second)
+        log.info("Response: $response")
 
         ResponseEntity
             .status(HttpStatus.ACCEPTED)

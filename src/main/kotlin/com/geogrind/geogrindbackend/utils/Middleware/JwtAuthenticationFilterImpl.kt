@@ -1,10 +1,8 @@
 package com.geogrind.geogrindbackend.utils.Middleware
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
 import com.geogrind.geogrindbackend.exceptions.user_profile.CustomMissingCookieException
-import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
@@ -18,16 +16,12 @@ import io.jsonwebtoken.MissingClaimException
 import io.jsonwebtoken.security.Keys
 import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.FilterChain
-import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
-import org.springframework.core.MethodParameter
 import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
-import org.springframework.web.bind.MissingRequestCookieException
 import org.springframework.web.filter.OncePerRequestFilter
-import org.springframework.web.util.WebUtils
 
 @Component
 class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
@@ -191,7 +185,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         decoded_token: Claims,
         permissionList: Set<PermissionName>,
     ): Boolean {
-        val permissionsInToken = decoded_token["permissions"] as ArrayList<LinkedHashMap<String, String>>
+        val permissionsInToken = decoded_token["permissions"] as ArrayList<String>
 
         log.info("$permissionsInToken")
 
@@ -199,8 +193,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             // deserialize the linked hash map into the Permission object
             val all_permissions: MutableSet<PermissionName> = HashSet<PermissionName>()
             for(permission in permissionsInToken) {
-                val permission_name = permission["permission_name"] as String
-                all_permissions.add(enumValueOf<PermissionName>(permission_name))
+                all_permissions.add(enumValueOf<PermissionName>(permission))
             }
 
             permissionList.forEach { required_permission ->
