@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.controllers.profile
 
+import com.geogrind.geogrindbackend.dto.profile.DeleteCoursesDto
 import com.geogrind.geogrindbackend.dto.profile.GetUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
@@ -18,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -130,6 +132,46 @@ class UserProfileControllerImpl @Autowired constructor(
                 ).toSuccessHttpResponse()
             )
             .also { log.info("Successfully update the user profile with user_id: ${user_account_id}: $it") }
+    }
+
+    // delete the courses from the user profile
+    @DeleteMapping(path = ["/delete_courses"], produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        method = "DELETE",
+        summary = "Delete the courses from the database",
+        operationId = "deleteCourse",
+        description = "Delete courses from the user profile"
+    )
+    override suspend fun deleteCoursesFromUserProfiles(
+        request: HttpServletRequest,
+        @Valid
+        @RequestBody
+        requestDto: DeleteCoursesDto
+    ) {
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val user_account_id = decoded_token["user_id"] as String
+
+        ResponseEntity
+            .status(HttpStatus.ACCEPTED)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(
+                userProfileService.deleteCourseFromProfile(
+                    requestDto = DeleteCoursesDto(
+                        user_account_id = UUID.fromString(user_account_id),
+                        coursesDelete = requestDto.coursesDelete
+                    )
+                )
+            )
+            .also { log.info("Successfully delete the courses from the user profile: $it") }
     }
 
     companion object {

@@ -24,9 +24,13 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.geogrind.geogrindbackend.dto.profile.DeleteCoursesDto
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User
+import org.springframework.cache.annotation.Caching
 import java.io.File
 import java.time.LocalDate
 import java.util.*
+import javax.swing.text.html.Option
 import kotlin.collections.HashMap
 import kotlin.collections.HashSet
 
@@ -49,13 +53,19 @@ class UserProfileServiceImpl(
     }
 
     // get user profile by user account id
-    @Cacheable(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
+    /**
+     * Need to fix: [Request processing failed: org.springframework.data.redis.serializer.SerializationException: Could not read JSON:failed to lazily initialize a collection: could not initialize proxy - no Session (through reference chain: com.geogrind.geogrindbackend.models.user_profile.UserProfile["courses"]) ] with root cause
+     *
+     * org.hibernate.LazyInitializationException: failed to lazily initialize a collection: could not initialize proxy - no Session
+     *
+     */
+//    @Cacheable(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional(readOnly = true)
     override suspend fun getUserProfileByUserAccountId(
         @Valid requestDto: GetUserProfileByUserAccountIdDto
     ): UserProfile {
 
-        waitSomeTime() // wait for Redis to get the user account
+//        waitSomeTime() // wait for Redis to get the user account
 
         // find the user account
         val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(requestDto.user_account_id)
@@ -64,7 +74,7 @@ class UserProfileServiceImpl(
             throw UserAccountNotFoundException(requestDto.user_account_id.toString())
         }
 
-        waitSomeTime() // wait for Redis to get the user profile
+//        waitSomeTime() // wait for Redis to get the user profile
 
         val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(findUserAccount.get())
 
@@ -99,7 +109,6 @@ class UserProfileServiceImpl(
 
     // update user profile by user account id
     @CacheEvict(cacheNames = ["userProfiles"], allEntries = true)
-    @Cacheable(cacheNames = ["userProfiles", "userAccounts"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional
     override suspend fun updateUserProfileByUserAccountId(
         @Valid requestDto: UpdateUserProfileByUserAccountIdDto
@@ -114,11 +123,11 @@ class UserProfileServiceImpl(
         log.info("Course codes: ${courseCodes!!.joinToString(", ")}")
 
         // find the user account that is linked to this profile
-        var findUserAccount: UserAccount = userAccountRepository.findById(
+        var findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
             requestDto.user_account_id!! // the user account id will always be presented as it is extracted from cookies
-        ).orElse(null)
+        )
 
-        if(findUserAccount == null) {
+        if(findUserAccount.isEmpty) {
             throw UserAccountNotFoundException(requestDto.user_account_id.toString())
         }
 
@@ -128,11 +137,11 @@ class UserProfileServiceImpl(
 
         // find the user profile using the one-to-one relationship with the user account
         var findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
-            user_account = findUserAccount
+            user_account = findUserAccount.get()
         )
 
         if(findUserProfile.isEmpty) {
-            throw UserAccountNotFoundException(requestDto.user_account_id.toString())
+            throw UserProfileNotFoundException(requestDto.user_account_id.toString())
         }
 
         var update_profile_errors: MutableMap<String, String> = HashMap()
@@ -151,7 +160,13 @@ class UserProfileServiceImpl(
         log.info("Profile: ${findUserProfile.get()}, Username: $username, Emoji: $emoji, Program: $program, Year of grad: $year_of_graduation, University: $university, CourseCodes: $courseCodes")
 
         // map the course code with the course name and create the course object
-        val courses: MutableSet<Courses> = HashSet()
+        val courses: MutableSet<Courses>? = findUserProfile.get().courses
+
+        val currentCourses: Set<Courses> = coursesRepository.findAll().toSet()
+        val currentCourseCode: MutableSet<String> = HashSet()
+        currentCourses.forEach { courses: Courses ->
+            currentCourseCode.add(courses.courseCode)
+        }
 
         if(courseCodes!!.isNotEmpty()) {
             val filePath = "src/main/kotlin/com/geogrind/geogrindbackend/utils/CoursesMap/UWCourses.json"
@@ -170,14 +185,16 @@ class UserProfileServiceImpl(
                     updatedAt = Date(),
                 )
                 log.info("Course: $course")
-                courses.add(course)
-                coursesRepository.save(course)
+                if(course.courseCode !in currentCourseCode) {
+                    coursesRepository.save(course)
+                    courses!!.add(course)
+                }
             }
         }
 
         // save the user profile to the database
         findUserProfile.get().apply {
-            this.username = username ?: findUserAccount.username
+            this.username = username ?: findUserAccount.get().username
             this.emoji = emoji ?: this.emoji
             this.program = program ?: this.program
             this.courses = courses ?: this.courses
@@ -190,6 +207,53 @@ class UserProfileServiceImpl(
         userProfileRepository.save(findUserProfile.get())
 
         return findUserProfile.get()
+    }
+
+    // delete course from the user profile
+    @Caching(
+        evict = [
+            CacheEvict(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' "),
+            CacheEvict(cacheNames = ["userProfiles"], allEntries = true)
+        ]
+    )
+    @Transactional
+    override suspend fun deleteCourseFromProfile(requestDto: DeleteCoursesDto) {
+        var courseCodesDelete: Array<String> = requestDto.coursesDelete
+
+        // find the user account that is linked to this profile
+        var findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
+            requestDto.user_account_id!!
+        )
+
+        if(findUserAccount.isEmpty) {
+            throw UserAccountNotFoundException(requestDto.user_account_id.toString())
+        }
+
+        var findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
+            user_account = findUserAccount.get()
+        )
+
+        if(findUserProfile.isEmpty) {
+            throw UserProfileNotFoundException(requestDto.user_account_id.toString())
+        }
+
+        val currentCourses: MutableSet<Courses>? = findUserProfile.get().courses
+
+        // find the courses need to be deleted -> then delete it from the database
+        val coursesToDelete = currentCourses!!.filter { courses: Courses ->
+            courses.courseCode in courseCodesDelete
+        }
+
+        log.info("Course to delete: $coursesToDelete")
+        coursesToDelete.forEach { courses: Courses ->
+            coursesRepository.deleteById(courses.courseId!!)
+        }
+
+        currentCourses!!.removeIf { courses: Courses ->
+            courses.courseName in courseCodesDelete
+        }
+
+        userProfileRepository.save(findUserProfile.get())
     }
 
     companion object {

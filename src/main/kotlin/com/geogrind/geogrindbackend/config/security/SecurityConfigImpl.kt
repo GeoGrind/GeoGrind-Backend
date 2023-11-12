@@ -101,6 +101,12 @@ class SecurityConfigImpl : SecurityConfig {
                             HttpMethod.PATCH.toString(),
                         )
                     ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/user_profile/delete_courses",
+                            HttpMethod.DELETE.toString(),
+                        )
+                    ).permitAll()
 
                     // S3 ENDPOINTS
                     .requestMatchers(

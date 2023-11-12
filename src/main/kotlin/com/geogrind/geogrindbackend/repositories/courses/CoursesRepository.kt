@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository
 import java.util.UUID
 
 @Repository
-interface CoursesRepository : JpaRepository<Courses, UUID>
+interface CoursesRepository : JpaRepository<Courses, UUID> {
+    fun findAllByCourseCode(courseCode: String): Array<Courses>?
+}

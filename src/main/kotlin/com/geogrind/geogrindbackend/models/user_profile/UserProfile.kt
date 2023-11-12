@@ -11,6 +11,7 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -71,9 +72,9 @@ data class UserProfile(
     var userAccount: UserAccount,
 
     // One to many relationship with the Courses
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
+//    @JsonIgnore
     @JoinColumn(name = "profile_id")
-    @JsonIgnore
     var courses: MutableSet<Courses>? = HashSet(),
 
     @CreatedDate
