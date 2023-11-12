@@ -72,7 +72,7 @@ data class UserProfile(
     var userAccount: UserAccount,
 
     // One to many relationship with the Courses
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.EAGER)
 //    @JsonIgnore
     @JoinColumn(name = "profile_id")
     var courses: MutableSet<Courses>? = HashSet(),

@@ -57,7 +57,7 @@ class UserProfileServiceImpl(
      * Need to fix: [Request processing failed: org.springframework.data.redis.serializer.SerializationException: Could not read JSON:failed to lazily initialize a collection: could not initialize proxy - no Session (through reference chain: com.geogrind.geogrindbackend.models.user_profile.UserProfile["courses"]) ] with root cause
      *
      * org.hibernate.LazyInitializationException: failed to lazily initialize a collection: could not initialize proxy - no Session
-     *
+     * Current temporary solution: Remove Redis caching for this endpoint
      */
 //    @Cacheable(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional(readOnly = true)

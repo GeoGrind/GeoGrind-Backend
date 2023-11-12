@@ -22,7 +22,7 @@ data class Courses (
     var courseId: UUID? = null,
 
     // Many-To-One relationship with the user profile entity
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "profile_id", insertable = false, updatable = false)
     @JsonIgnore
     var profile: UserProfile,
