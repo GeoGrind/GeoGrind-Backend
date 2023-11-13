@@ -341,7 +341,7 @@ class UserAccountServiceImpl(
             } catch (e: InterruptedException) {
                 e.printStackTrace()
             }
-            println("Long Wait End")
+            log.info("Long Wait End")
         }
     }
 }

@@ -133,8 +133,6 @@ class UserProfileServiceImpl(
 
         log.info("User id: ${requestDto.user_account_id}")
 
-        waitSomeTime() // wait for Redis
-
         // find the user profile using the one-to-one relationship with the user account
         var findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
             user_account = findUserAccount.get()
@@ -200,9 +198,8 @@ class UserProfileServiceImpl(
             this.courses = courses ?: this.courses
             this.year_of_graduation = year_of_graduation ?: this.year_of_graduation
             this.university = university ?: this.university
+            this.updatedAt = Date()
         }
-
-        findUserProfile.get().updatedAt = Date()
 
         userProfileRepository.save(findUserProfile.get())
 
@@ -217,7 +214,10 @@ class UserProfileServiceImpl(
         ]
     )
     @Transactional
-    override suspend fun deleteCourseFromProfile(requestDto: DeleteCoursesDto) {
+    override suspend fun deleteCourseFromProfile(
+        @Valid
+        requestDto: DeleteCoursesDto
+    ) {
         var courseCodesDelete: Array<String> = requestDto.coursesDelete
 
         // find the user account that is linked to this profile
@@ -249,7 +249,7 @@ class UserProfileServiceImpl(
             coursesRepository.deleteById(courses.courseId!!)
         }
 
-        currentCourses!!.removeIf { courses: Courses ->
+        currentCourses.removeIf { courses: Courses ->
             courses.courseName in courseCodesDelete
         }
 

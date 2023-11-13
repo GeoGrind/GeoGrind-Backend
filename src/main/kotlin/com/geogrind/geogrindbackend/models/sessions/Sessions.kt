@@ -9,12 +9,13 @@ import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
+import java.time.Instant
 import java.util.*
 
 @Entity
 @Table(name = "sessions")
 @EntityListeners(AuditingEntityListener::class)
-data class Sessions(
+data class Sessions (
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
@@ -27,24 +28,21 @@ data class Sessions(
     @JoinColumn(name = "fk_course_id", referencedColumnName = "course_id")
     var course: Courses,
 
-    // Many-To-One relationship with the user profile
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "profile_id", insertable = false, updatable = false)
+    // One-To-One relationship with the user profile
+    @OneToOne(fetch = FetchType.EAGER, targetEntity = UserProfile::class, cascade = [CascadeType.ALL])
+    @JoinColumn(name = "fk_user_profile_id", referencedColumnName = "profile_id")
     @JsonIgnore
     var profile: UserProfile,
 
-    @CreatedDate
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "startTime")
-    var startTime: Date? = null,
+    @Column(name = "startTime", nullable = false)
+    var startTime: Instant ?= Instant.now(),
 
     @Column(name = "numberOfLikers", nullable = false)
     @Size(min = 0)
     var numberOfLikers: Int? = 0,
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "stopTime", nullable = false)
-    var stopTime: Date? = null,
+    var stopTime: Instant ?= Instant.now(),
 
     @Column(name = "description", nullable = true)
     var description: String? = null,
@@ -52,12 +50,12 @@ data class Sessions(
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "createdAt")
-    var createAt: Date? = null,
+    var createAt: Date? = Date(),
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
-    var updatedAt: Date? = null,
+    var updatedAt: Date? = Date(),
 ) {
     override fun hashCode(): Int {
         var result = sessionId?.hashCode() ?: 0

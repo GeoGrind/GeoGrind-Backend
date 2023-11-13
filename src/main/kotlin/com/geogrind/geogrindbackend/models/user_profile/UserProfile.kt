@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.models.courses.Courses
+import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -76,6 +77,11 @@ data class UserProfile(
 //    @JsonIgnore
     @JoinColumn(name = "profile_id")
     var courses: MutableSet<Courses>? = HashSet(),
+
+    // One to one relationship with the session table
+    @OneToOne(mappedBy = "userProfile")
+    @JsonIgnore
+    var session: Sessions? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
