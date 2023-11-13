@@ -4,6 +4,7 @@ import com.geogrind.geogrindbackend.dto.session.CreateSessionDto
 import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.GetSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.UpdateSessionByIdDto
+import com.geogrind.geogrindbackend.exceptions.sessions.SessionBadRequestException
 import com.geogrind.geogrindbackend.exceptions.sessions.SessionConflictException
 import com.geogrind.geogrindbackend.exceptions.sessions.SessionNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
@@ -113,6 +114,10 @@ class SessionServiceImpl(
 
         val stopTime: Instant = startTime!!.plusMillis(duration)
 
+        if(stopTime.isBefore(startTime)) throw SessionBadRequestException(
+            error = "Stop time cannot be before start time!"
+        )
+
         val newSession = Sessions (
             course = course,
             profile = findUserProfile.get(),
@@ -171,6 +176,9 @@ class SessionServiceImpl(
             this.course = updateCourse ?: this.course
             this.startTime = updateStartTime ?: this.startTime
             this.stopTime = this.startTime!!.plusMillis(updateDuration ?: 0) ?: this.stopTime
+            if(this.stopTime!!.isBefore(this.startTime)) throw SessionBadRequestException(
+                error = "Stop time cannot be before start time!"
+            )
             this.numberOfLikers = updateNumberOfLikers ?: this.numberOfLikers
             this.description = updateDescription ?: this.description
         }
