@@ -79,7 +79,7 @@ data class UserProfile(
     var courses: MutableSet<Courses>? = HashSet(),
 
     // One to one relationship with the session table
-    @OneToOne(mappedBy = "userProfile")
+    @OneToOne(mappedBy = "profile")
     @JsonIgnore
     var session: Sessions? = null,
 

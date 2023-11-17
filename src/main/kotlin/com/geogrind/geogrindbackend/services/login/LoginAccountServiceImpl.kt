@@ -153,7 +153,13 @@ class LoginAccountServiceImpl(
                 userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
-            )
+            ),
+            Permissions(
+                permission_name = PermissionName.CAN_VIEW_SESSION,
+                userAccount = findUserAccount.get(),
+                createdAt = Date(),
+                updatedAt = Date(),
+            ),
         )
 
         grantPermissionHelper.grant_permission_helper(

@@ -141,6 +141,36 @@ class SecurityConfigImpl : SecurityConfig {
                             HttpMethod.GET.toString(),
                         )
                     ).permitAll()
+
+                    // SESSIONS ENDPOINTS
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/get_all_sessions",
+                            HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/get_session",
+                            HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/create_session",
+                            HttpMethod.POST.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/update_session",
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/delete_session",
+                        )
+                    ).permitAll()
             }
             .addFilterBefore(JwtAuthenticationFilterImpl(), AnonymousAuthenticationFilter::class.java)
             .exceptionHandling { exceptionHandling ->

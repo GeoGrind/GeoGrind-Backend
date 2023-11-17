@@ -13,6 +13,7 @@ import java.util.UUID
 class GrantPermissionHelperImpl(
     private val permissionRepository: PermissionRepository,
     private val userAccountRepository: UserAccountRepository,
+    private val permissionsRepository: PermissionRepository,
 ) : GrantPermissionHelper {
     override fun grant_permission_helper(
         newPermissions: Set<Permissions>,
@@ -37,6 +38,38 @@ class GrantPermissionHelperImpl(
             }
 
             userAccountRepository.save(userAccount)
+
+            return true
+        } catch (error: RuntimeException) {
+            log.info ("Error while granting permission for current user: $error")
+            return false
+        }
+    }
+
+    override fun takeArrayPermissionHelper(
+        permissionToDelete: Set<PermissionName>,
+        currentUserAccount: UserAccount,
+    ) : Boolean {
+        try {
+            val getAllCurrentPermissions: MutableSet<Permissions>? = currentUserAccount.permissions
+            permissionToDelete.forEach { permissionName ->
+                getAllCurrentPermissions?.removeIf { permission ->
+                    permission.permission_name == permissionName
+                }
+            }
+            userAccountRepository.save(currentUserAccount)
+
+            val permissions: MutableSet<Permissions> = permissionRepository.findAllByUserAccount(
+                user_account = currentUserAccount
+            )
+            permissionToDelete.forEach { permissionName ->
+                permissions.removeIf { permission ->
+                    permission.permission_name == permissionName
+                }
+            }
+            permissions.forEach { permission ->
+                permissionRepository.save(permission)
+            }
 
             return true
         } catch (error: RuntimeException) {

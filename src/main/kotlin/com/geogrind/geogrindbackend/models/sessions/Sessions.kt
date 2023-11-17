@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.models.sessions
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.geogrind.geogrindbackend.dto.session.SuccessSessionResponse
 import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.persistence.*
@@ -70,5 +71,29 @@ data class Sessions (
 
     override fun toString(): String {
         return "Session(sessionId=$sessionId, course=$course, startTime=$startTime, stopTime=$stopTime, description=$description"
+    }
+}
+
+fun Sessions.toSuccessHttpResponse(): SuccessSessionResponse {
+    return SuccessSessionResponse(
+        sessionId = this.sessionId,
+        course = this.course,
+        startTime = this.startTime,
+        stopTime = this.stopTime,
+        numberOfLikers = this.numberOfLikers,
+        description = this.description,
+    )
+}
+
+fun List<Sessions>.toSuccessHttpResponseList(): List<SuccessSessionResponse> {
+    return this.map {
+        SuccessSessionResponse(
+            sessionId = it.sessionId,
+            course = it.course,
+            startTime = it.startTime,
+            stopTime = it.stopTime,
+            numberOfLikers = it.numberOfLikers,
+            description = it.description,
+        )
     }
 }

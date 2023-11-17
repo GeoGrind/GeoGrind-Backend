@@ -43,6 +43,13 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         "/geogrind/profile_image/download_profile_image",
         "/geogrind/profile_image/delete_profile_image",
         "/geogrind/profile_image/upload_profile_image",
+
+        // sessions
+        "/geogrind/sessions/get_all_sessions",
+        "/geogrind/sessions/get_session",
+        "/geogrind/sessions/create_session",
+        "/geogrind/sessions/update_session",
+        "/geogrind/sessions/delete_session",
     )
 
     override fun doFilterInternal(
@@ -54,6 +61,11 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             val requestUri: String = request.requestURI
 
             log.info("$requestUri")
+
+            response.setHeader("Access-Control-Allow-Origin", "http://localhost:5173")
+            response.setHeader("Access-Control-Allow-Methods", "POST, PUT, GET, OPTIONS, DELETE")
+            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept")
+            response.setHeader("Access-Control-Max-Age", "3600")
 
             if(shouldNotFilter(requestUri)) {
                 log.info("The endpoint does not require authentication!")
@@ -151,6 +163,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
 
     private fun determineRequiredPermissions(requestUri: String): Set<PermissionName> {
         return when {
+            // user profile
             requestUri == "/geogrind/user_profile/get_all_profiles" -> setOf(
                 PermissionName.CAN_VIEW_PROFILE,
             )
@@ -161,6 +174,8 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
                 PermissionName.CAN_VIEW_PROFILE,
                 PermissionName.CAN_EDIT_PROFILE,
             )
+
+            // s3 and cloudfront
             requestUri == "/geogrind/profile_image/download_all_profile_images" -> setOf(
                 PermissionName.CAN_VIEW_FILES,
             )
@@ -172,6 +187,23 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             )
             requestUri == "/geogrind/profile_image/upload_profile_image" -> setOf(
                 PermissionName.CAN_UPLOAD_FILES,
+            )
+
+            // sessions
+            requestUri == "/geogrind/sessions/get_all_sessions" -> setOf(
+                PermissionName.CAN_VIEW_SESSION,
+            )
+            requestUri == "/geogrind/sessions/get_session" -> setOf(
+                PermissionName.CAN_VIEW_SESSION,
+            )
+            requestUri == "/geogrind/sessions/create_session" -> setOf(
+                PermissionName.CAN_CREATE_SESSION,
+            )
+            requestUri == "/geogrind/sessions/update_session" -> setOf(
+                PermissionName.CAN_UPDATE_SESSION,
+            )
+            requestUri == "/geogrind/sessions/delete_sessions" -> setOf(
+                PermissionName.CAN_STOP_SESSION,
             )
             else -> return setOf()
         }

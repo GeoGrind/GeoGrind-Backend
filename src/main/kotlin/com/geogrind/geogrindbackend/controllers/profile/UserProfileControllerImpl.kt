@@ -4,6 +4,7 @@ import com.geogrind.geogrindbackend.dto.profile.DeleteCoursesDto
 import com.geogrind.geogrindbackend.dto.profile.GetUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
+import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import com.geogrind.geogrindbackend.models.user_profile.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.user_profile.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.profile.UserProfileService
@@ -11,7 +12,9 @@ import com.geogrind.geogrindbackend.utils.Middleware.JwtAuthenticationFilterImpl
 import io.jsonwebtoken.Claims
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
@@ -98,6 +101,7 @@ class UserProfileControllerImpl @Autowired constructor(
     )
     override suspend fun updateUserProfileByUserAccountId(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         updateUserProfileDto: UpdateUserProfileByUserAccountIdDto
@@ -115,21 +119,27 @@ class UserProfileControllerImpl @Autowired constructor(
         val user_account_id = decoded_token["user_id"] as String
         log.info(user_account_id)
 
+        val serviceResponse: Pair<UserProfile, Cookie> = userProfileService.updateUserProfileByUserAccountId(
+            requestDto = UpdateUserProfileByUserAccountIdDto(
+                user_account_id = UUID.fromString(user_account_id),
+                username = updateUserProfileDto.username,
+                emoji = updateUserProfileDto.emoji,
+                program = updateUserProfileDto.program,
+                courseCodes = updateUserProfileDto.courseCodes,
+                year_of_graduation = updateUserProfileDto.year_of_graduation,
+                university = updateUserProfileDto.university
+            )
+        )
+
+        // inject the new cookie into the response
+        response.addCookie(serviceResponse.second)
+        log.info("Response: $response")
+
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                userProfileService.updateUserProfileByUserAccountId(
-                    requestDto = UpdateUserProfileByUserAccountIdDto(
-                        user_account_id = UUID.fromString(user_account_id),
-                        username = updateUserProfileDto.username,
-                        emoji = updateUserProfileDto.emoji,
-                        program = updateUserProfileDto.program,
-                        courseCodes = updateUserProfileDto.courseCodes,
-                        year_of_graduation = updateUserProfileDto.year_of_graduation,
-                        university = updateUserProfileDto.university
-                    )
-                ).toSuccessHttpResponse()
+                serviceResponse.first.toSuccessHttpResponse()
             )
             .also { log.info("Successfully update the user profile with user_id: ${user_account_id}: $it") }
     }
@@ -144,10 +154,11 @@ class UserProfileControllerImpl @Autowired constructor(
     )
     override suspend fun deleteCoursesFromUserProfiles(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         requestDto: DeleteCoursesDto
-    ) {
+    ) = withTimeout(timeOutMillis) {
         // get the user account id from cookie
         val token: String? = jwtTokenMiddleWare.extractToken(
             request = request,
@@ -160,16 +171,24 @@ class UserProfileControllerImpl @Autowired constructor(
 
         val user_account_id = decoded_token["user_id"] as String
 
+        val serviceResponse: Cookie? = userProfileService.deleteCourseFromProfile(
+            requestDto = DeleteCoursesDto(
+                user_account_id = UUID.fromString(user_account_id),
+                coursesDelete = requestDto.coursesDelete,
+            )
+        )
+
+        // inject the cookie into the response
+        if(serviceResponse != null) {
+            response.addCookie(serviceResponse)
+            log.info("Response: $response")
+        }
+
         ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                userProfileService.deleteCourseFromProfile(
-                    requestDto = DeleteCoursesDto(
-                        user_account_id = UUID.fromString(user_account_id),
-                        coursesDelete = requestDto.coursesDelete
-                    )
-                )
+                serviceResponse
             )
             .also { log.info("Successfully delete the courses from the user profile: $it") }
     }

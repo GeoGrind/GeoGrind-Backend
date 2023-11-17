@@ -48,7 +48,7 @@ class SessionServiceImpl(
     override suspend fun getSessionById(
         @Valid
         requestDto: GetSessionByIdDto
-    ): Sessions? {
+    ): Sessions {
 
         waitSomeTime() // wait for Redis to get the user account
 

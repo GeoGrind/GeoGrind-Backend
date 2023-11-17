@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 @Service
 interface SessionService {
     suspend fun getAllSessions(): List<Sessions>
-    suspend fun getSessionById(@Valid requestDto: GetSessionByIdDto): Sessions?
+    suspend fun getSessionById(@Valid requestDto: GetSessionByIdDto): Sessions
     suspend fun createSession(@Valid requestDto: CreateSessionDto): Sessions
     suspend fun updateSessionById(@Valid requestDto: UpdateSessionByIdDto): Sessions
     suspend fun deleteSessionById(@Valid requestDto: DeleteSessionByIdDto)
