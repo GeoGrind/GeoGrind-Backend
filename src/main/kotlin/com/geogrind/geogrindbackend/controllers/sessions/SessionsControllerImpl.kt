@@ -1,14 +1,20 @@
 package com.geogrind.geogrindbackend.controllers.sessions
 
+import com.geogrind.geogrindbackend.controllers.profile.UserProfileControllerImpl
 import com.geogrind.geogrindbackend.dto.session.*
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.sessions.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.sessions.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.sessions.SessionService
+import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.Middleware.JwtAuthenticationFilterImpl
+import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import kotlinx.coroutines.withTimeout
 import org.slf4j.LoggerFactory
@@ -24,7 +30,16 @@ import java.util.UUID
 class SessionsControllerImpl(
     private val sessionService: SessionService,
     private val jwtTokenMiddleWare: JwtAuthenticationFilterImpl,
+    private val generateCookieHelper: CreateTokenCookie,
 ) : SessionsController {
+
+    // Load environment variables from the .env file
+    private val dotenv = Dotenv.configure().directory(".").load()
+
+    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
+
+    private val s3BucketName = dotenv["AWS_PFP_BUCKET_NAME"]
+
     @GetMapping(path = ["/get_all_sessions"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         method = "GET",
@@ -32,8 +47,43 @@ class SessionsControllerImpl(
         operationId = "findAllUserSessions",
         description = "Find all current user sessions"
     )
-    override suspend fun getAllCurrentSessions(): ResponseEntity<List<SuccessSessionResponse>> = withTimeout(
+    override suspend fun getAllCurrentSessions(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<List<SuccessSessionResponse>> = withTimeout(
         timeOutMillis) {
+
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val userAccountId = decoded_token["user_id"] as String
+        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+
+        // user is still active when calling this endpoint -> more time in the token
+        val newJwtToken: String = generateCookieHelper.generateJwtToken(
+            expirationTime = 3600,
+            user_id = UUID.fromString(userAccountId),
+            permissionNames = oldPermissionNames,
+            secret_key = geogrindSecretKey,
+            bucketName = s3BucketName,
+        )
+
+        val cookie: Cookie = generateCookieHelper.createTokenCookie(
+            expirationTime = 3600,
+            token = newJwtToken,
+        )
+
+        // inject the new cookie with new jwt token
+        response.addCookie(cookie)
+        log.info("Response: $response")
+
         // get all the current sessions
         ResponseEntity
             .status(HttpStatus.OK)
@@ -45,7 +95,8 @@ class SessionsControllerImpl(
     }
 
     override suspend fun getCurrentSessionByUserAccountId(
-        request: HttpServletRequest
+        request: HttpServletRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<SuccessSessionResponse> = withTimeout(
         timeOutMillis) {
         // get the user account id from cookie
@@ -59,6 +110,25 @@ class SessionsControllerImpl(
         )
 
         val userAccountId = decoded_token["user_id"] as String
+        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+
+        // user is still active when calling this endpoint -> more time in the token
+        val newJwtToken: String = generateCookieHelper.generateJwtToken(
+            expirationTime = 3600,
+            user_id = UUID.fromString(userAccountId),
+            permissionNames = oldPermissionNames,
+            secret_key = geogrindSecretKey,
+            bucketName = s3BucketName,
+        )
+
+        val cookie: Cookie = generateCookieHelper.createTokenCookie(
+            expirationTime = 3600,
+            token = newJwtToken,
+        )
+
+        // inject the new cookie with new jwt token
+        response.addCookie(cookie)
+        log.info("Response: $response")
 
         ResponseEntity
             .status(HttpStatus.OK)
@@ -118,6 +188,7 @@ class SessionsControllerImpl(
 
     override suspend fun updateSession(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         updateSessionByIdDto: UpdateSessionByIdDto,
@@ -133,6 +204,25 @@ class SessionsControllerImpl(
         )
 
         val userAccountId = decodedToken["user_id"] as String
+        val oldPermissionNames = decodedToken["permissionNames"] as Set<PermissionName>
+
+        // user is still active when calling this endpoint -> more time in the token
+        val newJwtToken: String = generateCookieHelper.generateJwtToken(
+            expirationTime = 3600,
+            user_id = UUID.fromString(userAccountId),
+            permissionNames = oldPermissionNames,
+            secret_key = geogrindSecretKey,
+            bucketName = s3BucketName,
+        )
+
+        val cookie: Cookie = generateCookieHelper.createTokenCookie(
+            expirationTime = 3600,
+            token = newJwtToken,
+        )
+
+        // inject the new cookie with new jwt token
+        response.addCookie(cookie)
+        log.info("Response: $response")
 
         ResponseEntity
             .status(HttpStatus.CREATED)

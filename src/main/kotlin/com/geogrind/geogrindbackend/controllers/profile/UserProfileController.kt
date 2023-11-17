@@ -31,7 +31,10 @@ interface UserProfileController {
         operationId = "findAllUserProfiles",
         description = "Find all user profiles"
     )
-    suspend fun getAllUserProfiles(): ResponseEntity<List<SuccessUserProfileResponse>>
+    suspend fun getAllUserProfiles(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<List<SuccessUserProfileResponse>>
 
     @GetMapping(path = ["/get_profile"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -42,6 +45,7 @@ interface UserProfileController {
     )
     suspend fun getUserProfileByUserAccountId(
         request: HttpServletRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<SuccessUserProfileResponse>
 
     @PatchMapping(path = ["/update_profile"], produces = [MediaType.APPLICATION_JSON_VALUE])

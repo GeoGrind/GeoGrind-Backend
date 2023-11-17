@@ -4,11 +4,14 @@ import com.geogrind.geogrindbackend.dto.profile.DeleteCoursesDto
 import com.geogrind.geogrindbackend.dto.profile.GetUserProfileByUserAccountIdDto
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import com.geogrind.geogrindbackend.models.user_profile.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.user_profile.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.profile.UserProfileService
+import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.Middleware.JwtAuthenticationFilterImpl
+import io.github.cdimascio.dotenv.Dotenv
 import io.jsonwebtoken.Claims
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -37,7 +40,15 @@ import java.util.UUID
 class UserProfileControllerImpl @Autowired constructor(
     private val userProfileService: UserProfileService,
     private val jwtTokenMiddleWare : JwtAuthenticationFilterImpl,
+    private val generateCookieHelper: CreateTokenCookie,
 ) : UserProfileController {
+
+    // Load environment variables from the .env file
+    private val dotenv = Dotenv.configure().directory(".").load()
+
+    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
+
+    private val s3BucketName = dotenv["AWS_PFP_BUCKET_NAME"]
 
     @GetMapping(path = ["/get_all_profiles"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -46,7 +57,42 @@ class UserProfileControllerImpl @Autowired constructor(
         operationId = "findAllUserProfiles",
         description = "Find all user profiles"
     )
-    override suspend fun getAllUserProfiles(): ResponseEntity<List<SuccessUserProfileResponse>> = withTimeout(timeOutMillis) {
+    override suspend fun getAllUserProfiles(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<List<SuccessUserProfileResponse>> = withTimeout(timeOutMillis) {
+
+        // get the user account id from cookie
+        val token: String? = jwtTokenMiddleWare.extractToken(
+            request = request,
+            cookieName = "JWT-TOKEN",
+        )
+
+        val decoded_token: Claims = jwtTokenMiddleWare.decodeToken(
+            token = token!!
+        )
+
+        val user_account_id = decoded_token["user_id"] as String
+        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+
+        // user is still active when calling this endpoint -> more time in the token
+        val newJwtToken: String = generateCookieHelper.generateJwtToken(
+            expirationTime = 3600,
+            user_id = UUID.fromString(user_account_id),
+            permissionNames = oldPermissionNames,
+            secret_key = geogrindSecretKey,
+            bucketName = s3BucketName,
+        )
+
+        val cookie: Cookie = generateCookieHelper.createTokenCookie(
+            expirationTime = 3600,
+            token = newJwtToken,
+        )
+
+        // inject the new cookie with new jwt token
+        response.addCookie(cookie)
+        log.info("Response: $response")
+
         // get all user profiles
         ResponseEntity
             .status(HttpStatus.OK)
@@ -65,7 +111,8 @@ class UserProfileControllerImpl @Autowired constructor(
         description = "Get user profile by given user account id"
     )
     override suspend fun getUserProfileByUserAccountId(
-        request: HttpServletRequest
+        request: HttpServletRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<SuccessUserProfileResponse> = withTimeout(timeOutMillis) {
         // get the user account id from cookie
         val token: String? = jwtTokenMiddleWare.extractToken(
@@ -78,6 +125,25 @@ class UserProfileControllerImpl @Autowired constructor(
         )
 
         val user_account_id = decoded_token["user_id"] as String
+        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+
+        // user is still active when calling this endpoint -> more time in the token
+        val newJwtToken: String = generateCookieHelper.generateJwtToken(
+            expirationTime = 3600,
+            user_id = UUID.fromString(user_account_id),
+            permissionNames = oldPermissionNames,
+            secret_key = geogrindSecretKey,
+            bucketName = s3BucketName,
+        )
+
+        val cookie: Cookie = generateCookieHelper.createTokenCookie(
+            expirationTime = 3600,
+            token = newJwtToken,
+        )
+
+        // inject the new cookie with new jwt token
+        response.addCookie(cookie)
+        log.info("Response: $response")
 
         ResponseEntity
             .status(HttpStatus.OK)
@@ -117,6 +183,7 @@ class UserProfileControllerImpl @Autowired constructor(
         )
 
         val user_account_id = decoded_token["user_id"] as String
+        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
         log.info(user_account_id)
 
         val serviceResponse: Pair<UserProfile, Cookie> = userProfileService.updateUserProfileByUserAccountId(
@@ -181,6 +248,26 @@ class UserProfileControllerImpl @Autowired constructor(
         // inject the cookie into the response
         if(serviceResponse != null) {
             response.addCookie(serviceResponse)
+            log.info("Response: $response")
+        } else {
+            val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+
+            // user is still active when calling this endpoint -> more time in the token
+            val newJwtToken: String = generateCookieHelper.generateJwtToken(
+                expirationTime = 3600,
+                user_id = UUID.fromString(user_account_id),
+                permissionNames = oldPermissionNames,
+                secret_key = geogrindSecretKey,
+                bucketName = s3BucketName,
+            )
+
+            val cookie: Cookie = generateCookieHelper.createTokenCookie(
+                expirationTime = 3600,
+                token = newJwtToken,
+            )
+
+            // inject the new cookie with new jwt token
+            response.addCookie(cookie)
             log.info("Response: $response")
         }
 

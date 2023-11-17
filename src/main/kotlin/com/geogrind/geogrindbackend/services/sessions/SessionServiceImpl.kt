@@ -134,6 +134,9 @@ class SessionServiceImpl(
         userProfileRepository.save(findUserProfile.get())
         sessionsRepository.save(newSession)
 
+        // take away user permission to create a new session
+
+
         return newSession
     }
 
@@ -220,6 +223,8 @@ class SessionServiceImpl(
 
         sessionsRepository.deleteById(currentSession.sessionId!!)
         findUserProfile.get().session = null
+
+        // take away the user permission to delete a session
     }
 
     companion object {

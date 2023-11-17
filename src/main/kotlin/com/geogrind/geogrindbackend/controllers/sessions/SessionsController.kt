@@ -6,6 +6,7 @@ import com.geogrind.geogrindbackend.dto.session.UpdateSessionByIdDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -29,7 +30,10 @@ interface SessionsController {
         operationId = "findAllUserSessions",
         description = "Find all current user sessions"
     )
-    suspend fun getAllCurrentSessions(): ResponseEntity<List<SuccessSessionResponse>>
+    suspend fun getAllCurrentSessions(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<List<SuccessSessionResponse>>
 
     @GetMapping(path = ["/get_session"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -40,6 +44,7 @@ interface SessionsController {
     )
     suspend fun getCurrentSessionByUserAccountId(
         request: HttpServletRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<SuccessSessionResponse>
 
     @PostMapping(path = ["/create_session"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -65,6 +70,7 @@ interface SessionsController {
     )
     suspend fun updateSession(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         updateSessionByIdDto: UpdateSessionByIdDto
