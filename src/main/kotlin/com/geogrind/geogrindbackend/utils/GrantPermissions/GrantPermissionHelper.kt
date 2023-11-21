@@ -13,7 +13,7 @@ interface GrantPermissionHelper {
         newPermissions: Set<Permissions>,
         currentUserAccount: UserAccount,
     ): Boolean
-    fun takeArrayPermissionHelper(
+    fun takeAwayPermissionHelper(
         permissionToDelete: Set<PermissionName>,
         currentUserAccount: UserAccount,
     ) : Boolean

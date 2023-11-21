@@ -217,24 +217,21 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
         decoded_token: Claims,
         permissionList: Set<PermissionName>,
     ): Boolean {
-        val permissionsInToken = decoded_token["permissions"] as ArrayList<String>
+        val permissionsInToken = decoded_token["permissionNames"] as ArrayList<String>
 
-        log.info("$permissionsInToken")
+        // deserialize the linked hash map into the Permission object
+        val all_permissions: MutableSet<PermissionName> = HashSet()
+        for(permission in permissionsInToken) {
+            all_permissions.add(enumValueOf<PermissionName>(permission))
+        }
 
-        if (permissionsInToken != null) {
-            // deserialize the linked hash map into the Permission object
-            val all_permissions: MutableSet<PermissionName> = HashSet<PermissionName>()
-            for(permission in permissionsInToken) {
-                all_permissions.add(enumValueOf<PermissionName>(permission))
+        log.info("All permissions: $all_permissions")
+
+        permissionList.forEach { required_permission ->
+            if (required_permission !in all_permissions) {
+                log.info("Required permission: $required_permission, type: ${required_permission::class.simpleName}")
+                return false
             }
-
-            permissionList.forEach { required_permission ->
-                if (required_permission !in all_permissions) {
-                    return false
-                }
-            }
-        } else {
-            return false
         }
         return true
     }

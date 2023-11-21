@@ -10,12 +10,15 @@ import com.geogrind.geogrindbackend.exceptions.sessions.SessionNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
 import com.geogrind.geogrindbackend.models.courses.Courses
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import com.geogrind.geogrindbackend.repositories.sessions.SessionsRepository
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
+import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheConfig
@@ -25,15 +28,15 @@ import org.springframework.cache.annotation.Caching
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.util.Optional
-import java.util.UUID
+import java.util.*
 
 @Service
 @CacheConfig(cacheNames = ["sessionCache"])
 class SessionServiceImpl(
     private val userAccountRepository: UserAccountRepository,
     private val userProfileRepository: UserProfileRepository,
-    private val sessionsRepository: SessionsRepository
+    private val sessionsRepository: SessionsRepository,
+    private val grantPermissionHelper: GrantPermissionHelper,
 ) : SessionService {
     // get all current sessions
     @Cacheable(cacheNames = ["sessions"])
@@ -86,7 +89,7 @@ class SessionServiceImpl(
         requestDto: CreateSessionDto
     ): Sessions {
         val userAccountId = requestDto.userAccountId
-        val course = requestDto.course
+        val courseCode = requestDto.courseCode
         val startTime = requestDto.startTime
         val duration = requestDto.duration
         val numberOfLikers = requestDto.numberOfLikers
@@ -118,14 +121,24 @@ class SessionServiceImpl(
             error = "Stop time cannot be before start time!"
         )
 
+        // find the course with the given course code
+        val allCurrentCourses = findUserProfile.get().courses
+        val sessionCourse = allCurrentCourses!!.find { currentCourse ->
+            currentCourse.courseCode == courseCode
+        }
+
+        log.info("Session Course: $sessionCourse")
+
         val newSession = Sessions (
-            course = course,
+            course = sessionCourse!!,
             profile = findUserProfile.get(),
             startTime = startTime,
             numberOfLikers = numberOfLikers,
             stopTime = stopTime,
             description = description,
         )
+
+        log.info("New Session: $newSession")
 
         findUserProfile.get().apply {
             this.session = newSession
@@ -135,6 +148,31 @@ class SessionServiceImpl(
         sessionsRepository.save(newSession)
 
         // take away user permission to create a new session
+        grantPermissionHelper.takeAwayPermissionHelper(
+            permissionToDelete = setOf(PermissionName.CAN_CREATE_SESSION),
+            currentUserAccount = findUserAccount.get(),
+        )
+
+        // give a permission to stop and update the session
+        grantPermissionHelper.grant_permission_helper(
+            newPermissions = setOf(
+                Permissions(
+                    permission_name = PermissionName.CAN_STOP_SESSION,
+                    userAccount = findUserAccount.get(),
+                    createdAt = Date(),
+                    updatedAt = Date(),
+                ),
+                Permissions(
+                    permission_name = PermissionName.CAN_UPDATE_SESSION,
+                    userAccount = findUserAccount.get(),
+                    createdAt = Date(),
+                    updatedAt = Date(),
+                ),
+            ),
+            currentUserAccount = findUserAccount.get()
+        )
+
+        // create a new jwt token
 
 
         return newSession
@@ -147,7 +185,7 @@ class SessionServiceImpl(
         requestDto: UpdateSessionByIdDto
     ): Sessions {
         val userAccountId = requestDto.userAccountId
-        val updateCourse = requestDto.updateCourse
+        val updateCourseCode = requestDto.updateCourseCode
         val updateStartTime = requestDto.updateStartTime
         val updateDuration = requestDto.updateDuration
         val updateNumberOfLikers = requestDto.updateNumberOfLikers
@@ -176,7 +214,14 @@ class SessionServiceImpl(
             ?: throw SessionNotFoundException(findUserProfile.get().profile_id.toString())
 
         currentSession.apply {
-            this.course = updateCourse ?: this.course
+            // find the course with the given course code
+            if(updateCourseCode != null) {
+                val allCurrentCourses = findUserProfile.get().courses
+                val sessionCourse = allCurrentCourses!!.find { currentCourse ->
+                    currentCourse.courseCode == updateCourseCode
+                }
+                this.course = sessionCourse ?: this.course
+            }
             this.startTime = updateStartTime ?: this.startTime
             this.stopTime = this.startTime!!.plusMillis(updateDuration ?: 0) ?: this.stopTime
             if(this.stopTime!!.isBefore(this.startTime)) throw SessionBadRequestException(
@@ -224,7 +269,27 @@ class SessionServiceImpl(
         sessionsRepository.deleteById(currentSession.sessionId!!)
         findUserProfile.get().session = null
 
-        // take away the user permission to delete a session
+        // take away the user permission to delete and update a session
+        grantPermissionHelper.takeAwayPermissionHelper(
+            permissionToDelete = setOf(
+                PermissionName.CAN_STOP_SESSION,
+                PermissionName.CAN_UPDATE_SESSION,
+            ),
+            currentUserAccount = findUserAccount.get()
+        )
+
+        // give a permission to create and update another session
+        grantPermissionHelper.grant_permission_helper(
+            newPermissions = setOf(
+                Permissions(
+                    permission_name = PermissionName.CAN_CREATE_SESSION,
+                    userAccount = findUserAccount.get(),
+                    createdAt = Date(),
+                    updatedAt = Date(),
+                ),
+            ),
+            currentUserAccount = findUserAccount.get()
+        )
     }
 
     companion object {

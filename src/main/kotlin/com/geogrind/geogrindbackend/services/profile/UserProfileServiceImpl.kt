@@ -318,8 +318,12 @@ class UserProfileServiceImpl(
         // remove the permission to create and update session if all the courses are deleted
         // get all the current permissions
         if(currentCourses.isEmpty()) {
-            grantPermissionHelper.takeArrayPermissionHelper(
-                permissionToDelete = setOf(PermissionName.CAN_CREATE_SESSION),
+            grantPermissionHelper.takeAwayPermissionHelper(
+                permissionToDelete = setOf(
+                    PermissionName.CAN_CREATE_SESSION,
+                    PermissionName.CAN_UPDATE_SESSION,
+                    PermissionName.CAN_STOP_SESSION,
+                ),
                 currentUserAccount = findUserAccount.get(),
             )
 

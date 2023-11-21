@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.HashSet
 import java.util.UUID
 
 @Tag(name = "Sessions", description = "Session REST Controller")
@@ -64,13 +65,17 @@ class SessionsControllerImpl(
         )
 
         val userAccountId = decoded_token["user_id"] as String
-        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+        val oldPermissionNames = decoded_token["permissionNames"] as ArrayList<String>
+        val oldPermissionNamesSet = HashSet<PermissionName>()
+        oldPermissionNames.forEach { it
+            oldPermissionNamesSet.add(enumValueOf<PermissionName>(it))
+        }
 
         // user is still active when calling this endpoint -> more time in the token
         val newJwtToken: String = generateCookieHelper.generateJwtToken(
             expirationTime = 3600,
             user_id = UUID.fromString(userAccountId),
-            permissionNames = oldPermissionNames,
+            permissionNames = oldPermissionNamesSet,
             secret_key = geogrindSecretKey,
             bucketName = s3BucketName,
         )
@@ -110,13 +115,17 @@ class SessionsControllerImpl(
         )
 
         val userAccountId = decoded_token["user_id"] as String
-        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+        val oldPermissionNames = decoded_token["permissionNames"] as ArrayList<String>
+        val oldPermissionNamesSet = HashSet<PermissionName>()
+        oldPermissionNames.forEach { it
+            oldPermissionNamesSet.add(enumValueOf<PermissionName>(it))
+        }
 
         // user is still active when calling this endpoint -> more time in the token
         val newJwtToken: String = generateCookieHelper.generateJwtToken(
             expirationTime = 3600,
             user_id = UUID.fromString(userAccountId),
-            permissionNames = oldPermissionNames,
+            permissionNames = oldPermissionNamesSet,
             secret_key = geogrindSecretKey,
             bucketName = s3BucketName,
         )
@@ -175,7 +184,7 @@ class SessionsControllerImpl(
                 sessionService.createSession(
                     requestDto = CreateSessionDto(
                         userAccountId = UUID.fromString(userAccountId),
-                        course = createSessionDto.course,
+                        courseCode = createSessionDto.courseCode,
                         startTime = createSessionDto.startTime,
                         duration = createSessionDto.duration,
                         numberOfLikers = createSessionDto.numberOfLikers,
@@ -204,25 +213,6 @@ class SessionsControllerImpl(
         )
 
         val userAccountId = decodedToken["user_id"] as String
-        val oldPermissionNames = decodedToken["permissionNames"] as Set<PermissionName>
-
-        // user is still active when calling this endpoint -> more time in the token
-        val newJwtToken: String = generateCookieHelper.generateJwtToken(
-            expirationTime = 3600,
-            user_id = UUID.fromString(userAccountId),
-            permissionNames = oldPermissionNames,
-            secret_key = geogrindSecretKey,
-            bucketName = s3BucketName,
-        )
-
-        val cookie: Cookie = generateCookieHelper.createTokenCookie(
-            expirationTime = 3600,
-            token = newJwtToken,
-        )
-
-        // inject the new cookie with new jwt token
-        response.addCookie(cookie)
-        log.info("Response: $response")
 
         ResponseEntity
             .status(HttpStatus.CREATED)
@@ -231,7 +221,7 @@ class SessionsControllerImpl(
                 sessionService.updateSessionById(
                     requestDto = UpdateSessionByIdDto(
                         userAccountId = UUID.fromString(userAccountId),
-                        updateCourse = updateSessionByIdDto.updateCourse,
+                        updateCourseCode = updateSessionByIdDto.updateCourseCode,
                         updateStartTime = updateSessionByIdDto.updateStartTime,
                         updateDuration = updateSessionByIdDto.updateDuration,
                         updateNumberOfLikers = updateSessionByIdDto.updateNumberOfLikers,

@@ -10,7 +10,7 @@ import java.util.UUID
 
 data class UpdateSessionByIdDto(
     var userAccountId: UUID ?= null,
-    @get:Valid val updateCourse: Courses ?= null,
+    @get:Valid val updateCourseCode: String ?= null,
     @get:Valid var updateStartTime: Instant? = null,
     @get:Min(value = 0, message = "Value must be greater than or equal to 0")
     @get:Max(value = 86400000, message = "Value must be less than or equal to 24 hours")

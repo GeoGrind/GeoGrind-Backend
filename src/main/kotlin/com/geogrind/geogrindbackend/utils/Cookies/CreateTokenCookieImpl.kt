@@ -19,7 +19,7 @@ class CreateTokenCookieImpl : CreateTokenCookie {
 
         val token = Jwts.builder()
             .claim("user_id", user_id)
-            .claim("permissions", permissionNames)
+            .claim("permissionNames", permissionNames)
             .claim("s3_profile_image_bucket_name", bucketName)
             .issuedAt(Date.from(Instant.now()))
             .expiration(Date.from(set_expired_time))

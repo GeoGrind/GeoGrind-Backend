@@ -11,7 +11,7 @@ import java.util.UUID
 
 data class CreateSessionDto (
     val userAccountId: UUID? = null,
-    @get:Valid val course: Courses,
+    @get:Valid val courseCode: String,
     @get:Valid var startTime: Instant? = Instant.now(),
     @get:Min(value = 0, message = "Value must be greater than or equal to 0")
     @get:Max(value = 86400000, message = "Value must be less than or equal to 24 hours")

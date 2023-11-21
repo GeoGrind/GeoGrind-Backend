@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.util.HashSet
 import java.util.UUID
 
 @Tag(name = "UserProfile", description = "User Profile REST Controller")
@@ -73,13 +74,17 @@ class UserProfileControllerImpl @Autowired constructor(
         )
 
         val user_account_id = decoded_token["user_id"] as String
-        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+        val oldPermissionNames = decoded_token["permissionNames"] as ArrayList<String>
+        val oldPermissionNamesSet = HashSet<PermissionName>()
+        oldPermissionNames.forEach { it
+            oldPermissionNamesSet.add(enumValueOf<PermissionName>(it))
+        }
 
         // user is still active when calling this endpoint -> more time in the token
         val newJwtToken: String = generateCookieHelper.generateJwtToken(
             expirationTime = 3600,
             user_id = UUID.fromString(user_account_id),
-            permissionNames = oldPermissionNames,
+            permissionNames = oldPermissionNamesSet,
             secret_key = geogrindSecretKey,
             bucketName = s3BucketName,
         )
@@ -125,13 +130,17 @@ class UserProfileControllerImpl @Autowired constructor(
         )
 
         val user_account_id = decoded_token["user_id"] as String
-        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+        val oldPermissionNames = decoded_token["permissionNames"] as ArrayList<String>
+        val oldPermissionNamesSet = HashSet<PermissionName>()
+        oldPermissionNames.forEach { it
+            oldPermissionNamesSet.add(enumValueOf<PermissionName>(it))
+        }
 
         // user is still active when calling this endpoint -> more time in the token
         val newJwtToken: String = generateCookieHelper.generateJwtToken(
             expirationTime = 3600,
             user_id = UUID.fromString(user_account_id),
-            permissionNames = oldPermissionNames,
+            permissionNames = oldPermissionNamesSet,
             secret_key = geogrindSecretKey,
             bucketName = s3BucketName,
         )
@@ -183,8 +192,7 @@ class UserProfileControllerImpl @Autowired constructor(
         )
 
         val user_account_id = decoded_token["user_id"] as String
-        val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
-        log.info(user_account_id)
+        log.info("User account id: $user_account_id")
 
         val serviceResponse: Pair<UserProfile, Cookie> = userProfileService.updateUserProfileByUserAccountId(
             requestDto = UpdateUserProfileByUserAccountIdDto(

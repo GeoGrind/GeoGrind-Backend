@@ -13,7 +13,6 @@ import java.util.UUID
 class GrantPermissionHelperImpl(
     private val permissionRepository: PermissionRepository,
     private val userAccountRepository: UserAccountRepository,
-    private val permissionsRepository: PermissionRepository,
 ) : GrantPermissionHelper {
     override fun grant_permission_helper(
         newPermissions: Set<Permissions>,
@@ -46,29 +45,29 @@ class GrantPermissionHelperImpl(
         }
     }
 
-    override fun takeArrayPermissionHelper(
+    override fun takeAwayPermissionHelper(
         permissionToDelete: Set<PermissionName>,
         currentUserAccount: UserAccount,
     ) : Boolean {
         try {
-            val getAllCurrentPermissions: MutableSet<Permissions>? = currentUserAccount.permissions
-            permissionToDelete.forEach { permissionName ->
-                getAllCurrentPermissions?.removeIf { permission ->
-                    permission.permission_name == permissionName
-                }
+            currentUserAccount.permissions?.removeIf { permission ->
+                permissionToDelete.contains(permission.permission_name)
             }
-            userAccountRepository.save(currentUserAccount)
 
             val permissions: MutableSet<Permissions> = permissionRepository.findAllByUserAccount(
                 user_account = currentUserAccount
             )
-            permissionToDelete.forEach { permissionName ->
-                permissions.removeIf { permission ->
-                    permission.permission_name == permissionName
-                }
+            val filteredPermission: MutableList<UUID> = mutableListOf()
+            permissions.filter { permission ->
+                permissionToDelete.contains(permission.permission_name)
+                filteredPermission.add(permission.permission_id!!)
             }
-            permissions.forEach { permission ->
-                permissionRepository.save(permission)
+            log.info("Permssions to delete: $permissionToDelete")
+            log.info("Filtered permission: $filteredPermission")
+
+            filteredPermission.forEach { permissionId ->
+                permissionRepository.deleteById(permissionId)
+                log.info("Permission deleted successfully: $permissionId")
             }
 
             return true
