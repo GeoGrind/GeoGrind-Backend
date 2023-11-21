@@ -18,7 +18,10 @@ import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import com.geogrind.geogrindbackend.repositories.sessions.SessionsRepository
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
+import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
+import io.github.cdimascio.dotenv.Dotenv
+import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheConfig
@@ -29,6 +32,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
+import kotlin.collections.HashSet
+import kotlin.math.exp
 
 @Service
 @CacheConfig(cacheNames = ["sessionCache"])
@@ -37,7 +42,9 @@ class SessionServiceImpl(
     private val userProfileRepository: UserProfileRepository,
     private val sessionsRepository: SessionsRepository,
     private val grantPermissionHelper: GrantPermissionHelper,
+    private val createTokenCookie: CreateTokenCookie,
 ) : SessionService {
+
     // get all current sessions
     @Cacheable(cacheNames = ["sessions"])
     @Transactional(readOnly = true)
@@ -87,7 +94,7 @@ class SessionServiceImpl(
     override suspend fun createSession(
         @Valid
         requestDto: CreateSessionDto
-    ): Sessions {
+    ): Pair<Sessions, Cookie> {
         val userAccountId = requestDto.userAccountId
         val courseCode = requestDto.courseCode
         val startTime = requestDto.startTime
@@ -172,10 +179,16 @@ class SessionServiceImpl(
             currentUserAccount = findUserAccount.get()
         )
 
-        // create a new jwt token
+        // create a new jwt token and refresh a new cookie
+        val newCookie: Cookie = createTokenCookie.refreshCookie(
+            expirationTime = 3600,
+            currentUserAccount = findUserAccount.get(),
+        )
 
-
-        return newSession
+        return Pair(
+            first = newSession,
+            second = newCookie,
+        )
     }
 
     @CacheEvict(cacheNames = ["sessions"], allEntries = true)
@@ -183,7 +196,7 @@ class SessionServiceImpl(
     override suspend fun updateSessionById(
         @Valid
         requestDto: UpdateSessionByIdDto
-    ): Sessions {
+    ): Pair<Sessions, Cookie> {
         val userAccountId = requestDto.userAccountId
         val updateCourseCode = requestDto.updateCourseCode
         val updateStartTime = requestDto.updateStartTime
@@ -234,7 +247,16 @@ class SessionServiceImpl(
         sessionsRepository.save(currentSession)
         findUserProfile.get().session = currentSession
 
-        return currentSession
+        // create the new jwt token and reset token in cookie
+        val newCookie: Cookie = createTokenCookie.refreshCookie(
+            expirationTime = 3600,
+            currentUserAccount = findUserAccount.get()
+        )
+
+        return Pair(
+            first = currentSession,
+            second = newCookie
+        )
     }
 
     @Caching(
@@ -247,7 +269,7 @@ class SessionServiceImpl(
     override suspend fun deleteSessionById(
         @Valid
         requestDto: DeleteSessionByIdDto
-    ) {
+    ) : Cookie {
         val userAccountId = requestDto.userAccountId
 
         // find the current user
@@ -290,6 +312,14 @@ class SessionServiceImpl(
             ),
             currentUserAccount = findUserAccount.get()
         )
+
+        // refresh the token and issue a new cookie
+        val newCookie: Cookie = createTokenCookie.refreshCookie(
+            expirationTime = 3600,
+            currentUserAccount = findUserAccount.get()
+        )
+
+        return newCookie
     }
 
     companion object {

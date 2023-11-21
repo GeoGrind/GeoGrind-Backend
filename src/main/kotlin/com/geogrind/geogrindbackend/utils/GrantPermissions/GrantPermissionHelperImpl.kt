@@ -5,6 +5,7 @@ import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
+import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -27,12 +28,9 @@ class GrantPermissionHelperImpl(
             }
 
             for(permission in newPermissions) {
-                println("Permission : $permission")
                 if(permission.permission_name !in getAllCurrentPermissionName) {
-                    println("Permission name: ${permission.permission_name}")
                     permissionRepository.save(permission)
                     userAccount.permissions!!.add(permission)
-                    println("User Account Permissions: ${userAccount.permissions}")
                 }
             }
 
@@ -50,29 +48,34 @@ class GrantPermissionHelperImpl(
         currentUserAccount: UserAccount,
     ) : Boolean {
         try {
-            currentUserAccount.permissions?.removeIf { permission ->
-                permissionToDelete.contains(permission.permission_name)
-            }
-
+            // delete the permissions from the "one" side
             val permissions: MutableSet<Permissions> = permissionRepository.findAllByUserAccount(
                 user_account = currentUserAccount
             )
-            val filteredPermission: MutableList<UUID> = mutableListOf()
-            permissions.filter { permission ->
-                permissionToDelete.contains(permission.permission_name)
-                filteredPermission.add(permission.permission_id!!)
-            }
-            log.info("Permssions to delete: $permissionToDelete")
-            log.info("Filtered permission: $filteredPermission")
 
-            filteredPermission.forEach { permissionId ->
-                permissionRepository.deleteById(permissionId)
-                log.info("Permission deleted successfully: $permissionId")
+            val filteredPermissions = permissions.filter { permission ->
+                permission.permission_name in permissionToDelete
             }
+
+            log.info("Filtered permission: $filteredPermissions")
+
+            filteredPermissions.forEach { permission ->
+                permissionRepository.deleteById(permission.permission_id!!)
+            }
+
+            // delete the permission from the "many" side
+            currentUserAccount.permissions?.removeIf { permission ->
+                permission.permission_name in permissionToDelete
+            }
+
+            currentUserAccount.permissions?.forEach { permissions ->
+                log.info("Current permission in user account: ${permissions.permission_name}")
+            }
+            userAccountRepository.save(currentUserAccount)
 
             return true
         } catch (error: RuntimeException) {
-            log.info ("Error while granting permission for current user: $error")
+            log.info ("Error while taking away permissions from current user: $error")
             return false
         }
     }

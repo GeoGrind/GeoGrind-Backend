@@ -5,6 +5,7 @@ import com.geogrind.geogrindbackend.dto.session.SuccessSessionResponse
 import com.geogrind.geogrindbackend.dto.session.UpdateSessionByIdDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -56,6 +57,7 @@ interface SessionsController {
     )
     suspend fun createSession(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         createSessionDto: CreateSessionDto
@@ -84,6 +86,7 @@ interface SessionsController {
         description = "Delete session"
     )
     suspend fun deleteSession(
-        request: HttpServletRequest
-    ) : ResponseEntity<Unit>
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) : ResponseEntity<Cookie>
 }

@@ -3,6 +3,7 @@ package com.geogrind.geogrindbackend.controllers.sessions
 import com.geogrind.geogrindbackend.controllers.profile.UserProfileControllerImpl
 import com.geogrind.geogrindbackend.dto.session.*
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
+import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.sessions.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.sessions.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.sessions.SessionService
@@ -161,6 +162,7 @@ class SessionsControllerImpl(
     )
     override suspend fun createSession(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         createSessionDto: CreateSessionDto
@@ -177,20 +179,26 @@ class SessionsControllerImpl(
 
         val userAccountId = decoded_token["user_id"] as String
 
+        // call the helper service
+        val serviceResponse: Pair<Sessions, Cookie> = sessionService.createSession(
+            requestDto = CreateSessionDto(
+                userAccountId = UUID.fromString(userAccountId),
+                courseCode = createSessionDto.courseCode,
+                startTime = createSessionDto.startTime,
+                duration = createSessionDto.duration,
+                numberOfLikers = createSessionDto.numberOfLikers,
+                description = createSessionDto.description,
+            )
+        )
+
+        // set the cookie
+        response.addCookie(serviceResponse.second)
+
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                sessionService.createSession(
-                    requestDto = CreateSessionDto(
-                        userAccountId = UUID.fromString(userAccountId),
-                        courseCode = createSessionDto.courseCode,
-                        startTime = createSessionDto.startTime,
-                        duration = createSessionDto.duration,
-                        numberOfLikers = createSessionDto.numberOfLikers,
-                        description = createSessionDto.description,
-                    )
-                ).toSuccessHttpResponse()
+                serviceResponse.first.toSuccessHttpResponse()
             )
             .also { log.info("Successfully create a session for the current user!") }
     }
@@ -214,20 +222,26 @@ class SessionsControllerImpl(
 
         val userAccountId = decodedToken["user_id"] as String
 
+        // call the helper service
+        val serviceResponse: Pair<Sessions, Cookie> = sessionService.updateSessionById(
+            requestDto = UpdateSessionByIdDto(
+                userAccountId = UUID.fromString(userAccountId),
+                updateCourseCode = updateSessionByIdDto.updateCourseCode,
+                updateStartTime = updateSessionByIdDto.updateStartTime,
+                updateDuration = updateSessionByIdDto.updateDuration,
+                updateNumberOfLikers = updateSessionByIdDto.updateNumberOfLikers,
+                updateDescription = updateSessionByIdDto.updateDescription,
+            )
+        )
+
+        // add the cookie
+        response.addCookie(serviceResponse.second)
+
         ResponseEntity
             .status(HttpStatus.CREATED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                sessionService.updateSessionById(
-                    requestDto = UpdateSessionByIdDto(
-                        userAccountId = UUID.fromString(userAccountId),
-                        updateCourseCode = updateSessionByIdDto.updateCourseCode,
-                        updateStartTime = updateSessionByIdDto.updateStartTime,
-                        updateDuration = updateSessionByIdDto.updateDuration,
-                        updateNumberOfLikers = updateSessionByIdDto.updateNumberOfLikers,
-                        updateDescription = updateSessionByIdDto.updateDescription,
-                    )
-                ).toSuccessHttpResponse()
+                serviceResponse.first.toSuccessHttpResponse()
             )
             .also { log.info("Successfully update the session: $it") }
     }
@@ -240,8 +254,9 @@ class SessionsControllerImpl(
         description = "Delete session"
     )
     override suspend fun deleteSession(
-        request: HttpServletRequest
-    ) = withTimeout(timeOutMillis) {
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ) : ResponseEntity<Cookie> = withTimeout(timeOutMillis) {
         // get the user account id from cookie
         val token: String? = jwtTokenMiddleWare.extractToken(
             request = request,
@@ -254,15 +269,19 @@ class SessionsControllerImpl(
 
         val userAccountId = decodedToken["user_id"] as String
 
+        val serviceResponse : Cookie = sessionService.deleteSessionById(
+            requestDto = DeleteSessionByIdDto(
+                userAccountId = UUID.fromString(userAccountId)
+            )
+        )
+
+        response.addCookie(serviceResponse)
+
         ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
-                sessionService.deleteSessionById(
-                    requestDto = DeleteSessionByIdDto(
-                        userAccountId = UUID.fromString(userAccountId)
-                    )
-                )
+                serviceResponse
             )
             .also { log.info("Successfully delete the session from the user profile: $it") }
     }

@@ -214,12 +214,6 @@ class UserProfileServiceImpl(
                 createdAt = Date(),
                 updatedAt = Date(),
             ),
-            Permissions(
-                permission_name = PermissionName.CAN_UPDATE_SESSION,
-                userAccount = findUserAccount.get(),
-                createdAt = Date(),
-                updatedAt = Date(),
-            ),
         )
 
         // save the user profile to the database
