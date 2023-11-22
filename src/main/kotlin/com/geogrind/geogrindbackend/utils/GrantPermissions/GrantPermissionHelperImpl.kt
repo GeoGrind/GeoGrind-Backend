@@ -31,6 +31,7 @@ class GrantPermissionHelperImpl(
                 if(permission.permission_name !in getAllCurrentPermissionName) {
                     permissionRepository.save(permission)
                     userAccount.permissions!!.add(permission)
+                    log.info("Permission add: ${permission.permission_name}")
                 }
             }
 
@@ -52,6 +53,10 @@ class GrantPermissionHelperImpl(
             val permissions: MutableSet<Permissions> = permissionRepository.findAllByUserAccount(
                 user_account = currentUserAccount
             )
+
+            permissions.forEach { permissions: Permissions ->
+                log.info("Current permissions in the user account: ${permissions.permission_name}")
+            }
 
             val filteredPermissions = permissions.filter { permission ->
                 permission.permission_name in permissionToDelete

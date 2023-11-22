@@ -6,6 +6,7 @@ import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.GenericGenerator
 import org.hibernate.annotations.Type
+import org.slf4j.LoggerFactory
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -42,4 +43,28 @@ data class Permissions (
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
     var updatedAt: Date? = null,
-)
+) {
+    override fun hashCode(): Int {
+        try {
+            var result = permission_id?.hashCode() ?: 0
+            result = 31 * result + (permission_name?.hashCode() ?: 0)
+
+            val userAccountIdHashCode = userAccount.id?.hashCode() ?: 0
+            result = 31 * result + userAccountIdHashCode
+
+            return result
+        } catch (e: Exception) {
+            // Log the exception
+            log.info("Exception in hashCode: ${e.message}")
+            throw e
+        }
+    }
+
+    override fun toString(): String {
+        return "Permission(permissionId=$permission_id, permissionName=$permission_name, userAccountId=${userAccount.id})"
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(Permissions::class.java)
+    }
+}

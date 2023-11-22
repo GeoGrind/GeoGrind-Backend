@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.models.courses
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
@@ -34,6 +35,10 @@ data class Courses (
     @Column(name = "course_name", length = 50, nullable = false)
     @Size(min = 5)
     var courseName: String,
+
+    @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL])
+    @JsonIgnore
+    var session: Sessions? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

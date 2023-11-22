@@ -33,6 +33,7 @@ dependencies {
 
 	// json serializable + android core + logging
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0") // Use the latest version available
 
 	// database connection pool
 	implementation("com.zaxxer:HikariCP:5.0.1")

@@ -202,7 +202,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             requestUri == "/geogrind/sessions/update_session" -> setOf(
                 PermissionName.CAN_UPDATE_SESSION,
             )
-            requestUri == "/geogrind/sessions/delete_sessions" -> setOf(
+            requestUri == "/geogrind/sessions/delete_session" -> setOf(
                 PermissionName.CAN_STOP_SESSION,
             )
             else -> return setOf()
@@ -225,7 +225,7 @@ class JwtAuthenticationFilterImpl : OncePerRequestFilter() {
             all_permissions.add(enumValueOf<PermissionName>(permission))
         }
 
-        log.info("All permissions: $all_permissions")
+        log.info("All permissions required: $permissionList")
 
         permissionList.forEach { required_permission ->
             if (required_permission !in all_permissions) {

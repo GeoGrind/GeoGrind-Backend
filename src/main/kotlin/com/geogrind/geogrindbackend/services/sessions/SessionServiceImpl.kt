@@ -288,8 +288,13 @@ class SessionServiceImpl(
         // find the current session
         val currentSession: Sessions = findUserProfile.get().session ?: throw SessionNotFoundException(userAccountId.toString())
 
+        log.info("Current session: $currentSession")
+
         sessionsRepository.deleteById(currentSession.sessionId!!)
         findUserProfile.get().session = null
+        userProfileRepository.save(findUserProfile.get())
+
+        log.info("User Profile: ${findUserProfile.get()}")
 
         // take away the user permission to delete and update a session
         grantPermissionHelper.takeAwayPermissionHelper(

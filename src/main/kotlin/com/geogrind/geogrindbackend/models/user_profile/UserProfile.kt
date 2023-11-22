@@ -124,7 +124,7 @@ data class UserProfile(
     }
 
     override fun toString(): String {
-        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}, courses=${this.courses}"
+        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}, courses=${this.courses}, session=${this.session}"
     }
 }
 

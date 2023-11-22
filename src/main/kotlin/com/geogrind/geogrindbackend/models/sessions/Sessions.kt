@@ -1,6 +1,8 @@
 package com.geogrind.geogrindbackend.models.sessions
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.geogrind.geogrindbackend.dto.session.SuccessSessionResponse
 import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
@@ -24,18 +26,19 @@ data class Sessions (
     val sessionId: UUID? = null,
 
     // One-To-One relationship with the course id
-    @OneToOne(targetEntity = Courses::class, cascade = [CascadeType.ALL])
+    @OneToOne(fetch = FetchType.EAGER, targetEntity = Courses::class, cascade = [CascadeType.MERGE])
     @JsonIgnore
     @JoinColumn(name = "fk_course_id", referencedColumnName = "course_id")
     var course: Courses,
 
     // One-To-One relationship with the user profile
-    @OneToOne(fetch = FetchType.EAGER, targetEntity = UserProfile::class, cascade = [CascadeType.ALL])
+    @OneToOne(fetch = FetchType.EAGER, targetEntity = UserProfile::class, cascade = [CascadeType.MERGE])
     @JoinColumn(name = "fk_user_profile_id", referencedColumnName = "profile_id")
     @JsonIgnore
-    var profile: UserProfile,
+    var profile: UserProfile? = null,
 
     @Column(name = "startTime", nullable = false)
+    @JsonIgnore
     var startTime: Instant ?= Instant.now(),
 
     @Column(name = "numberOfLikers", nullable = false)
@@ -43,6 +46,7 @@ data class Sessions (
     var numberOfLikers: Int? = 0,
 
     @Column(name = "stopTime", nullable = false)
+    @JsonIgnore
     var stopTime: Instant ?= Instant.now(),
 
     @Column(name = "description", nullable = true)
