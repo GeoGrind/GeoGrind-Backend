@@ -5,7 +5,9 @@ import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.profile.UpdateUserProfileByUserAccountIdDto
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -29,7 +31,10 @@ interface UserProfileController {
         operationId = "findAllUserProfiles",
         description = "Find all user profiles"
     )
-    suspend fun getAllUserProfiles(): ResponseEntity<List<SuccessUserProfileResponse>>
+    suspend fun getAllUserProfiles(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+    ): ResponseEntity<List<SuccessUserProfileResponse>>
 
     @GetMapping(path = ["/get_profile"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -40,6 +45,7 @@ interface UserProfileController {
     )
     suspend fun getUserProfileByUserAccountId(
         request: HttpServletRequest,
+        response: HttpServletResponse,
     ): ResponseEntity<SuccessUserProfileResponse>
 
     @PatchMapping(path = ["/update_profile"], produces = [MediaType.APPLICATION_JSON_VALUE])
@@ -51,6 +57,7 @@ interface UserProfileController {
     )
     suspend fun updateUserProfileByUserAccountId(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         updateUserProfileDto: UpdateUserProfileByUserAccountIdDto
@@ -65,8 +72,9 @@ interface UserProfileController {
     )
     suspend fun deleteCoursesFromUserProfiles(
         request: HttpServletRequest,
+        response: HttpServletResponse,
         @Valid
         @RequestBody
         requestDto: DeleteCoursesDto
-    )
+    ) : ResponseEntity<Cookie?>
 }

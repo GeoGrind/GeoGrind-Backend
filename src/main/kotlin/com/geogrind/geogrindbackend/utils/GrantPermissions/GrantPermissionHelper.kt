@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.utils.GrantPermissions
 
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
@@ -12,4 +13,8 @@ interface GrantPermissionHelper {
         newPermissions: Set<Permissions>,
         currentUserAccount: UserAccount,
     ): Boolean
+    fun takeAwayPermissionHelper(
+        permissionToDelete: Set<PermissionName>,
+        currentUserAccount: UserAccount,
+    ) : Boolean
 }

@@ -30,6 +30,7 @@ import java.time.Instant
 @Tag(name = "UserAccount", description = "User Account REST Controller")
 @RestController
 @RequestMapping(path = ["/geogrind/user_account/"])
+@CrossOrigin(origins = ["http://localhost:5173"])
 class UserAccountControllerImpl @Autowired constructor(
     private val userAccountService: UserAccountService
 ) : UserAccountController {
@@ -83,7 +84,10 @@ class UserAccountControllerImpl @Autowired constructor(
         operationId = "createUserAccount",
         description = "Create new user account for user"
     )
-    override suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto) : ResponseEntity<SendGridResponseDto> = withTimeout(
+    override suspend fun createUserAccount(
+        @Valid
+        @RequestBody
+        req: CreateUserAccountDto) : ResponseEntity<SendGridResponseDto> = withTimeout(
         timeOutMillis) {
         // create a new user
         ResponseEntity

@@ -6,9 +6,11 @@ import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountForbiddenException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountUnauthorizedException
+import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
+import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
@@ -123,7 +125,7 @@ class LoginAccountServiceImpl(
         }
 
         // if the user is verified -> give the user more permissions
-        val newPermissions: Set<Permissions> = setOf(
+        val newPermissions: MutableSet<Permissions> = mutableSetOf(
             Permissions(
                 permission_name = PermissionName.CAN_VIEW_PROFILE,
                 userAccount = findUserAccount.get(),
@@ -153,8 +155,30 @@ class LoginAccountServiceImpl(
                 userAccount = findUserAccount.get(),
                 createdAt = Date(),
                 updatedAt = Date(),
-            )
+            ),
+            Permissions(
+                permission_name = PermissionName.CAN_VIEW_SESSION,
+                userAccount = findUserAccount.get(),
+                createdAt = Date(),
+                updatedAt = Date(),
+            ),
         )
+
+        // check if the user profile has all the courses in there -> if yes, give permission to create session
+        val findUserProfile: UserProfile? = findUserAccount.get().userProfile
+        if(findUserProfile != null) {
+            val courses: MutableSet<Courses>? = findUserProfile.courses
+            if(courses != null) {
+                newPermissions.add(
+                    Permissions(
+                        permission_name = PermissionName.CAN_CREATE_SESSION,
+                        userAccount = findUserAccount.get(),
+                        createdAt = Date(),
+                        updatedAt = Date(),
+                    )
+                )
+            }
+        }
 
         grantPermissionHelper.grant_permission_helper(
             newPermissions = newPermissions,

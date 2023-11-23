@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.models.courses
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
@@ -22,7 +23,7 @@ data class Courses (
     var courseId: UUID? = null,
 
     // Many-To-One relationship with the user profile entity
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "profile_id", insertable = false, updatable = false)
     @JsonIgnore
     var profile: UserProfile,
@@ -34,6 +35,10 @@ data class Courses (
     @Column(name = "course_name", length = 50, nullable = false)
     @Size(min = 5)
     var courseName: String,
+
+//    @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+//    @JsonIgnore
+//    var session: Sessions? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)

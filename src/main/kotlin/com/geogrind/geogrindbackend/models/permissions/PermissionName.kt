@@ -16,7 +16,9 @@ enum class PermissionName {
     CAN_VIEW_MAP,
 
     // Session
+    CAN_VIEW_SESSION,
     CAN_CREATE_SESSION,
+    CAN_UPDATE_SESSION,
     CAN_STOP_SESSION,
 
     // Message

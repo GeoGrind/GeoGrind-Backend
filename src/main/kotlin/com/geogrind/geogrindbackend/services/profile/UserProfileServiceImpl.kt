@@ -25,6 +25,14 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.geogrind.geogrindbackend.dto.profile.DeleteCoursesDto
+import com.geogrind.geogrindbackend.models.permissions.PermissionName
+import com.geogrind.geogrindbackend.models.permissions.Permissions
+import com.geogrind.geogrindbackend.repositories.permissions.PermissionRepository
+import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
+import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
+import com.geogrind.geogrindbackend.utils.Middleware.JwtAuthenticationFilterImpl
+import io.github.cdimascio.dotenv.Dotenv
+import jakarta.servlet.http.Cookie
 import org.springframework.boot.autoconfigure.security.SecurityProperties.User
 import org.springframework.cache.annotation.Caching
 import java.io.File
@@ -40,9 +48,18 @@ class UserProfileServiceImpl(
     private val userProfileRepository: UserProfileRepository,
     private val userAccountRepository: UserAccountRepository,
     private val coursesRepository: CoursesRepository,
+    private val permissionsRepository: PermissionRepository,
     private val validationObj: UserAccountValidationHelper,
+    private val grantPermissionHelper: GrantPermissionHelper,
+    private val createTokenCookie: CreateTokenCookie,
 ) : UserProfileService {
 
+    // Load environment variables from the .env file
+    private val dotenv = Dotenv.configure().directory(".").load()
+
+    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
+
+    private val s3BucketName = dotenv["AWS_PFP_BUCKET_NAME"]
 
     // get all the users profiles
     @Cacheable(cacheNames = ["userProfiles"])
@@ -57,7 +74,7 @@ class UserProfileServiceImpl(
      * Need to fix: [Request processing failed: org.springframework.data.redis.serializer.SerializationException: Could not read JSON:failed to lazily initialize a collection: could not initialize proxy - no Session (through reference chain: com.geogrind.geogrindbackend.models.user_profile.UserProfile["courses"]) ] with root cause
      *
      * org.hibernate.LazyInitializationException: failed to lazily initialize a collection: could not initialize proxy - no Session
-     *
+     * Current temporary solution: Remove Redis caching for this endpoint
      */
 //    @Cacheable(cacheNames = ["userProfiles"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional(readOnly = true)
@@ -112,7 +129,7 @@ class UserProfileServiceImpl(
     @Transactional
     override suspend fun updateUserProfileByUserAccountId(
         @Valid requestDto: UpdateUserProfileByUserAccountIdDto
-    ): UserProfile {
+    ): Pair<UserProfile, Cookie> {
         var username: String? = requestDto.username
         var emoji: String? = requestDto.emoji
         var program: String? = requestDto.program
@@ -132,8 +149,6 @@ class UserProfileServiceImpl(
         }
 
         log.info("User id: ${requestDto.user_account_id}")
-
-        waitSomeTime() // wait for Redis
 
         // find the user profile using the one-to-one relationship with the user account
         var findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
@@ -192,21 +207,59 @@ class UserProfileServiceImpl(
             }
         }
 
+        val newPermissions: Set<Permissions> = setOf(
+            Permissions(
+                permission_name = PermissionName.CAN_CREATE_SESSION,
+                userAccount = findUserAccount.get(),
+                createdAt = Date(),
+                updatedAt = Date(),
+            ),
+        )
+
         // save the user profile to the database
         findUserProfile.get().apply {
             this.username = username ?: findUserAccount.get().username
             this.emoji = emoji ?: this.emoji
             this.program = program ?: this.program
             this.courses = courses ?: this.courses
+            if(this.courses != null) {
+                // give the user the permissions to create and update the session
+                grantPermissionHelper.grant_permission_helper(
+                    newPermissions = newPermissions,
+                    currentUserAccount = findUserAccount.get(),
+                )
+            }
             this.year_of_graduation = year_of_graduation ?: this.year_of_graduation
             this.university = university ?: this.university
+            this.updatedAt = Date()
         }
 
-        findUserProfile.get().updatedAt = Date()
+        val allCurrentPermissions: MutableSet<Permissions>? = findUserAccount.get().permissions
+        val allCurrentPermissionsName: MutableSet<PermissionName> = HashSet()
+        allCurrentPermissions!!.forEach {permissions ->
+            allCurrentPermissionsName.add(permissions.permission_name)
+        }
+
+        // create the new jwt token and reset token in cookie
+        val newJwtToken = createTokenCookie.generateJwtToken(
+            expirationTime = 3600,
+            bucketName = s3BucketName,
+            user_id = findUserAccount.get().id!!,
+            permissionNames = allCurrentPermissionsName,
+            secret_key = geogrindSecretKey,
+        )
+
+        val newCookie: Cookie = createTokenCookie.createTokenCookie(
+            expirationTime = 3600,
+            token = newJwtToken,
+        )
 
         userProfileRepository.save(findUserProfile.get())
 
-        return findUserProfile.get()
+        return Pair(
+            first = findUserProfile.get(),
+            second = newCookie,
+        )
     }
 
     // delete course from the user profile
@@ -217,7 +270,10 @@ class UserProfileServiceImpl(
         ]
     )
     @Transactional
-    override suspend fun deleteCourseFromProfile(requestDto: DeleteCoursesDto) {
+    override suspend fun deleteCourseFromProfile(
+        @Valid
+        requestDto: DeleteCoursesDto
+    ) : Cookie? {
         var courseCodesDelete: Array<String> = requestDto.coursesDelete
 
         // find the user account that is linked to this profile
@@ -249,11 +305,48 @@ class UserProfileServiceImpl(
             coursesRepository.deleteById(courses.courseId!!)
         }
 
-        currentCourses!!.removeIf { courses: Courses ->
+        currentCourses.removeIf { courses: Courses ->
             courses.courseName in courseCodesDelete
         }
 
+        // remove the permission to create and update session if all the courses are deleted
+        // get all the current permissions
+        if(currentCourses.isEmpty()) {
+            grantPermissionHelper.takeAwayPermissionHelper(
+                permissionToDelete = setOf(
+                    PermissionName.CAN_CREATE_SESSION,
+                    PermissionName.CAN_UPDATE_SESSION,
+                    PermissionName.CAN_STOP_SESSION,
+                ),
+                currentUserAccount = findUserAccount.get(),
+            )
+
+            // create new jwt token
+            val allCurrentPermissions: MutableSet<Permissions>? = findUserAccount.get().permissions
+            val allCurrentPermissionsName: MutableSet<PermissionName> = HashSet()
+            allCurrentPermissions!!.forEach { permissions ->
+                allCurrentPermissionsName.add(permissions.permission_name)
+            }
+
+            val newJwtToken = createTokenCookie.generateJwtToken(
+                expirationTime = 3600,
+                bucketName = s3BucketName,
+                user_id = findUserAccount.get().id!!,
+                permissionNames = allCurrentPermissionsName,
+                secret_key = geogrindSecretKey,
+            )
+
+            val newCookie: Cookie = createTokenCookie.createTokenCookie(
+                expirationTime = 3600,
+                token = newJwtToken,
+            )
+
+            return newCookie
+        }
+
         userProfileRepository.save(findUserProfile.get())
+
+        return null
     }
 
     companion object {

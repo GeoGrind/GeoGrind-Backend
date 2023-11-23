@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.models.courses.Courses
+import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -72,10 +73,15 @@ data class UserProfile(
     var userAccount: UserAccount,
 
     // One to many relationship with the Courses
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.EAGER)
 //    @JsonIgnore
     @JoinColumn(name = "profile_id")
     var courses: MutableSet<Courses>? = HashSet(),
+
+    // One to one relationship with the session table
+    @OneToOne(mappedBy = "profile")
+    @JsonIgnore
+    var session: Sessions? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
@@ -118,7 +124,7 @@ data class UserProfile(
     }
 
     override fun toString(): String {
-        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}, courses=${this.courses}"
+        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}, courses=${this.courses}, session=${this.session}"
     }
 }
 
