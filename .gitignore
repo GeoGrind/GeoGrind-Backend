@@ -3,6 +3,7 @@ HELP.md
 src/main/kotlin/com/geogrind/geogrindbackend/config/redis/redis.conf
 postgres-data
 redis-data
+geogrind-server_logs
 
 src/main/resources/application.properties
 
