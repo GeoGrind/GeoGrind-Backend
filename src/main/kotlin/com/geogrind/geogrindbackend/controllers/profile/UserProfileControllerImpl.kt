@@ -258,13 +258,17 @@ class UserProfileControllerImpl @Autowired constructor(
             response.addCookie(serviceResponse)
             log.info("Response: $response")
         } else {
-            val oldPermissionNames = decoded_token["permissionNames"] as Set<PermissionName>
+            val oldPermissionNames = decoded_token["permissionNames"] as ArrayList<String>
+            val oldPermissionNamesSet = HashSet<PermissionName>()
+            oldPermissionNames.forEach { it
+                oldPermissionNamesSet.add(enumValueOf<PermissionName>(it))
+            }
 
             // user is still active when calling this endpoint -> more time in the token
             val newJwtToken: String = generateCookieHelper.generateJwtToken(
                 expirationTime = 3600,
                 user_id = UUID.fromString(user_account_id),
-                permissionNames = oldPermissionNames,
+                permissionNames = oldPermissionNamesSet,
                 secret_key = geogrindSecretKey,
                 bucketName = s3BucketName,
             )

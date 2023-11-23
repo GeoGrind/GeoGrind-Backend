@@ -60,8 +60,6 @@ class SessionServiceImpl(
         requestDto: GetSessionByIdDto
     ): Sessions {
 
-        waitSomeTime() // wait for Redis to get the user account
-
         // find the user account
         val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
             requestDto.userAccountId!!
@@ -71,7 +69,6 @@ class SessionServiceImpl(
         }
 
         // find the user profile
-        waitSomeTime() // wait for Redis to get the user profile
         val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
             findUserAccount.get()
         )
@@ -81,11 +78,15 @@ class SessionServiceImpl(
         }
 
         // find the session according to this profile
+        // wait for redis
+        waitSomeTime()
+
         val findCurrentSession: Optional<Sessions> = sessionsRepository.findByProfile(
             userProfile = findUserProfile.get()
         )
 
-        return findCurrentSession.orElse(null)
+        if(findCurrentSession.isEmpty) throw SessionNotFoundException(findUserAccount.get().id.toString())
+        return findCurrentSession.get()
     }
 
     // create a session

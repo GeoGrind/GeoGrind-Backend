@@ -36,9 +36,9 @@ data class Courses (
     @Size(min = 5)
     var courseName: String,
 
-    @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL])
-    @JsonIgnore
-    var session: Sessions? = null,
+//    @OneToOne(mappedBy = "course", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
+//    @JsonIgnore
+//    var session: Sessions? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
