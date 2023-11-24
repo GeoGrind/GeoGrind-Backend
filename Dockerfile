@@ -1,20 +1,21 @@
 # Use the official OpenJDK base image
+#FROM eclipse-temurin:17-jdk-alpine
 FROM openjdk:11-jre-slim
 
 # Set the working directory to /app
 WORKDIR /app
 
 # Copy the JAR file and .env file into the container
-COPY build/libs/GeoGrind-Backend-0.0.1-SNAPSHOT.jar /app/GeoGrind-Backend.jar
-COPY .env /app/.env
+COPY . /app
+COPY .env .env
 
 # Install dotenv to load env variables
-RUN apt-get update && apt-get install -y nodejs npm
-RUN npm install -g dotenv-cli
+RUN apk update && \
+    apk add --no-cache nodejs npm
 
 # Expose the port
 EXPOSE 8080
 
 # Command to run the application with dotenv \
-CMD ["dotenv", "java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/build/libs/GeoGrind-Backend-0.0.1-SNAPSHOT.jar"]
 

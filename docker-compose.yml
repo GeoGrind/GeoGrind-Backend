@@ -4,8 +4,9 @@ services:
     container_name: geogrind-server
     build:
       context: .
-      dockerfile: DockerFile
-    image: geogrind-server
+      dockerfile: Dockerfile
+    image: geogrind/geogrindbackend
+    platform: linux/amd64
     depends_on:
       postgres:
         condition: service_healthy
