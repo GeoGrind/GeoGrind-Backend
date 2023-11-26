@@ -88,9 +88,9 @@ jobs:
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             echo "This is a pull request"
             TAG_NAME="test-PR-${{ github.event.number }}"
-            echo "Tag name: $TAG_NAME"
+            echo "Tag name: $TAG_NAME, Version: ${VERSION}"
             docker tag geogrind/geogrindbackend:${VERSION} geogrind/geogrindbackend:${TAG_NAME}
-            echo "Version: ${VERSION}, tag the docker image successfully"
+            echo "Tag the docker image successfully"
             docker push geogrind/geogrindbackend:${TAG_NAME}
             echo "Push the docker image successfully"
           else
