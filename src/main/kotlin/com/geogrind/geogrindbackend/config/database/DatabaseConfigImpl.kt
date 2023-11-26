@@ -30,6 +30,8 @@ class DatabaseConfigImpl : DatabaseConfig {
 
         val jdbcUrl = "jdbc:postgresql://$dbHost:$dbPort/$dbName"
 
+        println("JDBC URL: $jdbcUrl")
+
         val dataSource = HikariDataSource()
         dataSource.jdbcUrl = jdbcUrl
         dataSource.username = dbUserName

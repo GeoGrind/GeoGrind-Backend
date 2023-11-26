@@ -22,7 +22,7 @@ echo "Connecting to GeoGrind Database at $DB_HOST:$DB_PORT"
 echo "Connecting to GeoGrind Redis Server at $REDIS_HOST:$REDIS_PORT"
 
 # Start the Docker container
-docker-compose up -d
+docker-compose up --build -d
 
 echo "GeoGrind Server Container started."
 echo "GeoGrind Database Container started."
