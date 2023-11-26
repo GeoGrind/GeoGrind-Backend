@@ -35,10 +35,10 @@ jobs:
       - name: docker login
         env:
           DOCKER_USER: ${{ secrets.DOCKER_USER }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKER_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
         run: |
-          echo "Docker User: $DOCKER_USER and Docker Password: $DOCKER_PASSWORD"
-          docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+          echo "Docker User: $DOCKER_USER and Docker Access Token: $DOCKER_TOKEN"
+          docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
 
       # Calculates the new docker version and it only runs for pushes to main branch
       # The current and new versions are stored in the env variable
