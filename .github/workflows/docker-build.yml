@@ -76,7 +76,7 @@ jobs:
 
       # Builds the Docker images as specified in the docker-compose.yml
       - name: Build the Docker images
-        run: docker compose build server
+        run: docker compose build -d
 
       # This tags the docker images and pushes them to the dockerhub
       - name: Tag and Push Docker Image
