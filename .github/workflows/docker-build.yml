@@ -82,14 +82,14 @@ jobs:
       - name: Tag and Push Docker Image
         run: |
           TAG_NAME=""
-          VERSION=$(grep 'geogrind/geogrind-backend:' ./docker-compose.yml | awk -F: '{print $3}' | tr -d "' ")
+          VERSION=$(grep 'geogrind/geogrindbackend:' ./docker-compose.yml | awk -F: '{print $3}' | tr -d "' ")
           echo "Debug: VERSION variables is set to $VERSION" 
           docker images
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             echo "This is a pull request"
             TAG_NAME="test-PR-${{ github.event.number }}"
-            docker tag geogrind/geogrind-backend:${VERSION} geogrind/geogrind-backend:${TAG_NAME}
-            docker push geogrind/geogrind-backend:${TAG_NAME}
+            docker tag geogrind/geogrindbackend:${VERSION} geogrind/geogrindbackend:${TAG_NAME}
+            docker push geogrind/geogrindbackend:${TAG_NAME}
           else
             echo "This is not a pull request"
             docker compose push server
