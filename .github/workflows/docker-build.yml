@@ -33,7 +33,7 @@ jobs:
 
       # Logs in to the docker hub using the credentials stored in the secrets
       - name: docker login
-        run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+        run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
         env:
           DOCKER_CLI_ASK_PASS: "0"
 
