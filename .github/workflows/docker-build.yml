@@ -90,7 +90,9 @@ jobs:
             TAG_NAME="test-PR-${{ github.event.number }}"
             echo "Tag name: $TAG_NAME"
             docker tag geogrind/geogrindbackend:${VERSION} geogrind/geogrindbackend:${TAG_NAME}
+            echo "Version: ${VERSION}, tag the docker image successfully"
             docker push geogrind/geogrindbackend:${TAG_NAME}
+            echo "Push the docker image successfully"
           else
             echo "This is not a pull request"
             docker compose push server
