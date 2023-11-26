@@ -33,12 +33,9 @@ jobs:
 
       # Logs in to the docker hub using the credentials stored in the secrets
       - name: docker login
+        run: echo "${{ secrets.DOCKER_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
         env:
-          DOCKER_USER: ${{ secrets.DOCKER_USER }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
-        run: |
-          echo "Docker User: $DOCKER_USER and Docker Access Token: $DOCKER_TOKEN"
-          docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+          DOCKER_CLI_ASK_PASS: "0"
 
       # Calculates the new docker version and it only runs for pushes to main branch
       # The current and new versions are stored in the env variable
