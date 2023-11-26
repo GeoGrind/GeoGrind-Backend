@@ -1,0 +1,115 @@
+# Configure Github Workflow Action
+name: Docker compose CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          ref: 'main'
+          token: ${{ secrets.TOKENS }}
+          persist-credentials: true
+
+      # .env file creation and populates it with env variables stored
+      - name: Populate .env file
+        run: |
+          touch .env
+          echo "${{ secrets.ENV_FILE }}" >> .env
+
+      # Fetching the latest version from the docker-compose.yml
+      - name: Fetching version (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          git pull origin main
+
+      # Logs in to the docker hub using the credentials stored in the secrets
+      - name: docker login
+        env:
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+
+      # Calculates the new docker version and it only runs for pushes to main branch
+      # The current and new versions are stored in the env variable
+      - name: Calculate New Version (main branch)
+        if: github.ref == 'refs/heads/main'
+        id: calc_version
+        run: |
+          CUR_VERSION=$(grep 'geogrind/geogrind-backend:' ./docker-compose.yml | awk -F: '{print $3}' | tr -d "' ")
+          NEW_VERSION=$(echo $CUR_VERSION | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
+          # echo "Current Version: $CUR_VERSION" 
+          # echo "New Version: $NEW_VERSION"
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+          echo "CUR_VERSION=${CUR_VERSION}" >> $GITHUB_ENV
+
+      # This checks whether the docker image with the new version already exists and it only runs for pushes to the main
+      - name: Check if image exists (main branch)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'${{ secrets.DOCKER_USER }}'", "password": "'${{ secrets.DOCKER_PASSWORD }}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
+          RAW_API_RESPONSE=$(curl -s -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/geogrind/geogrind-backend/tags/)
+          EXISTS=$(echo "${RAW_API_RESPONSE}" | jq -r ".results[] | select(.name==\"${{ env.NEW_VERSION }}\") | .name")
+          if [[ "$EXISTS" == "${{ env.NEW_VERSION }}" ]]; then
+            echo "Image with same version exists. Failing build."
+            exit 1
+          fi
+
+      # This updates the docker-compose.yml file with new version, commits the changes and pushed it back to the repo
+      # It only runs for the pushes to main branch
+      - name: Update docker-compose.yml, Commit and Push (main branch)
+        if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'skip ci')
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'github-actions@example.com'
+          sed -i "s|geogrind/geogrind-backend:${{ env.CUR_VERSION }}|geogrind/geogrind-backend:${{ env.NEW_VERSION }}|g" docker-compose.yml
+          git add docker-compose.yml
+          git commit -m "Auto-incremented version to ${{ env.NEW_VERSION }} [skip ci]"
+          git push origin main
+
+      # Builds the Docker images as specified in the docker-compose.yml
+      - name: Build the Docker images
+        run: docker compose build server
+
+      # This tags the docker images and pushes them to the dockerhub
+      - name: Tag and Push Docker Image
+        run: |
+          TAG_NAME=""
+          VERSION=$(grep 'geogrind/geogrind-backend:' ./docker-compose.yml | awk -F: '{print $3}' | tr -d "' ")
+          echo "Debug: VERSION variables is set to $VERSION" 
+          docker images
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "This is a pull request"
+            TAG_NAME="test-PR-${{ github.event.number }}"
+            docker tag geogrind/geogrind-backend:${VERSION} geogrind/geogrind-backend:${TAG_NAME}
+            docker push geogrind/geogrind-backend:${TAG_NAME}
+          else
+            echo "This is not a pull request"
+            docker compose push server
+          fi
+          
+#      # Setting up the dynamic port based on the PR and push it to main
+#      - name: Set port based on event type
+#        run: |
+#          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+#            echo "DYNAMIC_PORT=$((9000 + ${{ github.event.number }}))" >> $GITHUB_ENV
+#          else
+#            echo "DYNAMIC_PORT=8080" >> $GITHUB_ENV
+#          fi
+#
+#      # Generates the SSH Key file from the Secrets
+#      - name: Generate SSH Key file
+#        run: echo "${{ secrets.SSH_PEM }}" > manualdeployment.pem
+#
+#      # Sets the file permission for the SSH Key
+#      - name: Set SSH Key Permission
+#        run: chmod 600 manualdeployment.pem
+
