@@ -81,10 +81,16 @@ jobs:
       # This tags the docker images and pushes them to the dockerhub
       - name: Tag and Push Docker Image
         run: |
+          cat ./docker-compose.yml
+          grep 'geogrind/geogrindbackend:' ./docker-compose.yml
           TAG_NAME=""
           VERSION=$(grep 'geogrind/geogrindbackend:' ./docker-compose.yml | awk -F: '{print $3}' | tr -d "' ")
           echo "Debug: VERSION variables is set to $VERSION" 
           docker images
+          echo "Debug: Listing Docker Compose Services"
+          docker-compose config --services
+          echo "Debug: Listing Docker Compose Images"
+          docker-compose images
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             echo "This is a pull request"
             TAG_NAME="test-PR-${{ github.event.number }}"
@@ -95,7 +101,7 @@ jobs:
             echo "Push the docker image successfully"
           else
             echo "This is not a pull request"
-            docker compose push server
+            docker compose push
           fi
           
 #      # Setting up the dynamic port based on the PR and push it to main
