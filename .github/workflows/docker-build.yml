@@ -31,6 +31,10 @@ jobs:
         run: |
           git pull origin main
 
+      # Logout from docker hub
+      - name: Logout from Docker Hub
+        uses: docker/logout-action@v1
+
       # Logs in to the docker hub using the credentials stored in the secrets
       - name: docker login
         run: echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
@@ -89,7 +93,7 @@ jobs:
             echo "This is a pull request"
             TAG_NAME="test-PR-${{ github.event.number }}"
             echo "Tag name: $TAG_NAME, Version: ${VERSION}"
-            echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
+            
             docker tag geogrind/geogrindbackend:${VERSION} geogrind/geogrindbackend:${TAG_NAME}
             echo "Tag the docker image successfully"
             docker push geogrind/geogrindbackend:${TAG_NAME}
