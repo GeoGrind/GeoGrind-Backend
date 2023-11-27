@@ -1,0 +1,34 @@
+name: Cleanup PR Resources
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Generate SSH Key file
+        run: echo "${{ secrets.SSH_PEM }}" > manualdeployment.pem
+
+      - name: Set SSH Key Permission
+        run: chmod 600 manualdeployment.pem
+
+      - name: Cleanup Docker container and image when PR is merged
+        run: |
+          if [ "${{ github.event.pull_request.merged }}" == "true" ]; then
+            DYNAMIC_PORT=$((9000 + ${{ github.event.pull_request.number }}))
+            FRONTEND_DYNAMIC_PORT=$(($DYNAMIC_PORT + 100))
+            IMAGE_NAME="geogrind/geogrindbackend:test-PR-${{ github.event.pull_request.number }}"
+          ssh -i manualdeployment.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_IP }}"
+            echo 'Stopping containers with dynamic_port=$DYNAMIC_PORT...'
+            docker ps -a -q --filter 'label=dynamic_port=$DYNAMIC_PORT' | xargs -r docker stop
+            echo 'Removing containers with dynamic_port=$DYNAMIC_PORT...'
+            docker ps -a -q --filter 'label=dynamic_port=$DYNAMIC_PORT' | xargs -r docker rm
+            echo 'Removing image $IMAGE_NAME...'
+            docker rmi $IMAGE_NAME

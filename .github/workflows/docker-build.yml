@@ -102,20 +102,81 @@ jobs:
             docker compose push backend
           fi
           
-#      # Setting up the dynamic port based on the PR and push it to main
-#      - name: Set port based on event type
-#        run: |
-#          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-#            echo "DYNAMIC_PORT=$((9000 + ${{ github.event.number }}))" >> $GITHUB_ENV
-#          else
-#            echo "DYNAMIC_PORT=8080" >> $GITHUB_ENV
-#          fi
-#
-#      # Generates the SSH Key file from the Secrets
-#      - name: Generate SSH Key file
-#        run: echo "${{ secrets.SSH_PEM }}" > manualdeployment.pem
-#
-#      # Sets the file permission for the SSH Key
-#      - name: Set SSH Key Permission
-#        run: chmod 600 manualdeployment.pem
+      # Setting up the dynamic port based on the PR and push it to main
+      - name: Set port based on event type
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "DYNAMIC_PORT=$((9000 + ${{ github.event.number }}))" >> $GITHUB_ENV
+          else
+            echo "DYNAMIC_PORT=8080" >> $GITHUB_ENV
+          fi
 
+      # Generates the SSH Key file from the Secrets
+      - name: Generate SSH Key file
+        run: echo "${{ secrets.SSH_PEM }}" > manualdeployment.pem
+
+      # Sets the file permission for the SSH Key
+      - name: Set SSH Key Permission
+        run: chmod 600 manualdeployment.pem
+
+      # This cleans up the docker container on the remote server (Mainly it helps for the multiple commits in the same PR)
+      - name: Cleanup old Docker containers
+        run: |
+          ssh -i manualdeployment.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_IP }} "
+          echo 'Containers with the specified label:'
+          docker ps -a --filter 'label=dynamic_port=$DYNAMIC_PORT' --format 'table {{.ID}}\t{{.Image}}\t{{.Labels}}'
+          
+          echo 'Stopping and removing these containers...'
+          docker ps -a -q --filter 'label=dynamic_port=$DYNAMIC_PORT' | tee /dev/tty | xargs -r docker stop
+          docker ps -a -q --filter 'label=dynamic_port=$DYNAMIC_PORT' | tee /dev/tty | xargs -r docker rm
+
+      # SSH's into a server, Pulls the docker image from the docker hub and runs it on a Dynamic port
+      - name: SSH, Docker Pull and Run with Zero Downtime for Main Branch
+        run: |
+          VERSION=latest
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            IMAGE_NAME="geogrind/geogrindbackend:test-PR-${{ github.event.number }}"
+            CONTAINER_NAME="PR_backend_$DYNAMIC_PORT"
+            SSH -vvv -i manualdeployment.pem -o StrictHostKeyChecking=noubuntu@4{{ secrets.SSH_IP }} "docker pull ${IMAGE_NAME} && docker run -d -p $DYNAMIC_PORT:8080 --add-host host.docker.internal:172.17.0.1 --name ${CONTAINER_NAME} --label dynamic_port=$DYNAMIC_PORT ${IMAGE_NAME}"
+          else
+            IMAGE_NAME="geogrind/geogrindbackend:${VERSION}"
+            echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+            MAIN_PORT=8080 
+            CONTAINER_NAME="Main_backend_$MAIN_PORT"
+            name including Main and the port number
+            ssh -vvv -i manualdeployment.pem -o StrictHostKeyChecking-noubuntu@${{ secrets.SSH_IP }} "
+          
+            # Pull the new image
+            docker pull ${IMAGE_NAME}
+            
+            # Stop and remove the old container running on the default port (e.g., 8080)
+            OLD_CONTAINERR_ID=\$(docker ps -q --filter 'label=dynamic_port=8080')
+            if [[ ! -z \"\$OLD_CONTAINER_ID\" ]]; then
+              docker stop \$OLD_CONTAINER_ID
+              docker rm \$OLD_CONTAINER_ID
+            fi
+          
+            
+            # Start the new container on the default port (e.g., 8080)
+            with the updated image
+            docker run -d -p 8080:8080 --add-host host.docker.internal:172.17.0.1 --name ${CONTAINER_NAME} --label dynamic_port=8080 ${IMAGE_NAME}
+            "
+          fi
+
+      # This cleans up any stopped docker containers and untagged images on the server
+      - name: Cleanup Unsuccessful Docker Containers and Images
+        run: |
+            ssh -i manualdeployment.pem -o StrictHostKeyChecking=no ubuntu@${{ secrets.SSH_IP }} << 'ENDSSH'
+              # Print and remove stopped containers
+              STOPPED_CONTAINERS=$(docker ps -a -q --filter "status=exited" --filter "status=created")
+              echo "Stopping and removing the following containers:
+              $STOPPED_CONTAINERS"
+              echo $STOPPED_CONTAINERS | xargs -r docker rm
+              
+              # Print and remove untagged images (<none>)
+              DANGLING_IMAGES=$(docker images -q --filter "dangling=true")
+              echo "Removing the following untagged images: $DANGLING_IMAGES"
+              echo $DANGLING_IMAGES | xargs -r docker rmi
+          
+            ENDSSH
+            
