@@ -55,7 +55,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'${{ secrets.DOCKER_USER }}'", "password": "'${{ secrets.DOCKER_PASSWORD }}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-          RAW_API_RESPONSE=$(curl -s -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/geogrind/geogrind-backend/tags/)
+          RAW_API_RESPONSE=$(curl -s -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/geogrind/geogrindbackend/tags/)
           EXISTS=$(echo "${RAW_API_RESPONSE}" | jq -r ".results[] | select(.name==\"${{ env.NEW_VERSION }}\") | .name")
           if [[ "$EXISTS" == "${{ env.NEW_VERSION }}" ]]; then
             echo "Image with same version exists. Failing build."
@@ -69,7 +69,7 @@ jobs:
         run: |
           git config --global user.name 'GitHub Actions'
           git config --global user.email 'github-actions@example.com'
-          sed -i "s|geogrind/geogrind-backend:${{ env.CUR_VERSION }}|geogrind/geogrind-backend:${{ env.NEW_VERSION }}|g" docker-compose.yml
+          sed -i "s|geogrind/geogrindbackend:${{ env.CUR_VERSION }}|geogrind/geogrind-backend:${{ env.NEW_VERSION }}|g" docker-compose.yml
           git add docker-compose.yml
           git commit -m "Auto-incremented version to ${{ env.NEW_VERSION }} [skip ci]"
           git push origin main
