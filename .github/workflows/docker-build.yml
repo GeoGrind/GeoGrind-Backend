@@ -92,7 +92,7 @@ jobs:
             docker tag geogrind/geogrindbackend:${VERSION} geogrind/geogrindbackend:${TAG_NAME}
             echo "Tag the docker image successfully"
             echo "${{ secrets.DOCKER_ACCESS_TOKEN }}" | docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin
-            docker push ${{ secrets.DOCKER_USER }}/geogrind_geogrindbackend:${TAG_NAME}
+            docker push ${{ secrets.DOCKER_USER }}/geogrind/geogrindbackend:${TAG_NAME}
             echo "Push the docker image successfully"
           else
             echo "This is not a pull request"
