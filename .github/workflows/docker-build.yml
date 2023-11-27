@@ -1,5 +1,5 @@
 # Configure Github Workflow Action
-name: Docker compose CI/CD Pipeline
+name: Docker Compose CI/CD Pipeline
 
 on:
   push:
