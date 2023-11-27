@@ -82,7 +82,7 @@ jobs:
       - name: Tag and Push Docker Image
         run: |
           TAG_NAME=""
-          VERSION=3
+          VERSION=latest
           echo "Debug: VERSION variables is set to $VERSION" 
           docker images
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
