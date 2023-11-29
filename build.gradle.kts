@@ -83,6 +83,9 @@ dependencies {
 	// macos native library
 	runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.76.Final:osx-aarch_64")
 
+	// RabbitMQ library
+	implementation("org.springframework.boot:spring-boot-starter-amqp")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools:3.0.4")
 	runtimeOnly("com.h2database:h2:2.1.214")
 	runtimeOnly("com.mysql:mysql-connector-j:8.0.32")

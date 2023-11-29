@@ -1,5 +1,6 @@
 version: '3'
 services:
+  # server
   backend:
     container_name: geogrind-server
     build:
@@ -18,14 +19,17 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "8080:8080"
     volumes:
       - ./geogrind-server_logs:/app/logs
 
+  # database
   postgres:
     container_name: geogrind-postgres
-    image: postgres:latest
+    image: postgres:15.5
     restart: always
     user: postgres
     volumes:
@@ -42,6 +46,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # cache
   redis:
     container_name: geogrind-redis
     image: redis:latest
@@ -58,4 +63,17 @@ services:
     volumes:
       - ./redis-data:/data
 
-
+  # rabbitmq
+  rabbitmq:
+    container_name: geogrind-rabbitmq
+    image: rabbitmq:management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-server", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./rabbitmq-data:/data
