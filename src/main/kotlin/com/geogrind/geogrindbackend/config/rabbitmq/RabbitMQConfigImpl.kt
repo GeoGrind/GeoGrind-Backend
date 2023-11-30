@@ -5,12 +5,14 @@ import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.ExchangeBuilder
 import org.springframework.amqp.core.QueueBuilder
 import org.springframework.amqp.core.TopicExchange
+import org.springframework.amqp.rabbit.annotation.EnableRabbit
 import org.springframework.amqp.rabbit.annotation.Exchange
 import org.springframework.amqp.rabbit.annotation.Queue
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
+@EnableRabbit
 class RabbitMQConfigImpl : RabbitMQConfig {
 
     companion object {

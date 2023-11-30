@@ -16,4 +16,5 @@ interface SessionService {
     suspend fun createSession(@Valid requestDto: CreateSessionDto): Pair<Sessions, Cookie>
     suspend fun updateSessionById(@Valid requestDto: UpdateSessionByIdDto): Pair<Sessions, Cookie>
     suspend fun deleteSessionById(@Valid requestDto: DeleteSessionByIdDto) : Cookie
+    suspend fun handleScheduledSessionDeletion(@Valid requestDto: DeleteSessionByIdDto)
 }

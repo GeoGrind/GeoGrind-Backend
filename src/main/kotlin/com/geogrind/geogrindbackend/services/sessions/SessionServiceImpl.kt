@@ -9,7 +9,6 @@ import com.geogrind.geogrindbackend.exceptions.sessions.SessionConflictException
 import com.geogrind.geogrindbackend.exceptions.sessions.SessionNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
-import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.sessions.Sessions
@@ -24,6 +23,12 @@ import io.github.cdimascio.dotenv.Dotenv
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.amqp.rabbit.annotation.Exchange
+import org.springframework.amqp.rabbit.annotation.Queue
+import org.springframework.amqp.rabbit.annotation.QueueBinding
+import org.springframework.amqp.rabbit.annotation.RabbitListener
+import org.springframework.amqp.rabbit.annotation.RabbitListeners
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.cache.annotation.CacheConfig
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -32,8 +37,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
-import kotlin.collections.HashSet
-import kotlin.math.exp
+import com.rabbitmq.client.Channel
 
 @Service
 @CacheConfig(cacheNames = ["sessionCache"])
@@ -43,6 +47,7 @@ class SessionServiceImpl(
     private val sessionsRepository: SessionsRepository,
     private val grantPermissionHelper: GrantPermissionHelper,
     private val createTokenCookie: CreateTokenCookie,
+    private val rabbitTemplate: RabbitTemplate,
 ) : SessionService {
 
     // get all current sessions
@@ -328,6 +333,52 @@ class SessionServiceImpl(
         return newCookie
     }
 
+    @RabbitListeners(
+        RabbitListener(
+            bindings = [QueueBinding(
+                value = Queue(QUEUE_NAME),
+                exchange = Exchange(DELAY_EXCHANGE),
+                key = [ROUTING_KEY]
+            )]
+        )
+    )
+    @Caching(
+        evict = [
+            CacheEvict(cacheNames = ["sessions"], key = " '#requestDto.user_account_id' "),
+            CacheEvict(cacheNames = ["sessions"], allEntries = true)
+        ]
+    )
+    @Transactional
+    override suspend fun handleScheduledSessionDeletion(
+        @Valid requestDto: DeleteSessionByIdDto
+    ) {
+        // find the current session
+        val userAccountId = requestDto.userAccountId
+
+        // find the current user
+        val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
+            userAccountId!!
+        )
+
+        if(findUserAccount.isEmpty) throw UserAccountNotFoundException(userAccountId.toString())
+
+        val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
+            user_account = findUserAccount.get()
+        )
+
+        if(findUserProfile.isEmpty) throw UserProfileNotFoundException(userAccountId.toString())
+
+        // find the current session
+        val currentSession: Sessions = findUserProfile.get().session ?: throw SessionNotFoundException(userAccountId.toString())
+
+        log.info("Received a schedule delete session task: $currentSession")
+        deleteSessionById(
+            requestDto = DeleteSessionByIdDto()
+        )
+
+        // Acknowledge message
+    }
+
     companion object {
         private val log = LoggerFactory.getLogger(SessionService::class.java)
         private fun waitSomeTime() {
@@ -339,5 +390,10 @@ class SessionServiceImpl(
             }
             log.info("Long Wait End")
         }
+
+        // RabbitMQ
+        const val DELAY_EXCHANGE = "session-delay-exchange"
+        const val ROUTING_KEY = "session.delete"
+        const val QUEUE_NAME = "session-delete-queue"
     }
 }
