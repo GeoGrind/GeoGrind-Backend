@@ -4,9 +4,9 @@ import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.ExchangeBuilder
 import org.springframework.amqp.core.QueueBuilder
+import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.rabbit.annotation.Exchange
 import org.springframework.amqp.rabbit.annotation.Queue
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -27,13 +27,14 @@ class RabbitMQConfigImpl : RabbitMQConfig {
             .build()
 
     @Bean
-    override fun queue(): Queue =
-        Queue(QUEUE_NAME)
+    override fun queue(): org.springframework.amqp.core.Queue =
+        QueueBuilder.durable(QUEUE_NAME)
+            .build()
 
     @Bean
-    override fun binding(queue: Queue, exchange: Exchange): Binding =
-        BindingBuilder.bind(queue)
-            .to(delayExchange())
+    override fun binding(): Binding =
+        (BindingBuilder
+            .bind(queue()) to delayExchange())
             .with(ROUTING_KEY)
             .noargs()
 }

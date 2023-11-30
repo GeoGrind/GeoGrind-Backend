@@ -14,8 +14,8 @@ interface RabbitMQConfig {
     fun delayExchange(): Exchange
 
     @Bean
-    fun queue(): Queue
+    fun queue(): org.springframework.amqp.core.Queue
 
     @Bean
-    fun binding(queue: Queue, exchange: Exchange): Binding
+    fun binding(): Binding
 }
