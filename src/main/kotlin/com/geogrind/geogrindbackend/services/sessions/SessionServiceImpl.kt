@@ -19,6 +19,8 @@ import com.geogrind.geogrindbackend.repositories.user_account.UserAccountReposit
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
+import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelper
+import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelperImpl
 import io.github.cdimascio.dotenv.Dotenv
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
@@ -48,6 +50,7 @@ class SessionServiceImpl(
     private val grantPermissionHelper: GrantPermissionHelper,
     private val createTokenCookie: CreateTokenCookie,
     private val rabbitTemplate: RabbitTemplate,
+    private val rabbitMQHelper: RabbitMQHelper,
 ) : SessionService {
 
     // get all current sessions
@@ -168,6 +171,13 @@ class SessionServiceImpl(
 
         userProfileRepository.save(findUserProfile.get())
         sessionsRepository.save(newSession)
+
+        // schedule the session deletion with RabbitMQ message broker
+        rabbitMQHelper.sendSessionDeletionMessage(
+            sessionToDelete = newSession
+        )
+
+        log.info("Session ")
 
         // take away user permission to create a new session
         grantPermissionHelper.takeAwayPermissionHelper(
