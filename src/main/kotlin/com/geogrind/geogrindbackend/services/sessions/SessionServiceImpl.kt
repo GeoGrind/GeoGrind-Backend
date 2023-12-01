@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.services.sessions
 
+import com.geogrind.geogrindbackend.config.rabbitmq.RabbitMQConfig
 import com.geogrind.geogrindbackend.dto.session.CreateSessionDto
 import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.GetSessionByIdDto
@@ -21,6 +22,7 @@ import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
 import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelper
 import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelperImpl
+import com.rabbitmq.client.BuiltinExchangeType
 import io.github.cdimascio.dotenv.Dotenv
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
@@ -51,6 +53,7 @@ class SessionServiceImpl(
     private val createTokenCookie: CreateTokenCookie,
     private val rabbitTemplate: RabbitTemplate,
     private val rabbitMQHelper: RabbitMQHelper,
+    private val rabbitMQConfig: RabbitMQConfig,
 ) : SessionService {
 
     // get all current sessions
@@ -371,29 +374,38 @@ class SessionServiceImpl(
     override suspend fun handleScheduledSessionDeletion(
         @Valid requestDto: DeleteSessionByIdDto
     ) {
-        // find the current session
-        val userAccountId = requestDto.userAccountId
+        log.info("Waiting for scheduled session to delete!")
 
-        // find the current user
-        val findUserAccount: Optional<UserAccount> = userAccountRepository.findById(
-            userAccountId!!
+        // connect to rabbitmq
+        val (conn, channel) = rabbitMQConfig.connectToRabbitMQ()
+
+        // declare the delay exchange
+        channel.exchangeDeclare(
+            DELAY_EXCHANGE,
+            BuiltinExchangeType.DIRECT,
+            false,
+            true,
+            mapOf("x-delayed-type" to "direct")
         )
 
-        if(findUserAccount.isEmpty) throw UserAccountNotFoundException(userAccountId.toString())
-
-        val findUserProfile: Optional<UserProfile> = userProfileRepository.findUserProfileByUserAccount(
-            user_account = findUserAccount.get()
+        // creates a queue if it doesn't already exist
+        val q = channel.queueDeclare(
+            QUEUE_NAME,
+            true,
+            false,
+            false,
+            null,
         )
 
-        if(findUserProfile.isEmpty) throw UserProfileNotFoundException(userAccountId.toString())
-
-        // find the current session
-        val currentSession: Sessions = findUserProfile.get().session ?: throw SessionNotFoundException(userAccountId.toString())
-
-        log.info("Received a schedule delete session task: $currentSession")
-        deleteSessionById(
-            requestDto = DeleteSessionByIdDto()
+        // Bind the queue to the delay exchange. When the duration of the delay is over -> route the message to this queue for processing
+        channel.queueBind(
+            q.queue,
+            DELAY_EXCHANGE,
+            ROUTING_KEY,
         )
+
+        // Get a message from the queue that is ready for processing
+        channel.basicQos(1)
 
         // Acknowledge message
     }

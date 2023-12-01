@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.config.rabbitmq
 
+import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import io.github.cdimascio.dotenv.Dotenv
@@ -49,11 +50,17 @@ class RabbitMQConfigImpl : RabbitMQConfig {
             .noargs()
 
     @Bean
-    override suspend fun connectToRabbitMQ(): Connection {
+    override suspend fun connectToRabbitMQ(): Pair<Connection, Channel> {
         val factory = ConnectionFactory()
         factory.host = rabbitMQHost
         factory.port = rabbitMQPort.toInt()
 
-        return factory.newConnection()
+        val conn = factory.newConnection()
+        val channel = conn.createChannel()
+
+        return Pair<Connection, Channel>(
+            conn,
+            channel,
+        )
     }
 }

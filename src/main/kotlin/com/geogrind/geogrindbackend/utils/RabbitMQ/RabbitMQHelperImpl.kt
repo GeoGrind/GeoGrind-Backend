@@ -20,10 +20,7 @@ class RabbitMQHelperImpl(
     override suspend fun sendSessionDeletionMessage(sessionToDelete: Sessions) {
         try {
             // connect to rabbitmq
-            val connection = rabbitMQConfigImpl.connectToRabbitMQ()
-
-            // get the connection and the channel
-            val channel = connection.openChannel().get()
+            val (conn, channel) = rabbitMQConfigImpl.connectToRabbitMQ()
 
             // Declare the delay exchange
             channel.exchangeDeclare(
