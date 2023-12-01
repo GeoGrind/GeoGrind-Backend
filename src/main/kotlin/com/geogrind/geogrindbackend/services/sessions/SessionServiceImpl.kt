@@ -95,6 +95,15 @@ class SessionServiceImpl(
     }
 
     // create a session
+    @RabbitListeners(
+        RabbitListener(
+            bindings = [QueueBinding(
+                value = Queue(QUEUE_NAME),
+                exchange = Exchange(DELAY_EXCHANGE),
+                key = [ROUTING_KEY]
+            )]
+        )
+    )
     @CacheEvict(cacheNames = ["sessions"], allEntries = true)
     @Transactional
     override suspend fun createSession(

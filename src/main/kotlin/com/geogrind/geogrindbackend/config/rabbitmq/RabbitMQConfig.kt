@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.config.rabbitmq
 
+import com.rabbitmq.client.Connection
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.rabbit.annotation.Exchange
 import org.springframework.amqp.rabbit.annotation.Queue
@@ -18,4 +19,7 @@ interface RabbitMQConfig {
 
     @Bean
     fun binding(): Binding
+
+    @Bean
+    suspend fun connectToRabbitMQ(): Connection
 }

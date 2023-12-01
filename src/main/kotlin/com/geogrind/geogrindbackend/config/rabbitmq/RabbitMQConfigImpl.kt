@@ -1,5 +1,8 @@
 package com.geogrind.geogrindbackend.config.rabbitmq
 
+import com.rabbitmq.client.Connection
+import com.rabbitmq.client.ConnectionFactory
+import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.ExchangeBuilder
@@ -19,6 +22,11 @@ class RabbitMQConfigImpl : RabbitMQConfig {
         const val DELAY_EXCHANGE = "session-delay-exchange"
         const val ROUTING_KEY = "session.delete"
         const val QUEUE_NAME = "session-delete-queue"
+
+        // Load environment variables from the .env file
+        private val dotenv = Dotenv.configure().directory(".").load()
+        private val rabbitMQHost = dotenv["RABBITMQ_HOST"]
+        private val rabbitMQPort = dotenv["RABBITMQ_PORT"]
     }
 
     @Bean
@@ -39,4 +47,13 @@ class RabbitMQConfigImpl : RabbitMQConfig {
             .bind(queue()) to delayExchange())
             .with(ROUTING_KEY)
             .noargs()
+
+    @Bean
+    override suspend fun connectToRabbitMQ(): Connection {
+        val factory = ConnectionFactory()
+        factory.host = rabbitMQHost
+        factory.port = rabbitMQPort.toInt()
+
+        return factory.newConnection()
+    }
 }
