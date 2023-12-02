@@ -42,6 +42,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
 import com.rabbitmq.client.Channel
+import org.springframework.amqp.core.Message
 
 @Service
 @CacheConfig(cacheNames = ["sessionCache"])
@@ -51,9 +52,7 @@ class SessionServiceImpl(
     private val sessionsRepository: SessionsRepository,
     private val grantPermissionHelper: GrantPermissionHelper,
     private val createTokenCookie: CreateTokenCookie,
-    private val rabbitTemplate: RabbitTemplate,
     private val rabbitMQHelper: RabbitMQHelper,
-    private val rabbitMQConfig: RabbitMQConfig,
 ) : SessionService {
 
     // get all current sessions
@@ -180,7 +179,14 @@ class SessionServiceImpl(
             sessionToDelete = newSession
         )
 
-        log.info("Session ")
+        log.info("Session has been scheduled to be deleted after $duration")
+
+        // handle the scheduled session deletion
+        rabbitMQHelper.handleScheduledSessionDeletion(
+            DeleteSessionByIdDto(
+                userAccountId = userAccountId
+            )
+        )
 
         // take away user permission to create a new session
         grantPermissionHelper.takeAwayPermissionHelper(
@@ -353,61 +359,6 @@ class SessionServiceImpl(
         )
 
         return newCookie
-    }
-
-    @RabbitListeners(
-        RabbitListener(
-            bindings = [QueueBinding(
-                value = Queue(QUEUE_NAME),
-                exchange = Exchange(DELAY_EXCHANGE),
-                key = [ROUTING_KEY]
-            )]
-        )
-    )
-    @Caching(
-        evict = [
-            CacheEvict(cacheNames = ["sessions"], key = " '#requestDto.user_account_id' "),
-            CacheEvict(cacheNames = ["sessions"], allEntries = true)
-        ]
-    )
-    @Transactional
-    override suspend fun handleScheduledSessionDeletion(
-        @Valid requestDto: DeleteSessionByIdDto
-    ) {
-        log.info("Waiting for scheduled session to delete!")
-
-        // connect to rabbitmq
-        val (conn, channel) = rabbitMQConfig.connectToRabbitMQ()
-
-        // declare the delay exchange
-        channel.exchangeDeclare(
-            DELAY_EXCHANGE,
-            BuiltinExchangeType.DIRECT,
-            false,
-            true,
-            mapOf("x-delayed-type" to "direct")
-        )
-
-        // creates a queue if it doesn't already exist
-        val q = channel.queueDeclare(
-            QUEUE_NAME,
-            true,
-            false,
-            false,
-            null,
-        )
-
-        // Bind the queue to the delay exchange. When the duration of the delay is over -> route the message to this queue for processing
-        channel.queueBind(
-            q.queue,
-            DELAY_EXCHANGE,
-            ROUTING_KEY,
-        )
-
-        // Get a message from the queue that is ready for processing
-        channel.basicQos(1)
-
-        // Acknowledge message
     }
 
     companion object {

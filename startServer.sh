@@ -33,4 +33,4 @@ echo "GeoGrind Redis Container started."
 echo "GeoGrind RabbitMQ Container started."
 
 # Check the logs to see if everything started successfully
-#docker-compose logs
+docker-compose logs

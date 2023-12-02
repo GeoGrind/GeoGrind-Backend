@@ -1,3 +1,4 @@
 geogrind-server_logs
 postgres-data
 redis-data
+rabbitmq-data
