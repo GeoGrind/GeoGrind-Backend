@@ -6,18 +6,16 @@ import com.rabbitmq.client.ConnectionFactory
 import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
+import org.springframework.amqp.core.DirectExchange
 import org.springframework.amqp.core.ExchangeBuilder
 import org.springframework.amqp.core.QueueBuilder
-import org.springframework.amqp.core.TopicExchange
 import org.springframework.amqp.rabbit.annotation.EnableRabbit
-import org.springframework.amqp.rabbit.annotation.Exchange
-import org.springframework.amqp.rabbit.annotation.Queue
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableRabbit
-class RabbitMQConfigImpl : RabbitMQConfig {
+class RabbitMQConfigImpl() : RabbitMQConfig {
 
     companion object {
         const val DELAY_EXCHANGE = "session-delay-exchange"
@@ -31,7 +29,7 @@ class RabbitMQConfigImpl : RabbitMQConfig {
     }
 
     @Bean
-    override fun delayExchange(): Exchange =
+    override fun delayExchange(): DirectExchange =
         ExchangeBuilder.directExchange(DELAY_EXCHANGE)
             .delayed()
             .durable(true)
@@ -44,10 +42,10 @@ class RabbitMQConfigImpl : RabbitMQConfig {
 
     @Bean
     override fun binding(): Binding =
-        (BindingBuilder
-            .bind(queue()) to delayExchange())
+        BindingBuilder
+            .bind(queue())
+            .to(delayExchange())
             .with(ROUTING_KEY)
-            .noargs()
 
     @Bean
     override suspend fun connectToRabbitMQ(): Pair<Connection, Channel> {
@@ -57,6 +55,28 @@ class RabbitMQConfigImpl : RabbitMQConfig {
 
         val conn = factory.newConnection()
         val channel = conn.createChannel()
+
+        channel.exchangeDeclare(
+            DELAY_EXCHANGE,
+            "direct",
+            true,
+            true,
+            mapOf("x-delayed-type" to "direct")
+        )
+
+        channel.queueDeclare(
+            QUEUE_NAME,
+            true,
+            false,
+            false,
+            null,
+        )
+
+        channel.queueBind(
+            QUEUE_NAME,
+            DELAY_EXCHANGE,
+            ROUTING_KEY,
+        )
 
         return Pair<Connection, Channel>(
             conn,

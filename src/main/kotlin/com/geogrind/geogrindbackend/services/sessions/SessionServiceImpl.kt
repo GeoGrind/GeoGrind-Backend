@@ -53,6 +53,8 @@ class SessionServiceImpl(
     private val grantPermissionHelper: GrantPermissionHelper,
     private val createTokenCookie: CreateTokenCookie,
     private val rabbitMQHelper: RabbitMQHelper,
+    private val rabbitTemplate: RabbitTemplate,
+    private val rabbitMQConfig: RabbitMQConfig,
 ) : SessionService {
 
     // get all current sessions
@@ -175,6 +177,7 @@ class SessionServiceImpl(
         sessionsRepository.save(newSession)
 
         // schedule the session deletion with RabbitMQ message broker
+        println("At here!!!!!!!!!!!!!!!!!!!!!!!************************")
         rabbitMQHelper.sendSessionDeletionMessage(
             sessionToDelete = newSession
         )
@@ -182,7 +185,7 @@ class SessionServiceImpl(
         log.info("Session has been scheduled to be deleted after $duration")
 
         // handle the scheduled session deletion
-        rabbitMQHelper.handleScheduledSessionDeletion(
+        handleScheduledSessionDeletion(
             DeleteSessionByIdDto(
                 userAccountId = userAccountId
             )
@@ -359,6 +362,83 @@ class SessionServiceImpl(
         )
 
         return newCookie
+    }
+
+    @RabbitListeners(
+        RabbitListener(
+            bindings = [QueueBinding(
+                value = Queue(SessionServiceImpl.QUEUE_NAME),
+                exchange = Exchange(SessionServiceImpl.DELAY_EXCHANGE),
+                key = [SessionServiceImpl.ROUTING_KEY]
+            )]
+        )
+    )
+    @Caching(
+        evict = [
+            CacheEvict(cacheNames = ["sessions"], key = " '#requestDto.user_account_id' "),
+            CacheEvict(cacheNames = ["sessions"], allEntries = true)
+        ]
+    )
+    @Transactional
+    override suspend fun handleScheduledSessionDeletion(
+        @Valid requestDto: DeleteSessionByIdDto
+    ) {
+        println("Start!!!!!!!!!!!!&&&&&&&&&&*****************")
+        log.info("Waiting for scheduled session to delete!")
+
+        // connect to rabbitmq
+        val (conn, channel) = rabbitMQConfig.connectToRabbitMQ()
+
+        // declare the delay exchange
+        channel.exchangeDeclare(
+            SessionServiceImpl.DELAY_EXCHANGE,
+            BuiltinExchangeType.DIRECT,
+            true,
+            true,
+            mapOf("x-delayed-type" to "direct")
+        )
+
+        // creates a queue if it doesn't already exist
+        val q = channel.queueDeclare(
+            SessionServiceImpl.QUEUE_NAME,
+            true,
+            false,
+            false,
+            null,
+        )
+
+        // Bind the queue to the delay exchange. When the duration of the delay is over -> route the message to this queue for processing
+        channel.queueBind(
+            q.queue,
+            DELAY_EXCHANGE,
+            ROUTING_KEY,
+        )
+
+        // Get a message from the queue that is ready for processing
+        channel.basicQos(1)
+
+        val message: Message? = rabbitTemplate.receive(SessionServiceImpl.QUEUE_NAME)
+
+        // Check if a message is received
+        if (message != null) {
+            try {
+                val messagePayload = String(message.body)
+                log.info("Received a message from the RabbitMQ: $messagePayload")
+
+                // Process the payload and delete the scheduled session
+                deleteSessionById(
+                    requestDto = requestDto
+                )
+
+                // acknowledge that the message has been done
+                channel.basicAck(
+                    message.messageProperties.deliveryTag, false
+                )
+            } catch (error: Exception) {
+                log.info("Error processing message: ${String(message.body)}")
+                throw RuntimeException("Error processing message: ${String(message.body)}")
+            }
+        }
     }
 
     companion object {

@@ -8,7 +8,5 @@ import org.springframework.stereotype.Service
 @Service
 interface RabbitMQHelper {
     suspend fun sendSessionDeletionMessage(@Valid sessionToDelete: Sessions)
-    suspend fun handleScheduledSessionDeletion(
-        @Valid requestDto: DeleteSessionByIdDto
-    )
+
 }
