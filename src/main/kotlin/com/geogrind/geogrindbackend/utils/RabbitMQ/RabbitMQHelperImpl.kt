@@ -46,7 +46,7 @@ class RabbitMQHelperImpl(
 
             // Create the content of the message to be sent to RabbitMQ
             val stopTime = sessionToDelete.stopTime
-            val message = "Stop session: $sessionToDelete".toByteArray(StandardCharsets.UTF_8)
+            val message = "Stop session: ${sessionToDelete.sessionId}".toByteArray(StandardCharsets.UTF_8)
 
             // Calculate the delay for the message
             val duration: Duration = Duration.between(stopTime, Instant.now())
