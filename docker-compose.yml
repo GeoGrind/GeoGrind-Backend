@@ -1,0 +1,61 @@
+version: '3'
+services:
+  backend:
+    container_name: geogrind-server
+    build:
+      context: .
+      dockerfile: Dockerfile
+#    links:
+#      - postgres
+#    environment:
+#      - GeoGrind_JDBC_URL=jdbc:postgresql://192.168.5.1:5432/${DB_NAME}
+#      - GeoGrind_JDBC_USER=${DB_USERNAME}
+#      - GeoGrind_JDBC_PASSWORD=${DB_PASSWORD}
+    image: geogrind/geogrindbackend:latest
+    platform: linux/amd64
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./geogrind-server_logs:/app/logs
+
+  postgres:
+    container_name: geogrind-postgres
+    image: postgres:latest
+    restart: always
+    user: postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: geogrind-redis
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./redis-data:/data
+
+

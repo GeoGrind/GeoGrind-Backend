@@ -2,14 +2,15 @@ package com.geogrind.geogrindbackend.utils.Twilio.user_account
 
 import com.geogrind.geogrindbackend.dto.sendgrid.JwtSendGridEmail
 import com.geogrind.geogrindbackend.dto.sendgrid.SendGridResponseDto
-import com.geogrind.geogrindbackend.models.permissions.Permission
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
+import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.sendgrid.Method
 import com.sendgrid.Response
 import com.sendgrid.SendGrid
 import com.sendgrid.helpers.mail.Mail
 import com.sendgrid.helpers.mail.objects.Content
 import com.sendgrid.helpers.mail.objects.Email
+import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.io.File
@@ -19,12 +20,17 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import java.io.IOException
 import java.util.*
+import kotlin.collections.HashSet
 
 @Service
-class EmailServiceImpl(
-    @Value("\${SENDGRID_API_KEY}") private val sendGridApiKey: String,
-    @Value("\${GEOGRIND_SECRET_KEY}") private val geogrindSecretKey: String,
-): EmailService {
+class EmailServiceImpl: EmailService {
+
+    // Load environment variables from the .env file
+    private val dotenv = Dotenv.configure().directory(".").load()
+
+    private val sendGridApiKey = dotenv["SENDGRID_API_KEY"]
+
+    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
     // send the email confirmation using SendGrid
     override suspend fun sendEmailConfirmation(
@@ -214,7 +220,7 @@ class EmailServiceImpl(
     override suspend fun sendEmailOTP(
         user_email: String,
         geogrind_otp_code: String,
-        permission_lists: Set<Permission>,
+        permission_lists: Set<Permissions>,
         user_id: String,
         ): SendGridResponseDto {
         val subject: String = "Secure your login with OTP"
@@ -227,11 +233,16 @@ class EmailServiceImpl(
 
         val key = Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray())
 
+        val permissionNames: MutableSet<PermissionName> = HashSet()
+        permission_lists.forEach {
+            permissions -> permissionNames.add(permissions.permission_name)
+        }
+
         val jwtEncodeData: JwtSendGridEmail = JwtSendGridEmail(
             user_id = user_id,
             geogrind_otp_code = geogrind_otp_code,
             new_password = null,
-            permission = permission_lists,
+            permission = permissionNames,
             exp = expirationTime,
         )
 

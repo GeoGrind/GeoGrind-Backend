@@ -8,6 +8,12 @@ import com.geogrind.geogrindbackend.dto.sendgrid.VerifyEmailUserAccountDto
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponse
 import com.geogrind.geogrindbackend.models.user_account.toSuccessHttpResponseList
 import com.geogrind.geogrindbackend.services.registration.UserAccountService
+import com.geogrind.geogrindbackend.services.registration.UserAccountServiceImpl
+import io.github.cdimascio.dotenv.Dotenv
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.security.Keys
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
@@ -19,13 +25,20 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import java.time.Instant
 
 @Tag(name = "UserAccount", description = "User Account REST Controller")
 @RestController
 @RequestMapping(path = ["/geogrind/user_account/"])
+@CrossOrigin(origins = ["http://localhost:5173"])
 class UserAccountControllerImpl @Autowired constructor(
     private val userAccountService: UserAccountService
 ) : UserAccountController {
+
+    // Load environment variables from the .env file
+    private val dotenv = Dotenv.configure().directory(".").load()
+
+    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
 
     @GetMapping(path = ["/all"], produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -71,7 +84,10 @@ class UserAccountControllerImpl @Autowired constructor(
         operationId = "createUserAccount",
         description = "Create new user account for user"
     )
-    override suspend fun createUserAccount(@Valid @RequestBody req: CreateUserAccountDto) : ResponseEntity<SendGridResponseDto> = withTimeout(
+    override suspend fun createUserAccount(
+        @Valid
+        @RequestBody
+        req: CreateUserAccountDto) : ResponseEntity<SendGridResponseDto> = withTimeout(
         timeOutMillis) {
         // create a new user
         ResponseEntity
@@ -143,12 +159,32 @@ class UserAccountControllerImpl @Autowired constructor(
     )
     override suspend fun verifyUserEmail(@PathVariable(required = true) token: String): ResponseEntity<SuccessUserAccountResponse> = withTimeout(
         timeOutMillis) {
+
+        // decode the jwt token
+        val decoded_token: Claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        // check if the expiration time is more than the current time
+        val exp_timestamp = decoded_token["exp"] as Long
+        val exp_time = Instant.ofEpochSecond(exp_timestamp)
+        val current_time = Instant.now()
+
+        if(current_time.isAfter(exp_time)) {
+            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
+        }
+
+        val user_id: String = decoded_token["user_id"] as String
+
         ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 userAccountService.getEmailVerification(
                     VerifyEmailUserAccountDto(
+                        user_account_id = UUID.fromString(user_id),
                         token = token
                     )
                 ).toSuccessHttpResponse()
@@ -165,12 +201,32 @@ class UserAccountControllerImpl @Autowired constructor(
     )
     override suspend fun updatePasswordConfirmation(@PathVariable(required = true) token: String): ResponseEntity<SuccessUserAccountResponse> = withTimeout(
         timeOutMillis) {
+        val decoded_token: Claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        // check if the token is still valid
+        val exp_timestamp = decoded_token["exp"] as Long
+        val exp_time = Instant.ofEpochSecond(exp_timestamp)
+        val current_time = Instant.now()
+
+        if(current_time.isAfter(exp_time)) {
+            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
+        }
+
+        val user_id: String = decoded_token["user_id"] as String
+        val new_password: String = decoded_token["new_password"] as String
+
         ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 userAccountService.getConfirmPasswordChangeVerification(
                     UpdatePasswordConfirmationDto(
+                        user_account_id = UUID.fromString(user_id),
+                        new_password = new_password,
                         token = token,
                     )
                 ).toSuccessHttpResponse()
@@ -187,12 +243,31 @@ class UserAccountControllerImpl @Autowired constructor(
     )
     override suspend fun deleteAccountConfirmation(@PathVariable(required = true) token: String): ResponseEntity<Unit> = withTimeout(
         timeOutMillis) {
+        // decode the jwt token
+        val decoded_token: Claims = Jwts.parser()
+            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
+            .build()
+            .parseSignedClaims(token)
+            .payload
+
+        // check if the token is still valid
+        val exp_timestamp = decoded_token["exp"] as Long
+        val exp_time = Instant.ofEpochSecond(exp_timestamp)
+        val current_time = Instant.now()
+
+        if(current_time.isAfter(exp_time)) {
+            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
+        }
+
+        val user_id: String = decoded_token["user_id"] as String
+
         ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(
                 userAccountService.getDeleteAccountVerification(
                     DeleteUserAccountConfirmationDto(
+                        user_account_id = UUID.fromString(user_id),
                         token = token
                     )
                 )

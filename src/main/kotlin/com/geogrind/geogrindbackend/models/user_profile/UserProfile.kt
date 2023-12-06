@@ -1,7 +1,10 @@
 package com.geogrind.geogrindbackend.models.user_profile
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
+import com.geogrind.geogrindbackend.models.courses.Courses
+import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -9,15 +12,18 @@ import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import jakarta.validation.constraints.Size
+import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
@@ -29,10 +35,11 @@ import java.util.UUID
 @Table(name = "user_profile")
 @EntityListeners(AuditingEntityListener::class)
 data class UserProfile(
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "profile_id", unique = true, nullable = false)
-    @Size(min = 5)
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "profile_id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
     var profile_id: UUID? = null,
 
     @Column(name = "profile_image", unique = false, nullable = false)
@@ -61,8 +68,20 @@ data class UserProfile(
 
     // One to one relationship with the user account
     @OneToOne(targetEntity = UserAccount::class, cascade = [CascadeType.ALL])
+    @JsonIgnore
     @JoinColumn(name = "fk_user_account_id", referencedColumnName = "id")
     var userAccount: UserAccount,
+
+    // One to many relationship with the Courses
+    @OneToMany(fetch = FetchType.EAGER)
+//    @JsonIgnore
+    @JoinColumn(name = "profile_id")
+    var courses: MutableSet<Courses>? = HashSet(),
+
+    // One to one relationship with the session table
+    @OneToOne(mappedBy = "profile")
+    @JsonIgnore
+    var session: Sessions? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
@@ -100,13 +119,12 @@ data class UserProfile(
         result = 31 * result + (program?.hashCode() ?: 0)
         result = 31 * result + (year_of_graduation?.hashCode() ?: 0)
         result = 31 * result + (university?.hashCode() ?: 0)
-        result = 31 * result + (userAccount?.hashCode() ?: 0)
 
         return result
     }
 
     override fun toString(): String {
-        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}"
+        return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}, courses=${this.courses}, session=${this.session}"
     }
 }
 
@@ -117,6 +135,7 @@ fun UserProfile.toSuccessHttpResponse(): SuccessUserProfileResponse {
         username = this.username,
         emoji = this.emoji,
         program = this.program,
+        courses = this.courses,
         year_of_graduation = this.year_of_graduation,
         university = this.university,
         createdAt = this.createdAt,
@@ -131,6 +150,7 @@ fun List<UserProfile>.toSuccessHttpResponseList(): List<SuccessUserProfileRespon
             username = it.username,
             emoji = it.emoji,
             program = it.program,
+            courses = it.courses,
             year_of_graduation = it.year_of_graduation,
             university = it.university,
             createdAt = it.createdAt,

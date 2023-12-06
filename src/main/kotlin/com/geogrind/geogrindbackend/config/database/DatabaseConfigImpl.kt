@@ -1,15 +1,18 @@
 package com.geogrind.geogrindbackend.config.database
 
+import com.zaxxer.hikari.HikariDataSource
 import io.github.cdimascio.dotenv.Dotenv
+import org.springframework.boot.autoconfigure.domain.EntityScan
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.jdbc.datasource.DriverManagerDataSource
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter
-import java.util.*
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.transaction.annotation.EnableTransactionManagement
 import javax.sql.DataSource
 
 @Configuration
+@EnableTransactionManagement
+@EnableJpaRepositories(basePackages = ["com.geogrind.geogrindbackend.repositories"])
+@EntityScan(basePackages = ["com.geogrind.geogrindbackend.models"])
 class DatabaseConfigImpl : DatabaseConfig {
 
     @Bean
@@ -27,11 +30,18 @@ class DatabaseConfigImpl : DatabaseConfig {
 
         val jdbcUrl = "jdbc:postgresql://$dbHost:$dbPort/$dbName"
 
-        val dataSource = DriverManagerDataSource()
-        dataSource.setDriverClassName("org.postgresql.Driver")
-        dataSource.url = jdbcUrl
+        println("JDBC URL: $jdbcUrl")
+
+        val dataSource = HikariDataSource()
+        dataSource.jdbcUrl = jdbcUrl
         dataSource.username = dbUserName
         dataSource.password = dbPassword
+
+        // Customize connection pool properties
+        dataSource.maximumPoolSize = 10
+        dataSource.minimumIdle = 2
+        dataSource.idleTimeout = 10000 // 10 seconds
+        dataSource.maxLifetime = 1800000 // 30 minutes
 
         return dataSource
     }

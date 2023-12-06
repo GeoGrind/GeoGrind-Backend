@@ -18,6 +18,7 @@ import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelper
 import com.geogrind.geogrindbackend.utils.AutoGenerate.GenerateRandomHelperImpl
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelper
 import com.geogrind.geogrindbackend.utils.BCrypt.BcryptHashPasswordHelperImpl
+import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailService
 import com.geogrind.geogrindbackend.utils.Twilio.user_account.EmailServiceImpl
 import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelper
 import com.geogrind.geogrindbackend.utils.Validation.registration.UserAccountValidationHelperImpl
@@ -28,6 +29,10 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CacheConfig
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.annotation.Caching
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -35,32 +40,30 @@ import java.util.*
 import kotlin.collections.HashMap
 
 @Service
+@CacheConfig(cacheNames = ["userAccountCache"])
 class UserAccountServiceImpl(
     private val userAccoutRepository: UserAccountRepository,
     private val userProfileService: UserProfileService,
+    private val emailService: EmailService,
+    private val validationObj: UserAccountValidationHelper,
+    private val generateRandomHelper: GenerateRandomHelper,
+    private val bcryptObj: BcryptHashPasswordHelper
 ) : UserAccountService {
 
-    private val validationObj: UserAccountValidationHelper = UserAccountValidationHelperImpl()
-
-    private val BCryptObj: BcryptHashPasswordHelper = BcryptHashPasswordHelperImpl()
-
-    private val generateRandomHelper: GenerateRandomHelper = GenerateRandomHelperImpl()
-
-    // Load environment variables from the .env file
-    private val dotenv = Dotenv.configure().directory(".").load()
-
-    private val sendGridApiKey = dotenv["SENDGRID_API_KEY"]
-
-    private val geogrindSecretKey = dotenv["GEOGRIND_SECRET_KEY"]
-
     // get all user accounts
+    @Cacheable(cacheNames = ["userAccounts"])
     @Transactional(readOnly = true)
-    override suspend fun getAllUserAccounts(): List<UserAccount> = userAccoutRepository.findAll()
+    override suspend fun getAllUserAccounts(): List<UserAccount> {
+        waitSomeTime()
+        return userAccoutRepository.findAll()
+    }
 
     // get the user account by an user_id
+    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' ", unless = " #result == null ")
     @Transactional(readOnly = true)
     override suspend fun getUserAccountById(@Valid requestDto: GetUserAccountByIdDto): UserAccount {
         try {
+            waitSomeTime() // waiting for Redis
             val user_account: Optional<UserAccount> = userAccoutRepository.findById(requestDto.user_id)
             return user_account.get()
         } catch (e: UserAccountNotFoundException) {
@@ -73,6 +76,7 @@ class UserAccountServiceImpl(
     }
 
     // create new user account in the database
+    @CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
     @Transactional
     override suspend fun createUserAccount(@Valid requestDto: CreateUserAccountDto): SendGridResponseDto {
         var email: String = requestDto.email
@@ -120,7 +124,7 @@ class UserAccountServiceImpl(
         }
 
         // hash the password
-        val hashed_password = BCryptObj.hashPassword(password)
+        val hashed_password = bcryptObj.hashPassword(password)
 
         // Procceed with the user creation
         val newUserAccount = UserAccount(
@@ -137,10 +141,7 @@ class UserAccountServiceImpl(
         val otp_code: String = generateRandomHelper.generateOTP(6)
 
         // send the request to the sendgrid server to send the confirmation email to the user
-        val sendgrid_response: SendGridResponseDto = EmailServiceImpl(
-            sendGridApiKey = sendGridApiKey,
-            geogrindSecretKey = geogrindSecretKey,
-        ).sendEmailConfirmation(
+        val sendgrid_response: SendGridResponseDto = emailService.sendEmailConfirmation(
             user_email = email,
             geogrind_otp_code = otp_code,
             user_id = savedUserAccount.id.toString(),
@@ -161,6 +162,7 @@ class UserAccountServiceImpl(
         return sendgrid_response
     }
 
+    @CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
     @Transactional
     override suspend fun updateUserAccountById(
         user_id: UUID,
@@ -195,17 +197,14 @@ class UserAccountServiceImpl(
         }
 
         // check if the new password is the same as old password
-        if(BCryptObj.verifyPassword(update_password, findUserAccount.get().hashed_password)) {
+        if(bcryptObj.verifyPassword(update_password, findUserAccount.get().hashed_password)) {
             throw UserAccountConflictException("New password must be different from old password!")
         }
 
         val otp_code: String = generateRandomHelper.generateOTP(6)
 
         // send the confirm password email
-        val sendgrid_response: SendGridResponseDto = EmailServiceImpl(
-            sendGridApiKey = sendGridApiKey,
-            geogrindSecretKey = geogrindSecretKey,
-        ).sendChangePassword(
+        val sendgrid_response: SendGridResponseDto = emailService.sendChangePassword(
             user_email = findUserAccount.get().email,
             geogrind_otp_code = otp_code,
             user_id = user_id.toString(),
@@ -229,6 +228,10 @@ class UserAccountServiceImpl(
         return sendgrid_response
     }
 
+    @Caching(evict = [
+        CacheEvict(cacheNames = ["userAccounts"], key = " '#requestDto.user_id' "),
+        CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
+    ])
     @Transactional
     override suspend fun deleteUserAccountById(
         @Valid requestDto: DeleteUserAccountDto
@@ -241,10 +244,7 @@ class UserAccountServiceImpl(
             val otp_code: String = generateRandomHelper.generateOTP(6)
 
             // send the confirm account deletion email
-            val sendgrid_response: SendGridResponseDto = EmailServiceImpl(
-                sendGridApiKey = sendGridApiKey,
-                geogrindSecretKey = geogrindSecretKey,
-            ).sendDeleteAccount(
+            val sendgrid_response: SendGridResponseDto = emailService.sendDeleteAccount(
                 user_email = findUserAccount.get().email,
                 geogrind_otp_code = otp_code,
                 user_id = requestDto.user_id.toString()
@@ -265,27 +265,13 @@ class UserAccountServiceImpl(
     }
 
     // sendgrid email verification service
+    @Cacheable(cacheNames = ["userAccounts"], key = " '#requestDto.user_account_id' ", unless = " #result == null ")
     @Transactional
     override suspend fun getEmailVerification(@Valid requestDto: VerifyEmailUserAccountDto): UserAccount {
-        // decode the jwt token
-        val decoded_token: Claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-            .build()
-            .parseSignedClaims(requestDto.token)
-            .payload
 
-        // check if the expiration time is more than the current time
-        val exp_timestamp = decoded_token["exp"] as Long
-        val exp_time = Instant.ofEpochSecond(exp_timestamp)
-        val current_time = Instant.now()
+        waitSomeTime() // wait for Redis
 
-        if(current_time.isAfter(exp_time)) {
-            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
-        }
-
-        val user_id: String = decoded_token["user_id"] as String
-
-        val findUserAccount = userAccoutRepository.findById(UUID.fromString(user_id))
+        val findUserAccount = userAccoutRepository.findById(requestDto.user_account_id)
 
         // check the temp token
         if(!findUserAccount.get().temp_token.equals(requestDto.token)) {
@@ -307,28 +293,12 @@ class UserAccountServiceImpl(
         return findUserAccount.get()
     }
 
+    @Cacheable(cacheNames = ["userAccounts"], key = " 'requestDto.user_account_id' ", unless = " '#result == null' ")
     @Transactional
     override suspend fun getConfirmPasswordChangeVerification(@Valid requestDto: UpdatePasswordConfirmationDto): UserAccount {
-        // decode the jwt token
-        val decoded_token: Claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-            .build()
-            .parseSignedClaims(requestDto.token)
-            .payload
+        waitSomeTime() // waiting for Redis
 
-        // check if the token is still valid
-        val exp_timestamp = decoded_token["exp"] as Long
-        val exp_time = Instant.ofEpochSecond(exp_timestamp)
-        val current_time = Instant.now()
-
-        if(current_time.isAfter(exp_time)) {
-            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
-        }
-
-        val user_id: String = decoded_token["user_id"] as String
-        val new_password: String = decoded_token["new_password"] as String
-
-        val findUserAccount = userAccoutRepository.findById(UUID.fromString(user_id))
+        val findUserAccount = userAccoutRepository.findById(requestDto.user_account_id)
 
         // check the temp token
         if(!findUserAccount.get().temp_token.equals(requestDto.token)) {
@@ -336,36 +306,21 @@ class UserAccountServiceImpl(
         }
 
         // hash the user new password
-        val hashed_password: String = BCryptObj.hashPassword(new_password)
+        val hashed_password: String = bcryptObj.hashPassword(requestDto.new_password)
 
         findUserAccount.get().hashed_password = hashed_password
 
         return findUserAccount.get()
     }
 
+    @Caching(evict = [
+        CacheEvict(cacheNames = ["userAccounts"], key = " '#requestDto.user_account_id' "),
+        CacheEvict(cacheNames = ["userAccounts"], allEntries = true)
+    ])
     @Transactional
     override suspend fun getDeleteAccountVerification(@Valid requestDto: DeleteUserAccountConfirmationDto) {
-        // decode the jwt token
-        val decoded_token: Claims = Jwts.parser()
-            .verifyWith(Keys.hmacShaKeyFor(geogrindSecretKey.toByteArray()))
-            .build()
-            .parseSignedClaims(requestDto.token)
-            .payload
 
-        log.info("Decoded token: ${decoded_token}")
-
-        // check if the token is still valid
-        val exp_timestamp = decoded_token["exp"] as Long
-        val exp_time = Instant.ofEpochSecond(exp_timestamp)
-        val current_time = Instant.now()
-
-        if(current_time.isAfter(exp_time)) {
-            throw ExpiredJwtException(null, decoded_token, "The token provided has expired!")
-        }
-
-        val user_id: String = decoded_token["user_id"] as String
-
-        val findUserAccount = userAccoutRepository.findById(UUID.fromString(user_id))
+        val findUserAccount = userAccoutRepository.findById(requestDto.user_account_id)
         println("Temp_token: ${findUserAccount.get().temp_token}")
 
         // check the temp token
@@ -374,10 +329,19 @@ class UserAccountServiceImpl(
         }
 
         // delete the user account
-        userAccoutRepository.deleteById(UUID.fromString(user_id))
+        userAccoutRepository.deleteById(requestDto.user_account_id)
     }
 
     companion object {
         private val log = LoggerFactory.getLogger(UserAccountService::class.java)
+        private fun waitSomeTime() {
+            log.info("Long Wait Begin")
+            try {
+                Thread.sleep(3000)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            log.info("Long Wait End")
+        }
     }
 }

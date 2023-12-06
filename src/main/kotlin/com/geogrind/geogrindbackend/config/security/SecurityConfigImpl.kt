@@ -101,6 +101,12 @@ class SecurityConfigImpl : SecurityConfig {
                             HttpMethod.PATCH.toString(),
                         )
                     ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/user_profile/delete_courses",
+                            HttpMethod.DELETE.toString(),
+                        )
+                    ).permitAll()
 
                     // S3 ENDPOINTS
                     .requestMatchers(
@@ -133,6 +139,36 @@ class SecurityConfigImpl : SecurityConfig {
                         AntPathRequestMatcher(
                             "/geogrind/message/all",
                             HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
+
+                    // SESSIONS ENDPOINTS
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/get_all_sessions",
+                            HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/get_session",
+                            HttpMethod.GET.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/create_session",
+                            HttpMethod.POST.toString(),
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/update_session",
+                        )
+                    ).permitAll()
+                    .requestMatchers(
+                        AntPathRequestMatcher(
+                            "/geogrind/sessions/delete_session",
                         )
                     ).permitAll()
             }
