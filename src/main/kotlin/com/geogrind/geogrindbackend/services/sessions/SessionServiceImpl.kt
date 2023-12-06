@@ -182,6 +182,9 @@ class SessionServiceImpl(
 //            sessionToDelete = newSession
 //        )
 
+        // Schedule the task to delete the session after the duration ends
+
+
         log.info("Session has been scheduled to be deleted after $duration")
 
         // take away user permission to create a new session

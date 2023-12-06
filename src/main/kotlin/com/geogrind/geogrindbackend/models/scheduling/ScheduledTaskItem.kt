@@ -5,9 +5,9 @@ import java.util.UUID
 import java.util.concurrent.ScheduledFuture
 
 data class ScheduledTaskItem(
-    val taskId: UUID,
-    val scheduledTask: ScheduledFuture<*>,
-    val executionTime: LocalDateTime,
-    val dependencies: Set<String> = emptySet(),
-    val priority: Int = 0,
+    var taskId: UUID,
+    var scheduledTask: ScheduledFuture<*>,
+    var executionTime: LocalDateTime,
+    var dependencies: Set<String> = emptySet(),
+    var priority: Int = 0,
 )

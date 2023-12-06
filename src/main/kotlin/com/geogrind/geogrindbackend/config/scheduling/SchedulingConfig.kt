@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.config.scheduling
 
-import com.geogrind.geogrindbackend.utils.ScheduledTask.TaskSchedulerQueue
+import com.geogrind.geogrindbackend.utils.ScheduledTask.queue.TaskSchedulerQueue
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.scheduling.TaskScheduler
