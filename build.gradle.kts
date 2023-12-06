@@ -86,6 +86,9 @@ dependencies {
 	// RabbitMQ library
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
 
+	// Apache Kafka Streams
+	implementation("org.springframework.kafka:spring-kafka")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools:3.0.4")
 	runtimeOnly("com.h2database:h2:2.1.214")
 	runtimeOnly("com.mysql:mysql-connector-j:8.0.32")

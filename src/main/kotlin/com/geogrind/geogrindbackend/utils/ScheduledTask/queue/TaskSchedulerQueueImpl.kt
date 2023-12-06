@@ -1,7 +1,12 @@
 package com.geogrind.geogrindbackend.utils.ScheduledTask.queue
 
+import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfig
+import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.RedisQueueProxyHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskProxyHandler
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createKafkaTopicsProxy
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createTaskProxy
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskHandler
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
@@ -18,6 +23,7 @@ import kotlin.collections.ArrayList
 class TaskSchedulerQueueImpl(
     private val taskScheduler: TaskScheduler,
     private val taskHandler: TaskHandler,
+    private val kafkaMessageProducerConfigImpl: MessageProducerConfigImpl,
 ) : TaskSchedulerQueue {
 
     companion object {
@@ -33,20 +39,21 @@ class TaskSchedulerQueueImpl(
     ): ScheduledTaskItem {
         val taskId: UUID = UUID.fromString("Task-${taskIdCounter.incrementAndGet()}")
 
-        val taskProxyHandler = TaskProxyHandler(
-            target = TaskSchedulerQueueImpl::class.java,
-            taskHandler = taskHandler,
-            executionTime = executionTime,
+        // Create a task proxy instance
+        val taskProxyInstance = createTaskProxy(
+            TaskSchedulerQueueImpl::class.java,
+            taskHandler,
+            executionTime
         )
 
-        val createTask = taskProxyHandler.invoke(
-            null,
-            taskProxyHandler.javaClass.getMethod("invoke", Any::class.java, Method::class.java, Array<out Any>::class.java),
-            null
-        )
+        val taskItem = ScheduledTaskItem(taskId, taskProxyInstance as ScheduledFuture<*>, executionTime, dependencies, priority)
 
-        val taskItem = ScheduledTaskItem(taskId, createTask as ScheduledFuture<*>, executionTime, dependencies, priority)
-        queue.add(taskItem)
+        // send the task item to the appropriate Kafka topic using proxy
+        createKafkaTopicsProxy(
+            TaskSchedulerQueueImpl::class.java,
+            taskItem,
+            kafkaMessageProducerConfigImpl
+        )
 
         log.info("Task scheduled: taskId={}, executionTime={}, dependencies={}, priority={}", taskId, executionTime, dependencies, priority)
 

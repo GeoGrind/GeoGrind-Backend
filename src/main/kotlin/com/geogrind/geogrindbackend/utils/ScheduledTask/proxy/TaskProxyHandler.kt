@@ -3,12 +3,14 @@ package com.geogrind.geogrindbackend.utils.ScheduledTask.proxy
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
+import org.slf4j.LoggerFactory
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.time.LocalDateTime
+import java.util.concurrent.ScheduledFuture
 
-// Invocation handler for the proxy to redirect the task to the appropriate task queue
+// Invocation handler for the proxy to schedule the appropriate task
 class TaskProxyHandler(
     private val target: Any,
     private val taskHandler: TaskHandler,
@@ -19,14 +21,27 @@ class TaskProxyHandler(
         if (taskTypeAnnotation != null) {
             val taskType = taskTypeAnnotation.value
             when (taskType) {
-                TaskTypeEnum.SESSION_DELETION -> return method.invoke(taskHandler.sessionDeletionTaskHandler(
-                    executionTime
-                ), *args.orEmpty())
-                else -> createTaskProxy(target, taskHandler, executionTime)
+                TaskTypeEnum.SESSION_DELETION -> {
+                    return method.invoke(
+                        taskHandler.sessionDeletionTaskHandler(
+                            executionTime
+                        ), *args.orEmpty()
+                    ) as? ScheduledFuture<*> ?: throw RuntimeException("Unexpected return type while schedule a session deletion!")
+                }
+                else -> {
+                    return method.invoke(taskHandler.defaultTaskHandler(
+                        executionTime
+                    ), *args.orEmpty()) as? ScheduledFuture<*> ?: throw RuntimeException("Unexpected return type while schedule a default task schedule!")
+                }
             }
         }
+        log.info("Create scheduled task successfully!!")
         // Default behavior if no annotation is present
         return method.invoke(target, *args.orEmpty())
+    }
+
+    companion object {
+        private val log = LoggerFactory.getLogger(TaskProxyHandler::class.java)
     }
 }
 

@@ -9,6 +9,9 @@ import java.util.concurrent.ScheduledFuture
 @Service
 interface TaskHandler {
     // Interface to represent tasks
+    @TaskType(TaskTypeEnum.DEFAULT)
+    fun defaultTaskHandler(executionTime: LocalDateTime): ScheduledFuture<*>
+
     @TaskType(TaskTypeEnum.SESSION_DELETION)
     fun sessionDeletionTaskHandler(executionTime: LocalDateTime): ScheduledFuture<*>
 }
