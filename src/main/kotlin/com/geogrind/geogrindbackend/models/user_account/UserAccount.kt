@@ -1,8 +1,12 @@
 package com.geogrind.geogrindbackend.models.user_account
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
+import com.geogrind.geogrindbackend.models.permissions.Permissions
+import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
+import org.hibernate.annotations.GenericGenerator
 import java.util.UUID
 
 import org.springframework.data.annotation.CreatedDate
@@ -14,11 +18,12 @@ import java.util.Date
 @Table(name = "user_account")
 @EntityListeners(AuditingEntityListener::class)
 data class UserAccount(
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
-    @Size(min = 5)
-    var id: UUID? = null,
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
+    val id: UUID? = null,
 
     @Column(name = "email", length = 100, unique = true, nullable = false)
     @Size(min = 5)
@@ -35,21 +40,30 @@ data class UserAccount(
     @Column(name = "account_verified", unique = false, nullable = false)
     var account_verified: Boolean? = false,
 
-    @Column(name = "temp_token", length = 100, unique = true, nullable = true)
+    @Column(name = "temp_token", length = 100000, unique = true, nullable = true)
     @Size(min = 3)
     var temp_token: String? = null,
 
     // TO-DO: permissions whether user can go into a certain resource
+    @OneToMany
+    @JoinColumn(name = "id")
+    @JsonIgnore
+    var permissions: MutableSet<Permissions>? = HashSet(),
+
+    // one-to-one relationship with the user_profile table
+    @OneToOne(mappedBy = "userAccount")
+    @JsonIgnore
+    var userProfile: UserProfile? = null,
 
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
-    val createdAt: Date? = null,
+    var createdAt: Date? = null,
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
-    val updatedAt: Date? = null,
+    var updatedAt: Date? = null,
 ) {
 
     // Custom methods

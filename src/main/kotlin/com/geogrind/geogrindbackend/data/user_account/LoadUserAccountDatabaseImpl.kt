@@ -1,13 +1,9 @@
 package com.geogrind.geogrindbackend.data.user_account
 
-import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
-import com.geogrind.geogrindbackend.utils.GenerateAccount.GenerateRandomAccountHelperImpl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Configuration
 
 // this class is for loading the fake data user into the database
 
