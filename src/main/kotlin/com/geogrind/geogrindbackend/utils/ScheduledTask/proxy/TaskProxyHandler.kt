@@ -18,6 +18,7 @@ class TaskProxyHandler(
 ) : InvocationHandler {
     override fun invoke(proxy: Any?, method: Method, args: Array<out Any>?): Any {
         val taskTypeAnnotation = method.getAnnotation(TaskType::class.java)
+        log.info("I have been invoked!!!!!!")
         if (taskTypeAnnotation != null) {
             val taskType = taskTypeAnnotation.value
             when (taskType) {
@@ -46,11 +47,19 @@ class TaskProxyHandler(
 }
 
 // Function to create a proxy
-inline fun <reified T : Any> createTaskProxy(target: T, taskHandler: TaskHandler, executionTime: LocalDateTime): T {
+inline fun <reified T : Any> createTaskProxy(target: T, taskHandler: TaskHandler, executionTime: LocalDateTime): Any {
     val proxyHandler = TaskProxyHandler(target, taskHandler, executionTime)
-    return Proxy.newProxyInstance(
+    val proxy = Proxy.newProxyInstance(
         target::class.java.classLoader,
         arrayOf(T::class.java),
         proxyHandler,
     ) as T
+
+    val method: Method = target::class.java.getDeclaredMethod("sessionDeletionTaskHandler", LocalDateTime::class.java)
+
+    // Prepare arguments if needed
+    val args = arrayOf(LocalDateTime.now())
+
+    // Invoke the method on the proxy handler
+    return proxyHandler.invoke(proxy, method, args)
 }

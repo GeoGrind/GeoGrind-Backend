@@ -2,9 +2,11 @@ package com.geogrind.geogrindbackend.utils.ScheduledTask.queue
 
 import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
+import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createKafkaTopicsProxy
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createTaskProxy
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskHandler
+import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
@@ -34,11 +36,13 @@ class TaskSchedulerQueueImpl(
         val taskId: UUID = UUID.randomUUID()
 
         // Create a task proxy instance
+        @TaskType(TaskTypeEnum.SESSION_DELETION)
         val taskProxyInstance = createTaskProxy(
             TaskSchedulerQueue::class,
             taskHandler,
             executionTime
         )
+
 
         val taskItem = ScheduledTaskItem(taskId, taskProxyInstance as ScheduledFuture<*>, executionTime, dependencies, priority)
 
