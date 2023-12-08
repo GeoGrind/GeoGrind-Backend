@@ -8,8 +8,6 @@ import org.springframework.scheduling.annotation.EnableAsync
 
 @SpringBootApplication
 @EnableCaching
-/*@EnableRabbit*/
-@EnableAsync
 class GeoGrindBackendApplication
 
 fun main(args: Array<String>) {

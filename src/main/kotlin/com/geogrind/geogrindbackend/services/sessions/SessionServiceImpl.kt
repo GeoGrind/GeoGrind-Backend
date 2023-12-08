@@ -22,9 +22,10 @@ import com.geogrind.geogrindbackend.repositories.user_account.UserAccountReposit
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskFactory
+import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskHandler
 //import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelper
 //import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelperImpl
-import com.geogrind.geogrindbackend.utils.ScheduledTask.queue.TaskSchedulerQueue
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.KafkaTopicsType
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import jakarta.servlet.http.Cookie
@@ -43,8 +44,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
-import com.rabbitmq.client.Channel
-import org.springframework.amqp.core.Message
+import org.springframework.scheduling.TaskScheduler
 import java.time.LocalDateTime
 
 @Service
@@ -58,7 +58,7 @@ class SessionServiceImpl(
 //    private val rabbitMQHelper: RabbitMQHelper,
 //    private val rabbitTemplate: RabbitTemplate,
 //    private val rabbitMQConfig: RabbitMQConfig,
-    private val taskSchedulerQueue: TaskSchedulerQueue,
+    private val taskScheduler: TaskScheduler,
 ) : SessionService {
 
     // get all current sessions
@@ -193,10 +193,9 @@ class SessionServiceImpl(
         * Testing the kafka stream
         *
         * */
-        taskSchedulerQueue.scheduleTask(
-            executionTime = LocalDateTime.now(),
-            priority = 1,
-        )
+        @TaskType(TaskTypeEnum.SESSION_DELETION)
+        val sessionTask = TaskFactory.createTaskProxy<TaskHandler.SessionDeletionTask>(taskScheduler = taskScheduler)
+        sessionTask.scheduleTask(LocalDateTime.now())
 
         log.info("Session has been scheduled to be deleted after $duration")
 
