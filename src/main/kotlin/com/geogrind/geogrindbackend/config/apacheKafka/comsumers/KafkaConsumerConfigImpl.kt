@@ -1,6 +1,5 @@
 package com.geogrind.geogrindbackend.config.apacheKafka.comsumers
 
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer
 import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
 import io.github.cdimascio.dotenv.Dotenv
 import jakarta.annotation.PostConstruct
@@ -25,9 +24,9 @@ class KafkaConsumerConfigImpl : KafkaConsumerConfig {
     override fun createKafkaConsumer(): Consumer<String, String> {
         val configProps: MutableMap<String, Any> = HashMap()
         configProps[ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG] = "$apacheKafkaHost:$apacheKafkaPort"
-        configProps[ConsumerConfig.GROUP_ID_CONFIG] = ""
-        configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
-        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = StringDeserializer::class.java
+        configProps[ConsumerConfig.GROUP_ID_CONFIG] = "my-group-id"
+        configProps[ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG] = org.apache.kafka.common.serialization.StringDeserializer::class.java
+        configProps[ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG] = org.apache.kafka.common.serialization.StringDeserializer::class.java
         log.info("Consumer topic in Kafka established!")
         return KafkaConsumer(configProps)
     }

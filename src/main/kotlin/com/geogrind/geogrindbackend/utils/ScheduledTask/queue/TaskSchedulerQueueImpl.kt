@@ -47,6 +47,8 @@ class TaskSchedulerQueueImpl(
 
         val taskItem = ScheduledTaskItem(taskId, taskProxyInstance as ScheduledFuture<*>, executionTime, dependencies, priority)
 
+        log.info("Task Item: $taskItem")
+
         // send the task item to the appropriate Kafka topic using proxy
         createKafkaTopicsProxy(
             TaskSchedulerQueueImpl::class.java,

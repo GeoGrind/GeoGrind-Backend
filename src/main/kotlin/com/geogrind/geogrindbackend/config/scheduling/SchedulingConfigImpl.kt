@@ -9,9 +9,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 
 @Configuration
 @EnableScheduling
-class SchedulingConfigImpl(
-    private val taskSchedulerQueue: TaskSchedulerQueue
-) : SchedulingConfig {
+class SchedulingConfigImpl : SchedulingConfig {
     @Bean
     override fun taskScheduler(): TaskScheduler {
         val scheduler = ThreadPoolTaskScheduler()
