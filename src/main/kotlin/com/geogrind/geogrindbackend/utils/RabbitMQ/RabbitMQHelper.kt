@@ -5,8 +5,8 @@ import com.geogrind.geogrindbackend.models.sessions.Sessions
 import jakarta.validation.Valid
 import org.springframework.stereotype.Service
 
-@Service
-interface RabbitMQHelper {
-    suspend fun sendSessionDeletionMessage(@Valid sessionToDelete: Sessions)
-
-}
+//@Service
+//interface RabbitMQHelper {
+//    suspend fun sendSessionDeletionMessage(@Valid sessionToDelete: Sessions)
+//
+//}

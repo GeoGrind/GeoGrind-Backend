@@ -51,6 +51,6 @@ inline fun <reified T : Any> createTaskProxy(target: T, taskHandler: TaskHandler
     return Proxy.newProxyInstance(
         target::class.java.classLoader,
         arrayOf(T::class.java),
-        proxyHandler
+        proxyHandler,
     ) as T
 }

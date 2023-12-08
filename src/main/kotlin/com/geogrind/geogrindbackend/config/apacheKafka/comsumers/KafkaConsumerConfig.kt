@@ -6,15 +6,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
 import org.springframework.kafka.core.ConsumerFactory
+import org.springframework.scheduling.annotation.Async
 
 @Configuration
 interface KafkaConsumerConfig {
     @Bean
-    fun createKafkaConsumer(): Consumer<String, String>
+    fun consumerFactory(): ConsumerFactory<String, String>
 
     @Bean
-    fun configureAndListenToKafkaTopics()
-
-    @PostConstruct
-    fun startKafkaListener()
+    fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String>
 }

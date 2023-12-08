@@ -1,21 +1,16 @@
 package com.geogrind.geogrindbackend.utils.ScheduledTask.queue
 
-import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfig
 import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
-import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskProxyHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createKafkaTopicsProxy
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createTaskProxy
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskHandler
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
-import java.lang.reflect.Method
-import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 import kotlin.collections.ArrayList
 
 @Service
@@ -28,7 +23,7 @@ class TaskSchedulerQueueImpl(
     companion object {
         private val queue = PriorityQueue<ScheduledTaskItem>(compareBy({ it.priority }, { it.executionTime }))
         private val taskIdCounter = java.util.concurrent.atomic.AtomicLong(0)
-        private val log = LoggerFactory.getLogger(TaskSchedulerQueue::class.java)
+        private val log = LoggerFactory.getLogger(TaskSchedulerQueueImpl::class.java)
     }
 
     override suspend fun scheduleTask(
@@ -36,11 +31,11 @@ class TaskSchedulerQueueImpl(
         dependencies: Set<String>,
         priority: Int
     ): ScheduledTaskItem {
-        val taskId: UUID = UUID.fromString("Task-${taskIdCounter.incrementAndGet()}")
+        val taskId: UUID = UUID.randomUUID()
 
         // Create a task proxy instance
         val taskProxyInstance = createTaskProxy(
-            TaskSchedulerQueueImpl::class.java,
+            TaskSchedulerQueue::class,
             taskHandler,
             executionTime
         )
@@ -51,7 +46,7 @@ class TaskSchedulerQueueImpl(
 
         // send the task item to the appropriate Kafka topic using proxy
         createKafkaTopicsProxy(
-            TaskSchedulerQueueImpl::class.java,
+            TaskSchedulerQueue::class,
             taskItem,
             kafkaMessageProducerConfigImpl
         )

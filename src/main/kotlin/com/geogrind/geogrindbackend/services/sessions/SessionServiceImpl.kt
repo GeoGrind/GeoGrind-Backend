@@ -1,6 +1,6 @@
 package com.geogrind.geogrindbackend.services.sessions
 
-import com.geogrind.geogrindbackend.config.rabbitmq.RabbitMQConfig
+//import com.geogrind.geogrindbackend.config.rabbitmq.RabbitMQConfig
 import com.geogrind.geogrindbackend.dto.session.CreateSessionDto
 import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.GetSessionByIdDto
@@ -22,13 +22,11 @@ import com.geogrind.geogrindbackend.repositories.user_account.UserAccountReposit
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
-import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelper
-import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelperImpl
+//import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelper
+//import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelperImpl
 import com.geogrind.geogrindbackend.utils.ScheduledTask.queue.TaskSchedulerQueue
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.KafkaTopicsType
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
-import com.rabbitmq.client.BuiltinExchangeType
-import io.github.cdimascio.dotenv.Dotenv
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -37,7 +35,6 @@ import org.springframework.amqp.rabbit.annotation.Queue
 import org.springframework.amqp.rabbit.annotation.QueueBinding
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.amqp.rabbit.annotation.RabbitListeners
-import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.cache.annotation.CacheConfig
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -58,9 +55,9 @@ class SessionServiceImpl(
     private val sessionsRepository: SessionsRepository,
     private val grantPermissionHelper: GrantPermissionHelper,
     private val createTokenCookie: CreateTokenCookie,
-    private val rabbitMQHelper: RabbitMQHelper,
-    private val rabbitTemplate: RabbitTemplate,
-    private val rabbitMQConfig: RabbitMQConfig,
+//    private val rabbitMQHelper: RabbitMQHelper,
+//    private val rabbitTemplate: RabbitTemplate,
+//    private val rabbitMQConfig: RabbitMQConfig,
     private val taskSchedulerQueue: TaskSchedulerQueue,
 ) : SessionService {
 

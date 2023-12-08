@@ -17,8 +17,8 @@ class SchedulingConfigImpl : SchedulingConfig {
         return scheduler
     }
 
-    @Bean
-    override fun taskSchedulerQueue(taskScheduler: TaskScheduler): TaskSchedulerQueue {
-        return taskSchedulerQueue(taskScheduler)
-    }
+//    @Bean
+//    override fun taskSchedulerQueue(taskScheduler: TaskScheduler): TaskSchedulerQueue {
+//        return taskSchedulerQueue(taskScheduler)
+//    }
 }

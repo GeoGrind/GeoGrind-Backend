@@ -12,6 +12,6 @@ interface SchedulingConfig {
     @Bean
     fun taskScheduler(): TaskScheduler
 
-    @Bean
-    fun taskSchedulerQueue(taskScheduler: TaskScheduler): TaskSchedulerQueue
+//    @Bean
+//    fun taskSchedulerQueue(taskScheduler: TaskScheduler): TaskSchedulerQueue
 }
