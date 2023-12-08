@@ -17,5 +17,5 @@ interface TaskSchedulerQueue {
     fun getNextScheduledTask(): ScheduledTaskItem?
     fun isEmpty(): Boolean
     fun getEstimatedTaskExecutionTime(taskId: UUID): LocalDateTime
-    suspend fun adjustTaskExecutionTime(taskId: UUID, newExecutionTime: LocalDateTime)
+//    suspend fun adjustTaskExecutionTime(taskId: UUID, newExecutionTime: LocalDateTime)
 }

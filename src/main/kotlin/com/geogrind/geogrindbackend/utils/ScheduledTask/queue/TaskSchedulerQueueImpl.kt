@@ -3,7 +3,6 @@ package com.geogrind.geogrindbackend.utils.ScheduledTask.queue
 import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfig
 import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
-import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.RedisQueueProxyHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskProxyHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createKafkaTopicsProxy
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.createTaskProxy
@@ -130,17 +129,17 @@ class TaskSchedulerQueueImpl(
         return taskItem?.let { it.executionTime } ?: LocalDateTime.MIN
     }
 
-    override suspend fun adjustTaskExecutionTime(taskId: UUID, newExecutionTime: LocalDateTime) {
-        val taskItem = queue.find { it.taskId == taskId }
-        taskItem?.let {
-            val durationUntilNewExecutionTime = Duration.between(LocalDateTime.now(), newExecutionTime)
-            it.scheduledTask.cancel(true)
-            val newScheduledTask = taskScheduler.schedule({ it.scheduledTask.run {  } }, durationUntilNewExecutionTime.seconds, TimeUnit.SECONDS)
-            it.scheduledTask = newScheduledTask
-            it.executionTime = newExecutionTime
-            queue.add(it)
-
-            log.info("Task execution time adjusted: taskId={}, newExecutionTime={}", taskId, newExecutionTime)
-        }
-    }
+//    override suspend fun adjustTaskExecutionTime(taskId: UUID, newExecutionTime: LocalDateTime) {
+//        val taskItem = queue.find { it.taskId == taskId }
+//        taskItem?.let {
+//            val durationUntilNewExecutionTime = Duration.between(LocalDateTime.now(), newExecutionTime)
+//            it.scheduledTask.cancel(true)
+//            val newScheduledTask = taskScheduler.schedule({ it.scheduledTask.run {  } }, durationUntilNewExecutionTime.seconds, TimeUnit.SECONDS)
+//            it.scheduledTask = newScheduledTask
+//            it.executionTime = newExecutionTime
+//            queue.add(it)
+//
+//            log.info("Task execution time adjusted: taskId={}, newExecutionTime={}", taskId, newExecutionTime)
+//        }
+//    }
 }

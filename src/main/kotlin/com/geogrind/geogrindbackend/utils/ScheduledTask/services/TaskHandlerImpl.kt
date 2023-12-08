@@ -20,4 +20,14 @@ class TaskHandlerImpl(
 
         /*  Still need to be implemented!!!! */
     }
+
+    override fun defaultTaskHandler(executionTime: LocalDateTime): ScheduledFuture<*> {
+        val task = Runnable(
+            fun() {
+                println("Default task handler called!!!!")
+            }
+        )
+        val toDoFeature: ScheduledFuture<*> = taskScheduler.schedule(task, executionTime.toInstant(java.time.ZoneOffset.UTC))
+        return toDoFeature
+    }
 }

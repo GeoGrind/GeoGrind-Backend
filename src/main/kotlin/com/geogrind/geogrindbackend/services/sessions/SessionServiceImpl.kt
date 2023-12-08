@@ -12,6 +12,8 @@ import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundE
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.permissions.Permissions
+import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
+import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
@@ -22,6 +24,9 @@ import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
 import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelper
 import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelperImpl
+import com.geogrind.geogrindbackend.utils.ScheduledTask.queue.TaskSchedulerQueue
+import com.geogrind.geogrindbackend.utils.ScheduledTask.types.KafkaTopicsType
+import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import com.rabbitmq.client.BuiltinExchangeType
 import io.github.cdimascio.dotenv.Dotenv
 import jakarta.servlet.http.Cookie
@@ -43,6 +48,7 @@ import java.time.Instant
 import java.util.*
 import com.rabbitmq.client.Channel
 import org.springframework.amqp.core.Message
+import java.time.LocalDateTime
 
 @Service
 @CacheConfig(cacheNames = ["sessionCache"])
@@ -55,6 +61,7 @@ class SessionServiceImpl(
     private val rabbitMQHelper: RabbitMQHelper,
     private val rabbitTemplate: RabbitTemplate,
     private val rabbitMQConfig: RabbitMQConfig,
+    private val taskSchedulerQueue: TaskSchedulerQueue,
 ) : SessionService {
 
     // get all current sessions
@@ -113,6 +120,8 @@ class SessionServiceImpl(
     )
     @CacheEvict(cacheNames = ["sessions"], allEntries = true)
     @Transactional
+    @TaskType(TaskTypeEnum.SESSION_DELETION)
+    @KafkaTopicsType(KafkaTopicsTypeEnum.SESSION_DELETE_TOPIC)
     override suspend fun createSession(
         @Valid
         requestDto: CreateSessionDto
@@ -183,7 +192,14 @@ class SessionServiceImpl(
 //        )
 
         // Schedule the task to delete the session after the duration ends
-
+        /*
+        * Testing the kafka stream
+        *
+        * */
+        taskSchedulerQueue.scheduleTask(
+            executionTime = LocalDateTime.now(),
+            priority = 1,
+        )
 
         log.info("Session has been scheduled to be deleted after $duration")
 
