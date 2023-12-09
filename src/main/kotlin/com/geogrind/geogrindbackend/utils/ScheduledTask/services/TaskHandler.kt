@@ -7,13 +7,8 @@ import java.util.concurrent.ScheduledFuture
 
 interface TaskHandler {
     // Interface to represent tasks
-    interface SessionDeletionTask {
-        @TaskType(TaskTypeEnum.SESSION_DELETION)
-        fun scheduleTask(executionTime: LocalDateTime): ScheduledFuture<*>
-    }
-
-    interface DefaultDeletionTask {
-        @TaskType(TaskTypeEnum.DEFAULT)
-        fun scheduleTask(executionTime: LocalDateTime): ScheduledFuture<*>
-    }
+    @TaskType(TaskTypeEnum.DEFAULT)
+    fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledFuture<*>
+    @TaskType(TaskTypeEnum.SESSION_DELETION)
+    fun scheduleSessionTask(executionTime: LocalDateTime) : ScheduledFuture<*>
 }

@@ -84,7 +84,7 @@ dependencies {
 	runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.76.Final:osx-aarch_64")
 
 	// RabbitMQ library
-	implementation("org.springframework.boot:spring-boot-starter-amqp")
+//	implementation("org.springframework.boot:spring-boot-starter-amqp")
 
 	// Apache Kafka Streams
 	implementation("org.springframework.kafka:spring-kafka")

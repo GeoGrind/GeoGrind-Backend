@@ -5,45 +5,27 @@ import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.ScheduledFuture
-
-//class TaskHandlerImpl(
-//    private val taskScheduler: TaskScheduler
-//) : TaskHandler {
-//    override fun sessionDeletionTaskHandler(executionTime: LocalDateTime) : ScheduledFuture<*> {
-//        val task = Runnable(
-//            fun() {
-//                println("Session deleted!!!!")
-//            }
-//        )
-//        val toDoFeature: ScheduledFuture<*> = taskScheduler.schedule(task, executionTime.toInstant(java.time.ZoneOffset.UTC))
-//        return toDoFeature
-//
-//        /*  Still need to be implemented!!!! */
-//    }
-//
-//    override fun defaultTaskHandler(executionTime: LocalDateTime): ScheduledFuture<*> {
-//        val task = Runnable(
-//            fun() {
-//                println("Default task handler called!!!!")
-//            }
-//        )
-//        val toDoFeature: ScheduledFuture<*> = taskScheduler.schedule(task, executionTime.toInstant(java.time.ZoneOffset.UTC))
-//        return toDoFeature
-//    }
-//}
 
 // Implement different type of tasks
 class SessionDeletionTask(
     private val taskScheduler: TaskScheduler
-) : TaskHandler.SessionDeletionTask {
+) : TaskHandler {
+    @TaskType(TaskTypeEnum.DEFAULT)
+    override fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledFuture<*> {
+        return taskScheduler.schedule({ println("Pass") }, executionTime.toInstant(java.time.ZoneOffset.UTC))
+    }
+
     @TaskType(TaskTypeEnum.SESSION_DELETION)
-    override fun scheduleTask(executionTime: LocalDateTime): ScheduledFuture<*> {
-        log.info("I'm inside here!!!!!")
+    override fun scheduleSessionTask(executionTime: LocalDateTime): ScheduledFuture<*> {
+//        waitSomeTime(executionTime)
         val task = Runnable(
             fun() {
-                println("Session deleted!!!!")
+                log.info("A session has been scheduled to be deleted at: $executionTime")
             }
         )
         val toDoFeature: ScheduledFuture<*> = taskScheduler.schedule(task, executionTime.toInstant(java.time.ZoneOffset.UTC))
@@ -52,14 +34,28 @@ class SessionDeletionTask(
 
     companion object {
         private val log = LoggerFactory.getLogger(SessionDeletionTask::class.java)
+
+        // function to wait for a certain time
+        private fun waitSomeTime(executionTime: LocalDateTime) {
+            val timeFinal: Long = executionTime.toEpochSecond(ZoneOffset.UTC)
+            val timeStart: Long = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+            val duration: Long = (timeFinal - timeStart) * 1000
+            log.info("Long Wait Begin for: $duration seconds!!")
+            try {
+                Thread.sleep(duration)
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            log.info("Long Wait End!")
+        }
     }
 }
 
 class DefaultDeletionTask(
     private val taskScheduler: TaskScheduler
-) : TaskHandler.DefaultDeletionTask {
+) : TaskHandler {
     @TaskType(TaskTypeEnum.DEFAULT)
-    override fun scheduleTask(executionTime: LocalDateTime): ScheduledFuture<*> {
+    override fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledFuture<*> {
         val task = Runnable(
             fun() {
                 println("Default task handler called!!!!")
@@ -67,5 +63,10 @@ class DefaultDeletionTask(
         )
         val toDoFeature: ScheduledFuture<*> = taskScheduler.schedule(task, executionTime.toInstant(java.time.ZoneOffset.UTC))
         return toDoFeature
+    }
+
+    @TaskType(TaskTypeEnum.SESSION_DELETION)
+    override fun scheduleSessionTask(executionTime: LocalDateTime): ScheduledFuture<*> {
+        return taskScheduler.schedule({ println("Pass") }, executionTime.toInstant(java.time.ZoneOffset.UTC))
     }
 }

@@ -1,6 +1,7 @@
 package com.geogrind.geogrindbackend.services.sessions
 
-//import com.geogrind.geogrindbackend.config.rabbitmq.RabbitMQConfig
+import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfig
+import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.dto.session.CreateSessionDto
 import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.GetSessionByIdDto
@@ -13,6 +14,7 @@ import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundE
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
+import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
@@ -22,20 +24,15 @@ import com.geogrind.geogrindbackend.repositories.user_account.UserAccountReposit
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.KafkaFactory
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskFactory
+import com.geogrind.geogrindbackend.utils.ScheduledTask.services.KafkaHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskHandler
-//import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelper
-//import com.geogrind.geogrindbackend.utils.RabbitMQ.RabbitMQHelperImpl
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.KafkaTopicsType
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
-import org.springframework.amqp.rabbit.annotation.Exchange
-import org.springframework.amqp.rabbit.annotation.Queue
-import org.springframework.amqp.rabbit.annotation.QueueBinding
-import org.springframework.amqp.rabbit.annotation.RabbitListener
-import org.springframework.amqp.rabbit.annotation.RabbitListeners
 import org.springframework.cache.annotation.CacheConfig
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -46,6 +43,7 @@ import java.time.Instant
 import java.util.*
 import org.springframework.scheduling.TaskScheduler
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 @Service
 @CacheConfig(cacheNames = ["sessionCache"])
@@ -55,10 +53,8 @@ class SessionServiceImpl(
     private val sessionsRepository: SessionsRepository,
     private val grantPermissionHelper: GrantPermissionHelper,
     private val createTokenCookie: CreateTokenCookie,
-//    private val rabbitMQHelper: RabbitMQHelper,
-//    private val rabbitTemplate: RabbitTemplate,
-//    private val rabbitMQConfig: RabbitMQConfig,
     private val taskScheduler: TaskScheduler,
+    private val kafkaMessageProducer: MessageProducerConfigImpl,
 ) : SessionService {
 
     // get all current sessions
@@ -106,15 +102,6 @@ class SessionServiceImpl(
     }
 
     // create a session
-    @RabbitListeners(
-        RabbitListener(
-            bindings = [QueueBinding(
-                value = Queue(QUEUE_NAME),
-                exchange = Exchange(DELAY_EXCHANGE),
-                key = [ROUTING_KEY]
-            )]
-        )
-    )
     @CacheEvict(cacheNames = ["sessions"], allEntries = true)
     @Transactional
     @TaskType(TaskTypeEnum.SESSION_DELETION)
@@ -194,8 +181,23 @@ class SessionServiceImpl(
         *
         * */
         @TaskType(TaskTypeEnum.SESSION_DELETION)
-        val sessionTask = TaskFactory.createTaskProxy<TaskHandler.SessionDeletionTask>(taskScheduler = taskScheduler)
-        sessionTask.scheduleTask(LocalDateTime.now())
+        val taskProxy = TaskFactory.createTaskProxy<TaskHandler>(taskScheduler = taskScheduler, executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
+        val createSessionTask = taskProxy.scheduleSessionTask(stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
+        val sessionTask: ScheduledTaskItem = ScheduledTaskItem(
+            taskId = UUID.randomUUID(),
+            scheduledTask = createSessionTask,
+            executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime(),
+        )
+
+        // Send the message to kafka stream
+        @KafkaTopicsType(KafkaTopicsTypeEnum.SESSION_DELETE_TOPIC)
+        val kafkaProxy = KafkaFactory.createKafkaTopicsProxy<KafkaHandler>(
+            task = sessionTask,
+            kafkaMessageProducer = kafkaMessageProducer,
+        )
+        kafkaProxy.kafkaSendSessionDeletionMessage(
+            task = sessionTask
+        )
 
         log.info("Session has been scheduled to be deleted after $duration")
 
@@ -372,83 +374,6 @@ class SessionServiceImpl(
         return newCookie
     }
 
-    /**
-     * This will be replaced by the implemented schedule task service
-//    @RabbitListeners(
-//        RabbitListener(
-//            bindings = [QueueBinding(
-//                value = Queue(QUEUE_NAME),
-//                exchange = Exchange(DELAY_EXCHANGE),
-//                key = [ROUTING_KEY]
-//            )]
-//        )
-//    )
-//    @Caching(
-//        evict = [
-//            CacheEvict(cacheNames = ["sessions"], key = " '#requestDto.user_account_id' "),
-//            CacheEvict(cacheNames = ["sessions"], allEntries = true)
-//        ]
-//    )
-//    @Transactional
-//    override suspend fun handleScheduledSessionDeletion() {
-//        println("Start!!!!!!!!!!!!&&&&&&&&&&*****************")
-//        log.info("Waiting for scheduled session to delete!")
-//
-//        // connect to rabbitmq
-//        val (conn, channel) = rabbitMQConfig.connectToRabbitMQ()
-//
-//        // declare the delay exchange
-//        channel.exchangeDeclare(
-//            DELAY_EXCHANGE,
-//            BuiltinExchangeType.DIRECT,
-//            true,
-//            true,
-//            mapOf("x-delayed-type" to "direct")
-//        )
-//
-//        // creates a queue if it doesn't already exist
-//        val q = channel.queueDeclare(
-//            QUEUE_NAME,
-//            true,
-//            false,
-//            false,
-//            null,
-//        )
-//
-//        // Bind the queue to the delay exchange. When the duration of the delay is over -> route the message to this queue for processing
-//        channel.queueBind(
-//            q.queue,
-//            DELAY_EXCHANGE,
-//            ROUTING_KEY,
-//        )
-//
-//        // Get a message from the queue that is ready for processing
-//        channel.basicQos(1)
-//
-//        val message: Message? = rabbitTemplate.receive(QUEUE_NAME)
-//        log.info("MESSAGE FROM QUEUE!!!!!!!!!!!!!!!!!!!!!!: $message")
-//
-//        // Check if a message is received
-//        if (message != null) {
-//            try {
-//                val messagePayload = String(message.body)
-//                log.info("Received a message from the RabbitMQ: $messagePayload")
-//
-//                // Process the payload and delete the scheduled session
-//
-//
-//                // acknowledge that the message has been done
-//                channel.basicAck(
-//                    message.messageProperties.deliveryTag, false
-//                )
-//            } catch (error: Exception) {
-//                log.info("Error processing message: ${String(message.body)}")
-//                throw RuntimeException("Error processing message: ${String(message.body)}")
-//            }
-//        }
-//    }
-    **/
-
     companion object {
         private val log = LoggerFactory.getLogger(SessionService::class.java)
         private fun waitSomeTime() {
@@ -460,10 +385,5 @@ class SessionServiceImpl(
             }
             log.info("Long Wait End")
         }
-
-        // RabbitMQ
-        const val DELAY_EXCHANGE = "session-delay-exchange"
-        const val ROUTING_KEY = "session.delete"
-        const val QUEUE_NAME = "session-delete-queue"
     }
 }

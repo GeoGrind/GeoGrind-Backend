@@ -11,11 +11,13 @@ import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 import java.time.LocalDateTime
+import java.util.concurrent.ScheduledFuture
 
 // Invocation handler for the proxy to schedule the appropriate task
 class TaskProxyHandler(
-    private val taskType: Class<out TaskHandler.SessionDeletionTask>,
+    private val taskType: Class<out TaskHandler>,
     private val taskScheduler: TaskScheduler,
+    private val executionTime: LocalDateTime,
 ) : InvocationHandler {
     override fun invoke(proxy: Any?, method: Method, args: Array<out Any>?): Any {
         val taskTypeAnnotation = method.getAnnotation(TaskType::class.java)
@@ -24,8 +26,9 @@ class TaskProxyHandler(
             try {
                 log.info("Create scheduled task successfully!!")
                 val taskType = taskTypeAnnotation.value
-                return TaskFactory.createTask(taskType, taskScheduler).scheduleTask(LocalDateTime.now())
+                return TaskFactory.createTask(taskType, taskScheduler, executionTime)
             } catch (error: Exception) {
+                error.printStackTrace()
                 log.error("Received annotation of task type, but failed to schedule task with error: $error")
             }
         }
@@ -39,18 +42,20 @@ class TaskProxyHandler(
 }
 
 object TaskFactory {
-    fun createTask(taskType: TaskTypeEnum, taskScheduler: TaskScheduler): TaskHandler.SessionDeletionTask {
+    fun createTask(taskType: TaskTypeEnum, taskScheduler: TaskScheduler, executionTime: LocalDateTime): ScheduledFuture<*> {
         return when(taskType) {
             TaskTypeEnum.SESSION_DELETION -> {
-                SessionDeletionTask(taskScheduler) // delete the session task
+                SessionDeletionTask(taskScheduler).scheduleSessionTask(executionTime) // delete the session task
             }
-            TaskTypeEnum.DEFAULT -> TODO()
+            TaskTypeEnum.DEFAULT -> {
+                DefaultDeletionTask(taskScheduler).scheduleDefaultTask(executionTime) // delete the default task
+            }
         }
     }
 
     // Function to create a proxy
-    inline fun <reified T : TaskHandler.SessionDeletionTask> createTaskProxy(taskScheduler: TaskScheduler): T {
-        val proxyHandler = TaskProxyHandler(T::class.java, taskScheduler)
+    inline fun <reified T : TaskHandler> createTaskProxy(taskScheduler: TaskScheduler, executionTime: LocalDateTime): T {
+        val proxyHandler = TaskProxyHandler(T::class.java, taskScheduler, executionTime)
         return Proxy.newProxyInstance(
             T::class.java.classLoader,
             arrayOf(T::class.java),
