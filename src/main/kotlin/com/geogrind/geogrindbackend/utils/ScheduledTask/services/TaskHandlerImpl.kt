@@ -1,6 +1,9 @@
 package com.geogrind.geogrindbackend.utils.ScheduledTask.services
 
+import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
+import com.geogrind.geogrindbackend.models.scheduling.Task
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
+import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.TaskScheduler
@@ -9,27 +12,30 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.util.UUID
 import java.util.concurrent.ScheduledFuture
 
 // Implement different type of tasks
-class SessionDeletionTask(
-    private val taskScheduler: TaskScheduler
-) : TaskHandler {
+class SessionDeletionTask : TaskHandler {
     @TaskType(TaskTypeEnum.DEFAULT)
-    override fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledFuture<*> {
-        return taskScheduler.schedule({ println("Pass") }, executionTime.toInstant(java.time.ZoneOffset.UTC))
+    override fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledTaskItem {
+        return ScheduledTaskItem(
+            taskId = UUID.randomUUID(),
+            executionTime = executionTime,
+        )
     }
 
     @TaskType(TaskTypeEnum.SESSION_DELETION)
-    override fun scheduleSessionTask(executionTime: LocalDateTime): ScheduledFuture<*> {
-//        waitSomeTime(executionTime)
-        val task = Runnable(
-            fun() {
-                log.info("A session has been scheduled to be deleted at: $executionTime")
-            }
+    override fun scheduleSessionTask(session: Sessions, executionTime: LocalDateTime): ScheduledTaskItem {
+        return ScheduledTaskItem(
+            taskId = UUID.randomUUID(),
+            scheduledTask = session.sessionId?.let {
+                Task(
+                    sessionId = it
+                )
+            },
+            executionTime = executionTime,
         )
-        val toDoFeature: ScheduledFuture<*> = taskScheduler.schedule(task, executionTime.toInstant(java.time.ZoneOffset.UTC))
-        return toDoFeature
     }
 
     companion object {
@@ -55,18 +61,18 @@ class DefaultDeletionTask(
     private val taskScheduler: TaskScheduler
 ) : TaskHandler {
     @TaskType(TaskTypeEnum.DEFAULT)
-    override fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledFuture<*> {
-        val task = Runnable(
-            fun() {
-                println("Default task handler called!!!!")
-            }
+    override fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledTaskItem {
+        return ScheduledTaskItem(
+            taskId = UUID.randomUUID(),
+            executionTime = executionTime,
         )
-        val toDoFeature: ScheduledFuture<*> = taskScheduler.schedule(task, executionTime.toInstant(java.time.ZoneOffset.UTC))
-        return toDoFeature
     }
 
     @TaskType(TaskTypeEnum.SESSION_DELETION)
-    override fun scheduleSessionTask(executionTime: LocalDateTime): ScheduledFuture<*> {
-        return taskScheduler.schedule({ println("Pass") }, executionTime.toInstant(java.time.ZoneOffset.UTC))
+    override fun scheduleSessionTask(session: Sessions, executionTime: LocalDateTime): ScheduledTaskItem {
+        return ScheduledTaskItem(
+            taskId = UUID.randomUUID(),
+            executionTime = executionTime,
+        )
     }
 }

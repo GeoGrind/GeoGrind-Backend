@@ -1,13 +1,39 @@
 package com.geogrind.geogrindbackend.models.scheduling
 
+import com.geogrind.geogrindbackend.models.sessions.Sessions
+import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.concurrent.ScheduledFuture
 
-data class ScheduledTaskItem(
+@Serializable
+data class ScheduledTaskItem (
+    @Serializable(with = UUIDSerializer::class)
+    @SerialName("taskId")
     var taskId: UUID,
-    var scheduledTask: ScheduledFuture<*>,
+    @SerialName("scheduledTask")
+    var scheduledTask: Task ?= null,
+    @Contextual
+    @SerialName("executionTime")
     var executionTime: LocalDateTime,
+    @SerialName("dependencies")
     var dependencies: Set<String> = emptySet(),
+    @SerialName("priority")
     var priority: Int = 0,
 )
+
+object UUIDSerializer : KSerializer<UUID> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): UUID {
+        return UUID.fromString(decoder.decodeString())
+    }
+
+    override fun serialize(encoder: Encoder, value: UUID) {
+        encoder.encodeString(value.toString())
+    }
+}

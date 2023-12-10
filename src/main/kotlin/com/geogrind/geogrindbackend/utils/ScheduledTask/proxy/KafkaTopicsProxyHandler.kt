@@ -4,8 +4,8 @@ import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducer
 import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
-import com.geogrind.geogrindbackend.utils.ScheduledTask.services.KafkaDeleteDefaultTask
-import com.geogrind.geogrindbackend.utils.ScheduledTask.services.KafkaDeleteSessionTask
+import com.geogrind.geogrindbackend.utils.ScheduledTask.services.KafkaSendingDeleteDefaultTask
+import com.geogrind.geogrindbackend.utils.ScheduledTask.services.KafkaSendingDeleteSessionTask
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.KafkaHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.KafkaTopicsType
 import org.slf4j.LoggerFactory
@@ -50,11 +50,11 @@ object KafkaFactory {
     fun publishMessage(kafkaTopicType: KafkaTopicsTypeEnum, kafkaMessageProducer: MessageProducerConfig, task: ScheduledTaskItem) {
         return when(kafkaTopicType) {
             KafkaTopicsTypeEnum.DEFAULT -> {
-                KafkaDeleteDefaultTask(kafkaMessageProducer)
+                KafkaSendingDeleteDefaultTask(kafkaMessageProducer)
                     .kafkaSendDefaultMessage(task)
             }
             KafkaTopicsTypeEnum.SESSION_DELETE_TOPIC -> {
-                KafkaDeleteSessionTask(kafkaMessageProducer)
+                KafkaSendingDeleteSessionTask(kafkaMessageProducer)
                     .kafkaSendSessionDeletionMessage(task)
             }
         }

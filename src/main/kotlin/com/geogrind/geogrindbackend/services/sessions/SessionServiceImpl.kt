@@ -1,6 +1,5 @@
 package com.geogrind.geogrindbackend.services.sessions
 
-import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfig
 import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.dto.session.CreateSessionDto
 import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
@@ -15,6 +14,7 @@ import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.permissions.Permissions
 import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
+import com.geogrind.geogrindbackend.models.scheduling.Task
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
@@ -42,7 +42,6 @@ import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
 import org.springframework.scheduling.TaskScheduler
-import java.time.LocalDateTime
 import java.time.ZoneId
 
 @Service
@@ -169,23 +168,22 @@ class SessionServiceImpl(
         userProfileRepository.save(findUserProfile.get())
         sessionsRepository.save(newSession)
 
-        // schedule the session deletion with RabbitMQ message broker
-//        println("At here!!!!!!!!!!!!!!!!!!!!!!!************************")
-//        rabbitMQHelper.sendSessionDeletionMessage(
-//            sessionToDelete = newSession
-//        )
-
         // Schedule the task to delete the session after the duration ends
         /*
         * Testing the kafka stream
         *
         * */
+
         @TaskType(TaskTypeEnum.SESSION_DELETION)
-        val taskProxy = TaskFactory.createTaskProxy<TaskHandler>(taskScheduler = taskScheduler, executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
-        val createSessionTask = taskProxy.scheduleSessionTask(stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
-        val sessionTask: ScheduledTaskItem = ScheduledTaskItem(
+        val taskProxy = TaskFactory.createTaskProxy<TaskHandler>(taskScheduler = taskScheduler, session = newSession, executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
+        taskProxy.scheduleSessionTask(newSession, stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
+        val sessionTask = ScheduledTaskItem(
             taskId = UUID.randomUUID(),
-            scheduledTask = createSessionTask,
+            scheduledTask = newSession.sessionId?.let {
+                Task(
+                    sessionId = it
+                )
+            },
             executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime(),
         )
 

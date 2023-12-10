@@ -6,7 +6,7 @@ import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.KafkaTopicsType
 import org.slf4j.LoggerFactory
 
-class KafkaDeleteSessionTask(
+class KafkaSendingDeleteSessionTask(
     private val kafkaMessageProducer: MessageProducerConfig
 ) : KafkaHandler {
     @KafkaTopicsType(KafkaTopicsTypeEnum.DEFAULT)
@@ -32,11 +32,11 @@ class KafkaDeleteSessionTask(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(KafkaDeleteSessionTask::class.java)
+        private val log = LoggerFactory.getLogger(KafkaSendingDeleteSessionTask::class.java)
     }
 }
 
-class KafkaDeleteDefaultTask(
+class KafkaSendingDeleteDefaultTask(
     private val kafkaMessageProducer: MessageProducerConfig
 ) : KafkaHandler {
     @KafkaTopicsType(KafkaTopicsTypeEnum.DEFAULT)
@@ -62,6 +62,6 @@ class KafkaDeleteDefaultTask(
     }
 
     companion object {
-        private val log = LoggerFactory.getLogger(KafkaDeleteDefaultTask::class.java)
+        private val log = LoggerFactory.getLogger(KafkaSendingDeleteDefaultTask::class.java)
     }
 }
