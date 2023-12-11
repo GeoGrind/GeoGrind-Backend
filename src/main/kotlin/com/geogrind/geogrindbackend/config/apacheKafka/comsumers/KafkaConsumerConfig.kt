@@ -1,6 +1,9 @@
 package com.geogrind.geogrindbackend.config.apacheKafka.comsumers
 
+import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import jakarta.annotation.PostConstruct
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumerBase
 import org.apache.kafka.clients.consumer.Consumer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -15,4 +18,7 @@ interface KafkaConsumerConfig {
 
     @Bean
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, String>
+
+//    @Bean
+//    fun flinkKafkaConsumer()
 }

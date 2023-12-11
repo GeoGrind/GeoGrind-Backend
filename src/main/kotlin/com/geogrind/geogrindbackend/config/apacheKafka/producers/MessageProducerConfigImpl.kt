@@ -3,6 +3,8 @@ package com.geogrind.geogrindbackend.config.apacheKafka.producers
 import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
+import org.apache.flink.streaming.api.TimeCharacteristic
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.kafka.core.KafkaTemplate
@@ -18,16 +20,9 @@ class MessageProducerConfigImpl : MessageProducerConfig {
         try {
             kafkaTemplate.send(topic.toString(), task.toString())
             log.info("Sending task={} to kafka topic={} successfully!", topic.toString(), task.toString())
-
-            // Introduce Apache Flink + Kafka to process with a delay
-
         } catch (err: Exception) {
             log.error("Error while sending task to kafka topic: $err")
         }
-    }
-
-    private fun processMessageDelay() {
-        // Set up
     }
 
     companion object {

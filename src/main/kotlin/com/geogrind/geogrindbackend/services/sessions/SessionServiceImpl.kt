@@ -181,7 +181,7 @@ class SessionServiceImpl(
             taskId = UUID.randomUUID(),
             scheduledTask = newSession.sessionId?.let {
                 Task(
-                    sessionId = it
+                    sessionId = it,
                 )
             },
             executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime(),
@@ -311,7 +311,7 @@ class SessionServiceImpl(
         ]
     )
     @Transactional
-    override suspend fun deleteSessionById(
+    override fun deleteSessionById(
         @Valid
         requestDto: DeleteSessionByIdDto
     ) : Cookie {

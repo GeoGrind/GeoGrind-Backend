@@ -92,7 +92,7 @@ dependencies {
 //	implementation("org.springframework.boot:spring-boot-starter-amqp")
 
 	// Apache Kafka Streams
-	implementation("org.springframework.kafka:spring-kafka")
+	implementation("org.springframework.kafka:spring-kafka:3.1.0")
 
 	// Apache Flink
 	implementation("org.apache.flink:flink-streaming-java_2.12:1.14.0")

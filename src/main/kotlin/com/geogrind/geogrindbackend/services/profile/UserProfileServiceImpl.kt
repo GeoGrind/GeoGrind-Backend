@@ -219,6 +219,10 @@ class UserProfileServiceImpl(
         // save the user profile to the database
         findUserProfile.get().apply {
             this.username = username ?: findUserAccount.get().username
+            if (this.username != findUserAccount.get().username) { // the username has been changed
+                findUserAccount.get().username = this.username
+                userAccountRepository.save(findUserAccount.get())
+            }
             this.emoji = emoji ?: this.emoji
             this.program = program ?: this.program
             this.courses = courses ?: this.courses
