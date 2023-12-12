@@ -3,16 +3,13 @@ package com.geogrind.geogrindbackend.config.apacheKafka.comsumers
 import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.models.scheduling.Task
-import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.repositories.sessions.SessionsRepository
 import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import com.geogrind.geogrindbackend.services.sessions.SessionService
 import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskExecutedFactory
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskExecutedHandler
-import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import org.apache.kafka.clients.consumer.ConsumerRecord
-import org.hibernate.Session
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
@@ -26,7 +23,6 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class MessageConsumerImpl(
-    private val kafkaTemplate: KafkaTemplate<String, String>,
     private val userAccountRepository: UserAccountRepository,
     private val userProfileRepository: UserProfileRepository,
     private val sessionsRepository: SessionsRepository,
@@ -34,8 +30,6 @@ class MessageConsumerImpl(
 ) : MessageConsumer {
     companion object {
         private const val topicName = KafkaTopicsTypeEnum.SESSION_DELETION_VALUE
-        private const val retryTopicName = "retry-topic"
-        private const val deadLetterTopicName = "dead-letter-topic"
         private val log = LoggerFactory.getLogger(MessageConsumerImpl::class.java)
         private fun waitSomeTime(duration: Long) {
             log.info("Starting waiting for scheduled task begin!!")
@@ -48,29 +42,16 @@ class MessageConsumerImpl(
         }
     }
 
-//    private val retryCountMap: MutableMap<TopicPartition, MutableMap<String, AtomicInteger>> = ConcurrentHashMap()
-
     @KafkaListener(
         topics = [topicName],
         groupId = "my-group-id",
     )
-//    @OptIn(ExperimentalSerializationApi::class)
-//    @Retryable(
-//        value = [Exception::class],
-//        maxAttemptsExpression = "\${kafka.consumer.retry.max-attempts}",
-//        backoff = Backoff(
-//            delayExpression = "\${kafka.consumer.retry.initial-delay}",
-//            maxDelayExpression = "\${kafka.consumer.retry.max-delay}",
-//            multiplierExpression = "\${kafka.consumer.retry.multiplier}"
-//        )
-//    )
     override fun listen(record: ConsumerRecord<String, String>) {
         try {
             val task = record.value()
             log.info("Received task: $task")
 
             // Extracting values using regex
-
             val matchResult = extractValues(task)
 
             if (matchResult != null) {
@@ -99,9 +80,9 @@ class MessageConsumerImpl(
                 )
 
                 scheduledTaskItem.scheduledTask?.sessionId?.let {
-                    // if the session id is presented -> the task is delete the session
+                    // if the session id is presented -> the task is deleted the session
                     taskExecutionProxy.sessionDeletionTaskExecuted(
-                        task = scheduledTaskItem
+                        task = scheduledTaskItem,
                     )
                 }
 
@@ -152,26 +133,4 @@ class MessageConsumerImpl(
             }
         }
     }
-
-//    @Recover
-//    fun handleRecovery(e: Exception, @Payload message: String?) {
-//
-//    }
-//
-//    private fun sendToDeadLetterQueue(message: String?, exception: Exception) {
-//        kafkaTemplate.send("dead-letter-topic", message)
-//        log.info("Message sent to dead letter queue: $message")
-//    }
-//
-//    override fun onPartitionsAssigned(partitions: MutableCollection<org.apache.kafka.common.TopicPartition>) {
-//        super.onPartitionsAssigned(partitions)
-//    }
-//
-//    override fun onPartitionsRevokedBeforeCommit(
-//        consumer: Consumer<*, *>,
-//        partitions: MutableCollection<org.apache.kafka.common.TopicPartition>,
-//        callback: ConsumerSeekCallback
-//    ) {
-//        super.onPartitionsRevokedBeforeCommit(consumer, partitions)
-//    }
 }

@@ -2,3 +2,5 @@ geogrind-server_logs
 postgres-data
 redis-data
 rabbitmq-data
+zookeeper-data
+kafka-data

@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.utils.ScheduledTask.proxy
 
+import com.geogrind.geogrindbackend.controllers.sessions.SessionsController
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.repositories.sessions.SessionsRepository
@@ -9,6 +10,8 @@ import com.geogrind.geogrindbackend.services.sessions.SessionService
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.SessionDeletionTaskExecution
 import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskExecutedHandler
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
@@ -65,9 +68,9 @@ object TaskExecutedFactory {
                     userAccountRepository = userAccountRepository,
                     userProfileRepository = userProfileRepository,
                     sessionRepository = sessionsRepository,
-                    sessionService = sessionService
+                    sessionService = sessionService,
                 ).sessionDeletionTaskExecuted(
-                    task = task
+                    task = task,
                 )
             }
 

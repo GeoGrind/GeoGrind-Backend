@@ -3,6 +3,8 @@ package com.geogrind.geogrindbackend.utils.ScheduledTask.services
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 interface TaskExecutedHandler {
     // Interface to represent tasks

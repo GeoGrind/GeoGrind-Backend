@@ -22,7 +22,11 @@ echo "Connecting to GeoGrind Database at $DB_HOST:$DB_PORT"
 echo "Connecting to GeoGrind Redis Server at $REDIS_HOST:$REDIS_PORT"
 
 # rabbitmq server
-echo "Connecting to RabbitMQ Server at $RABBITMQ_HOST:$RABBITMQ_PORT"
+#echo "Connecting to RabbitMQ Server at $RABBITMQ_HOST:$RABBITMQ_PORT"
+
+# apache kafka server
+echo "Connecting to Zookeeper Server at $ZOOKEEPER_HOST:$ZOOKEEPER_PORT"
+echo "Connecting to Kafka Server at $APACHE_KAFKA_HOST:$APACHE_KAFKA_PORT"
 
 # Start the Docker container
 docker-compose up --build -d
@@ -30,7 +34,8 @@ docker-compose up --build -d
 echo "GeoGrind Server Container started."
 echo "GeoGrind Database Container started."
 echo "GeoGrind Redis Container started."
-echo "GeoGrind RabbitMQ Container started."
+#echo "GeoGrind RabbitMQ Container started."
+echo "GeoGrind Apache Kafka Container started"
 
 # Check the logs to see if everything started successfully
 docker-compose logs

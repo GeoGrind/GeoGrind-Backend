@@ -37,24 +37,6 @@ class SessionDeletionTask : TaskHandler {
             executionTime = executionTime,
         )
     }
-
-    companion object {
-        private val log = LoggerFactory.getLogger(SessionDeletionTask::class.java)
-
-        // function to wait for a certain time
-        private fun waitSomeTime(executionTime: LocalDateTime) {
-            val timeFinal: Long = executionTime.toEpochSecond(ZoneOffset.UTC)
-            val timeStart: Long = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-            val duration: Long = (timeFinal - timeStart) * 1000
-            log.info("Long Wait Begin for: $duration seconds!!")
-            try {
-                Thread.sleep(duration)
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-            log.info("Long Wait End!")
-        }
-    }
 }
 
 class DefaultDeletionTask(
@@ -62,17 +44,11 @@ class DefaultDeletionTask(
 ) : TaskHandler {
     @TaskType(TaskTypeEnum.DEFAULT)
     override fun scheduleDefaultTask(executionTime: LocalDateTime): ScheduledTaskItem {
-        return ScheduledTaskItem(
-            taskId = UUID.randomUUID(),
-            executionTime = executionTime,
-        )
+        TODO("NOT YET IMPLEMENTED!!!")
     }
 
     @TaskType(TaskTypeEnum.SESSION_DELETION)
     override fun scheduleSessionTask(session: Sessions, executionTime: LocalDateTime): ScheduledTaskItem {
-        return ScheduledTaskItem(
-            taskId = UUID.randomUUID(),
-            executionTime = executionTime,
-        )
+        TODO("NOT YET IMPLEMENTED!!!")
     }
 }
