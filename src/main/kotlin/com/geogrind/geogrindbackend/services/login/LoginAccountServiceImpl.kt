@@ -175,6 +175,22 @@ class LoginAccountServiceImpl(
                         userAccount = findUserAccount.get(),
                         createdAt = Date(),
                         updatedAt = Date(),
+                    ),
+                )
+                newPermissions.add(
+                    Permissions(
+                        permission_name = PermissionName.CAN_UPDATE_SESSION,
+                        userAccount = findUserAccount.get(),
+                        createdAt = Date(),
+                        updatedAt = Date(),
+                    ),
+                )
+                newPermissions.add(
+                    Permissions(
+                        permission_name = PermissionName.CAN_STOP_SESSION,
+                        userAccount = findUserAccount.get(),
+                        createdAt = Date(),
+                        updatedAt = Date(),
                     )
                 )
             }

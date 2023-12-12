@@ -18,4 +18,3 @@ EXPOSE 8080
 
 # Command to run the application with dotenv \
 ENTRYPOINT ["java", "-jar", "/app/build/libs/GeoGrind-Backend-0.0.1-SNAPSHOT.jar"]
-

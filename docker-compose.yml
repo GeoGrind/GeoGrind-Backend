@@ -1,16 +1,11 @@
 version: '3'
 services:
+  # server
   backend:
     container_name: geogrind-server
     build:
       context: .
       dockerfile: Dockerfile
-#    links:
-#      - postgres
-#    environment:
-#      - GeoGrind_JDBC_URL=jdbc:postgresql://192.168.5.1:5432/${DB_NAME}
-#      - GeoGrind_JDBC_USER=${DB_USERNAME}
-#      - GeoGrind_JDBC_PASSWORD=${DB_PASSWORD}
     image: geogrind/geogrindbackend:latest
     platform: linux/amd64
     depends_on:
@@ -18,14 +13,21 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+#      rabbitmq:
+#        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
     ports:
       - "8080:8080"
     volumes:
       - ./geogrind-server_logs:/app/logs
 
+  # database
   postgres:
     container_name: geogrind-postgres
-    image: postgres:latest
+    image: postgres:15.5
     restart: always
     user: postgres
     volumes:
@@ -42,6 +44,7 @@ services:
       timeout: 5s
       retries: 5
 
+  # cache
   redis:
     container_name: geogrind-redis
     image: redis:latest
@@ -49,13 +52,68 @@ services:
       - "6379:6379"
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
-    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
     volumes:
       - ./redis-data:/data
 
+  # rabbitmq
+#  rabbitmq:
+#    container_name: geogrind-rabbitmq
+#    build:
+#      dockerfile: Dockerfile-rabbitmq
+#    image: rabbitmq:management
+#    ports:
+#      - "5672:5672"
+#      - "15672:15672"
+#    healthcheck:
+#      test: ["CMD", "rabbitmq-server", "ping"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    volumes:
+#      - ./rabbitmq-data:/data
 
+  # apache kafka
+  zookeeper:
+    container_name: geogrind-zookeeper
+#    build:
+#      dockerfile: Dockerfile-apacheKafka
+    image: wurstmeister/zookeeper:latest
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "zookeeper-server", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./zookeeper-data:/data
+
+  kafka:
+    container_name: geogrind-kafka
+#    build:
+#      dockerfile: Dockerfile-apacheKafka
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    expose:
+      - "9093"
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://host.docker.internal:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    healthcheck:
+      test: [ "CMD", "kafka-server", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./kafka-data:/data
+    depends_on:
+      - zookeeper

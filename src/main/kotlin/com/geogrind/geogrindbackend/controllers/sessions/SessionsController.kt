@@ -85,7 +85,7 @@ interface SessionsController {
         operationId = "deleteSession",
         description = "Delete session"
     )
-    suspend fun deleteSession(
+    fun deleteSession(
         request: HttpServletRequest,
         response: HttpServletResponse,
     ) : ResponseEntity<Cookie>

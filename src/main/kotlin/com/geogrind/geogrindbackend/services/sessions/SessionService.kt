@@ -5,6 +5,7 @@ import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.GetSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.UpdateSessionByIdDto
 import com.geogrind.geogrindbackend.models.sessions.Sessions
+import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
 import org.springframework.stereotype.Service
@@ -15,5 +16,6 @@ interface SessionService {
     suspend fun getSessionById(@Valid requestDto: GetSessionByIdDto): Sessions
     suspend fun createSession(@Valid requestDto: CreateSessionDto): Pair<Sessions, Cookie>
     suspend fun updateSessionById(@Valid requestDto: UpdateSessionByIdDto): Pair<Sessions, Cookie>
-    suspend fun deleteSessionById(@Valid requestDto: DeleteSessionByIdDto) : Cookie
+    fun deleteSessionById(@Valid requestDto: DeleteSessionByIdDto) : Cookie
+//    suspend fun handleScheduledSessionDeletion()
 }

@@ -1,0 +1,20 @@
+FROM ubuntu:latest
+
+# Install required packages
+RUN apt-get update && \
+    apt-get install -y openjdk-8-jdk wget
+
+# Download and extract Kafka
+RUN wget https://downloads.apache.org/kafka/2.8.0/kafka_2.13-2.8.0.tgz && \
+    tar -xzf kafka_2.13-2.8.0.tgz && \
+    mv kafka_2.13-2.8.0 /opt/kafka
+
+# Set environment variables \
+ENV KAFKA_HOME=/opt/kafka
+ENV PATH=$PATH:$KAFKA_HOME/bin
+
+# Expose Kafka ports
+EXPOSE 9092 2181
+
+# Start Kafka
+CMD ["bash", "-c", "$KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties"]

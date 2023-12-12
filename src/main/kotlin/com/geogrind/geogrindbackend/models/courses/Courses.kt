@@ -5,6 +5,8 @@ import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
@@ -43,11 +45,13 @@ data class Courses (
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
+    @Contextual
     var createdAt: Date? = null,
 
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
+    @Contextual
     var updatedAt: Date? = null,
 ) {
     override fun hashCode(): Int {

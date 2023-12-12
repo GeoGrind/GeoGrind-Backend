@@ -253,10 +253,10 @@ class SessionsControllerImpl(
         operationId = "deleteSession",
         description = "Delete session"
     )
-    override suspend fun deleteSession(
+    override fun deleteSession(
         request: HttpServletRequest,
         response: HttpServletResponse,
-    ) : ResponseEntity<Cookie> = withTimeout(timeOutMillis) {
+    ) : ResponseEntity<Cookie> {
         // get the user account id from cookie
         val token: String? = jwtTokenMiddleWare.extractToken(
             request = request,
@@ -277,7 +277,7 @@ class SessionsControllerImpl(
 
         response.addCookie(serviceResponse)
 
-        ResponseEntity
+        return ResponseEntity
             .status(HttpStatus.ACCEPTED)
             .contentType(MediaType.APPLICATION_JSON)
             .body(

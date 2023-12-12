@@ -1,5 +1,6 @@
 package com.geogrind.geogrindbackend.services.sessions
 
+import com.geogrind.geogrindbackend.config.apacheKafka.producers.MessageProducerConfigImpl
 import com.geogrind.geogrindbackend.dto.session.CreateSessionDto
 import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
 import com.geogrind.geogrindbackend.dto.session.GetSessionByIdDto
@@ -9,9 +10,12 @@ import com.geogrind.geogrindbackend.exceptions.sessions.SessionConflictException
 import com.geogrind.geogrindbackend.exceptions.sessions.SessionNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_account.UserAccountNotFoundException
 import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
-import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.permissions.PermissionName
 import com.geogrind.geogrindbackend.models.permissions.Permissions
+import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
+import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
+import com.geogrind.geogrindbackend.models.scheduling.Task
+import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import com.geogrind.geogrindbackend.models.user_profile.UserProfile
@@ -20,7 +24,12 @@ import com.geogrind.geogrindbackend.repositories.user_account.UserAccountReposit
 import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
 import com.geogrind.geogrindbackend.utils.Cookies.CreateTokenCookie
 import com.geogrind.geogrindbackend.utils.GrantPermissions.GrantPermissionHelper
-import io.github.cdimascio.dotenv.Dotenv
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.KafkaFactory
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskFactory
+import com.geogrind.geogrindbackend.utils.ScheduledTask.services.KafkaHandler
+import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskHandler
+import com.geogrind.geogrindbackend.utils.ScheduledTask.types.KafkaTopicsType
+import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import jakarta.servlet.http.Cookie
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -32,8 +41,8 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
 import java.util.*
-import kotlin.collections.HashSet
-import kotlin.math.exp
+import org.springframework.scheduling.TaskScheduler
+import java.time.ZoneId
 
 @Service
 @CacheConfig(cacheNames = ["sessionCache"])
@@ -43,6 +52,8 @@ class SessionServiceImpl(
     private val sessionsRepository: SessionsRepository,
     private val grantPermissionHelper: GrantPermissionHelper,
     private val createTokenCookie: CreateTokenCookie,
+    private val taskScheduler: TaskScheduler,
+    private val kafkaMessageProducer: MessageProducerConfigImpl,
 ) : SessionService {
 
     // get all current sessions
@@ -92,6 +103,8 @@ class SessionServiceImpl(
     // create a session
     @CacheEvict(cacheNames = ["sessions"], allEntries = true)
     @Transactional
+    @TaskType(TaskTypeEnum.SESSION_DELETION)
+    @KafkaTopicsType(KafkaTopicsTypeEnum.SESSION_DELETE_TOPIC)
     override suspend fun createSession(
         @Valid
         requestDto: CreateSessionDto
@@ -155,30 +168,61 @@ class SessionServiceImpl(
         userProfileRepository.save(findUserProfile.get())
         sessionsRepository.save(newSession)
 
-        // take away user permission to create a new session
-        grantPermissionHelper.takeAwayPermissionHelper(
-            permissionToDelete = setOf(PermissionName.CAN_CREATE_SESSION),
-            currentUserAccount = findUserAccount.get(),
+        // Schedule the task to delete the session after the duration ends
+        /*
+        * Testing the kafka stream
+        *
+        * */
+
+        @TaskType(TaskTypeEnum.SESSION_DELETION)
+        val taskProxy = TaskFactory.createTaskProxy<TaskHandler>(taskScheduler = taskScheduler, session = newSession, executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
+        taskProxy.scheduleSessionTask(newSession, stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime())
+        val sessionTask = ScheduledTaskItem(
+            taskId = UUID.randomUUID(),
+            scheduledTask = newSession.sessionId?.let {
+                Task(
+                    sessionId = it,
+                )
+            },
+            executionTime = stopTime.atZone(ZoneId.systemDefault()).toLocalDateTime(),
         )
 
-        // give a permission to stop and update the session
-        grantPermissionHelper.grant_permission_helper(
-            newPermissions = setOf(
-                Permissions(
-                    permission_name = PermissionName.CAN_STOP_SESSION,
-                    userAccount = findUserAccount.get(),
-                    createdAt = Date(),
-                    updatedAt = Date(),
-                ),
-                Permissions(
-                    permission_name = PermissionName.CAN_UPDATE_SESSION,
-                    userAccount = findUserAccount.get(),
-                    createdAt = Date(),
-                    updatedAt = Date(),
-                ),
-            ),
-            currentUserAccount = findUserAccount.get()
+        // Send the message to kafka stream
+        @KafkaTopicsType(KafkaTopicsTypeEnum.SESSION_DELETE_TOPIC)
+        val kafkaProxy = KafkaFactory.createKafkaTopicsProxy<KafkaHandler>(
+            task = sessionTask,
+            kafkaMessageProducer = kafkaMessageProducer,
         )
+        kafkaProxy.kafkaSendSessionDeletionMessage(
+            task = sessionTask
+        )
+
+        log.info("Session has been scheduled to be deleted after $duration")
+
+        // take away user permission to create a new session
+//        grantPermissionHelper.takeAwayPermissionHelper(
+//            permissionToDelete = setOf(PermissionName.CAN_CREATE_SESSION),
+//            currentUserAccount = findUserAccount.get(),
+//        )
+
+        // give a permission to stop and update the session
+//        grantPermissionHelper.grant_permission_helper(
+//            newPermissions = setOf(
+//                Permissions(
+//                    permission_name = PermissionName.CAN_STOP_SESSION,
+//                    userAccount = findUserAccount.get(),
+//                    createdAt = Date(),
+//                    updatedAt = Date(),
+//                ),
+//                Permissions(
+//                    permission_name = PermissionName.CAN_UPDATE_SESSION,
+//                    userAccount = findUserAccount.get(),
+//                    createdAt = Date(),
+//                    updatedAt = Date(),
+//                ),
+//            ),
+//            currentUserAccount = findUserAccount.get()
+//        )
 
         // create a new jwt token and refresh a new cookie
         val newCookie: Cookie = createTokenCookie.refreshCookie(
@@ -267,7 +311,7 @@ class SessionServiceImpl(
         ]
     )
     @Transactional
-    override suspend fun deleteSessionById(
+    override fun deleteSessionById(
         @Valid
         requestDto: DeleteSessionByIdDto
     ) : Cookie {
@@ -298,26 +342,26 @@ class SessionServiceImpl(
         log.info("User Profile: ${findUserProfile.get()}")
 
         // take away the user permission to delete and update a session
-        grantPermissionHelper.takeAwayPermissionHelper(
-            permissionToDelete = setOf(
-                PermissionName.CAN_STOP_SESSION,
-                PermissionName.CAN_UPDATE_SESSION,
-            ),
-            currentUserAccount = findUserAccount.get()
-        )
-
-        // give a permission to create and update another session
-        grantPermissionHelper.grant_permission_helper(
-            newPermissions = setOf(
-                Permissions(
-                    permission_name = PermissionName.CAN_CREATE_SESSION,
-                    userAccount = findUserAccount.get(),
-                    createdAt = Date(),
-                    updatedAt = Date(),
-                ),
-            ),
-            currentUserAccount = findUserAccount.get()
-        )
+//        grantPermissionHelper.takeAwayPermissionHelper(
+//            permissionToDelete = setOf(
+//                PermissionName.CAN_STOP_SESSION,
+//                PermissionName.CAN_UPDATE_SESSION,
+//            ),
+//            currentUserAccount = findUserAccount.get()
+//        )
+//
+//        // give a permission to create and update another session
+//        grantPermissionHelper.grant_permission_helper(
+//            newPermissions = setOf(
+//                Permissions(
+//                    permission_name = PermissionName.CAN_CREATE_SESSION,
+//                    userAccount = findUserAccount.get(),
+//                    createdAt = Date(),
+//                    updatedAt = Date(),
+//                ),
+//            ),
+//            currentUserAccount = findUserAccount.get()
+//        )
 
         // refresh the token and issue a new cookie
         val newCookie: Cookie = createTokenCookie.refreshCookie(
