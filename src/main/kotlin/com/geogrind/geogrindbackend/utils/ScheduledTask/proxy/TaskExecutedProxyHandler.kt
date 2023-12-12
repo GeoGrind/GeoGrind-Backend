@@ -30,7 +30,7 @@ class TaskExecutedProxyHandler(
                 log.info("Execute scheduled task successfully!")
                 val taskExecutedType = taskToExecuteTypeAnnotation.value
                 return TaskExecutedFactory.executeTask(
-                    taskType = taskToExecuteTypeAnnotation.value,
+                    taskType = taskExecutedType,
                     task = task,
                     userAccountRepository = userAccountRepository,
                     userProfileRepository = userProfileRepository,

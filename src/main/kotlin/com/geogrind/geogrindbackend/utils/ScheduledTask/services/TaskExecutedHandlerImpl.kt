@@ -1,6 +1,8 @@
 package com.geogrind.geogrindbackend.utils.ScheduledTask.services
 
 import com.geogrind.geogrindbackend.dto.session.DeleteSessionByIdDto
+import com.geogrind.geogrindbackend.exceptions.sessions.SessionNotFoundException
+import com.geogrind.geogrindbackend.exceptions.user_profile.UserProfileNotFoundException
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
 import com.geogrind.geogrindbackend.repositories.sessions.SessionsRepository
@@ -30,6 +32,7 @@ class SessionDeletionTaskExecution(
             val session = sessionRepository.findById(
                 sessionId
             )
+
             // find the user profile
             val findUserProfile = userProfileRepository.findUserProfileBySession(
                 session.get()

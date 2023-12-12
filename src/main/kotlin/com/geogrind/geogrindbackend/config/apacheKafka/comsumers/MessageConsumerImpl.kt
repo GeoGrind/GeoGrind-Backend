@@ -3,7 +3,16 @@ package com.geogrind.geogrindbackend.config.apacheKafka.comsumers
 import com.geogrind.geogrindbackend.models.scheduling.KafkaTopicsTypeEnum
 import com.geogrind.geogrindbackend.models.scheduling.ScheduledTaskItem
 import com.geogrind.geogrindbackend.models.scheduling.Task
+import com.geogrind.geogrindbackend.models.scheduling.TaskTypeEnum
+import com.geogrind.geogrindbackend.repositories.sessions.SessionsRepository
+import com.geogrind.geogrindbackend.repositories.user_account.UserAccountRepository
+import com.geogrind.geogrindbackend.repositories.user_profile.UserProfileRepository
+import com.geogrind.geogrindbackend.services.sessions.SessionService
+import com.geogrind.geogrindbackend.utils.ScheduledTask.proxy.TaskExecutedFactory
+import com.geogrind.geogrindbackend.utils.ScheduledTask.services.TaskExecutedHandler
+import com.geogrind.geogrindbackend.utils.ScheduledTask.types.TaskType
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.hibernate.Session
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
@@ -17,7 +26,11 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class MessageConsumerImpl(
-    private val kafkaTemplate: KafkaTemplate<String, String>
+    private val kafkaTemplate: KafkaTemplate<String, String>,
+    private val userAccountRepository: UserAccountRepository,
+    private val userProfileRepository: UserProfileRepository,
+    private val sessionsRepository: SessionsRepository,
+    private val sessionService: SessionService,
 ) : MessageConsumer {
     companion object {
         private const val topicName = KafkaTopicsTypeEnum.SESSION_DELETION_VALUE
@@ -76,8 +89,21 @@ class MessageConsumerImpl(
 
                 waitSomeTime(timeDelay)
 
-                // proceed to delete schedule task
+                // proceed to execute the schedule task
+                val taskExecutionProxy = TaskExecutedFactory.createTaskExecutedProxy<TaskExecutedHandler>(
+                    task = scheduledTaskItem,
+                    userAccountRepository = userAccountRepository,
+                    userProfileRepository = userProfileRepository,
+                    sessionsRepository = sessionsRepository,
+                    sessionService = sessionService,
+                )
 
+                scheduledTaskItem.scheduledTask?.sessionId?.let {
+                    // if the session id is presented -> the task is delete the session
+                    taskExecutionProxy.sessionDeletionTaskExecuted(
+                        task = scheduledTaskItem
+                    )
+                }
 
                 // Simulating an exception for demonstration purposes
                 if(record.value().contains("simulate-error")) {
