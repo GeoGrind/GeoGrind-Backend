@@ -2,7 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	id("org.springframework.boot") version "3.1.4"
-	id("io.spring.dependency-management") version "1.1.3"
+	id("io.spring.dependency-management") version "1.1.4"
+
 	kotlin("jvm") version "1.8.22"
 	kotlin("plugin.spring") version "1.8.22"
 	kotlin("plugin.jpa") version "1.8.22"
@@ -88,16 +89,12 @@ dependencies {
 	// macos native library
 	runtimeOnly("io.netty:netty-resolver-dns-native-macos:4.1.76.Final:osx-aarch_64")
 
-	// RabbitMQ library
-//	implementation("org.springframework.boot:spring-boot-starter-amqp")
-
 	// Apache Kafka Streams
 	implementation("org.springframework.kafka:spring-kafka:3.1.0")
 
 	// Apache Flink
 	implementation("org.apache.flink:flink-streaming-java_2.12:1.14.0")
 	implementation("org.apache.flink:flink-connector-kafka_2.12:1.14.0")
-
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools:3.0.4")
 	runtimeOnly("com.h2database:h2:2.1.214")

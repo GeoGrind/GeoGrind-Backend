@@ -199,31 +199,6 @@ class SessionServiceImpl(
 
         log.info("Session has been scheduled to be deleted after $duration")
 
-        // take away user permission to create a new session
-//        grantPermissionHelper.takeAwayPermissionHelper(
-//            permissionToDelete = setOf(PermissionName.CAN_CREATE_SESSION),
-//            currentUserAccount = findUserAccount.get(),
-//        )
-
-        // give a permission to stop and update the session
-//        grantPermissionHelper.grant_permission_helper(
-//            newPermissions = setOf(
-//                Permissions(
-//                    permission_name = PermissionName.CAN_STOP_SESSION,
-//                    userAccount = findUserAccount.get(),
-//                    createdAt = Date(),
-//                    updatedAt = Date(),
-//                ),
-//                Permissions(
-//                    permission_name = PermissionName.CAN_UPDATE_SESSION,
-//                    userAccount = findUserAccount.get(),
-//                    createdAt = Date(),
-//                    updatedAt = Date(),
-//                ),
-//            ),
-//            currentUserAccount = findUserAccount.get()
-//        )
-
         // create a new jwt token and refresh a new cookie
         val newCookie: Cookie = createTokenCookie.refreshCookie(
             expirationTime = 3600,
@@ -340,28 +315,6 @@ class SessionServiceImpl(
         userProfileRepository.save(findUserProfile.get())
 
         log.info("User Profile: ${findUserProfile.get()}")
-
-        // take away the user permission to delete and update a session
-//        grantPermissionHelper.takeAwayPermissionHelper(
-//            permissionToDelete = setOf(
-//                PermissionName.CAN_STOP_SESSION,
-//                PermissionName.CAN_UPDATE_SESSION,
-//            ),
-//            currentUserAccount = findUserAccount.get()
-//        )
-//
-//        // give a permission to create and update another session
-//        grantPermissionHelper.grant_permission_helper(
-//            newPermissions = setOf(
-//                Permissions(
-//                    permission_name = PermissionName.CAN_CREATE_SESSION,
-//                    userAccount = findUserAccount.get(),
-//                    createdAt = Date(),
-//                    updatedAt = Date(),
-//                ),
-//            ),
-//            currentUserAccount = findUserAccount.get()
-//        )
 
         // refresh the token and issue a new cookie
         val newCookie: Cookie = createTokenCookie.refreshCookie(
