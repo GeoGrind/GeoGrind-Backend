@@ -1,6 +1,5 @@
-package com.geogrind.geogrindbackend.models.scheduling
+package io.grpc.kotlin.generator.sharedUtils.models.scheduling
 
-import com.geogrind.geogrindbackend.models.sessions.Sessions
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor

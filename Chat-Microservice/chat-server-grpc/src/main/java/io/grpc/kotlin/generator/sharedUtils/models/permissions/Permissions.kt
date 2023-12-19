@@ -1,11 +1,10 @@
-package com.geogrind.geogrindbackend.models.permissions
+package io.grpc.kotlin.generator.sharedUtils.models.scheduling
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.geogrind.geogrindbackend.models.user_account.UserAccount
+import io.grpc.kotlin.generator.sharedUtils.models.user_account.UserAccount
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.GenericGenerator
-import org.hibernate.annotations.Type
 import org.slf4j.LoggerFactory
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate

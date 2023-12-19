@@ -1,12 +1,10 @@
-package com.geogrind.geogrindbackend.models.courses
+package io.grpc.kotlin.generator.sharedUtils.models.courses
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.geogrind.geogrindbackend.models.sessions.Sessions
-import com.geogrind.geogrindbackend.models.user_profile.UserProfile
+import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import kotlinx.serialization.Contextual
-import kotlinx.serialization.Serializable
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate

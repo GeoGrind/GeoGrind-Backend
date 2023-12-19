@@ -1,9 +1,9 @@
 package io.grpc.kotlin.generator.models.message
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import io.grpc.kotlin.generator.models.attachment.Attachment
 import io.grpc.kotlin.generator.models.reactions.Reaction
+import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.GenericGenerator
@@ -25,7 +25,7 @@ data class Message(
 
     @OneToOne(targetEntity = UserProfile::class, cascade = [CascadeType.ALL])
     @JsonIgnore
-    @JoinColumn(name = "fk_user_profile_id", referencedColumnName = "message_id")
+    @JoinColumn(name = "fk_user_profile_id", referencedColumnName = "profile_id")
     var messageSender: UserProfile,
 
     @Column(name = "message_content", length = 100000, unique = false, nullable = false)
@@ -40,7 +40,7 @@ data class Message(
     @JoinColumn(name = "message_id")
     var reaction: List<Reaction>? = emptyList(),
 
-    @ManyToMany(mappedBy = "user_profile")
+    @ManyToMany(mappedBy = "messageRead")
     var readBy: MutableSet<UserProfile>? = HashSet(),
 
     @CreatedDate

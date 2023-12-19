@@ -39,6 +39,7 @@ class ChatRoomServiceImpl(
             chatRoomOwners = requestDto.chatRoomOwners,
             chatRoomMessages = requestDto.chatRoomMessages,
         )
+        requestDto.chatRoomName?.let { newChatRoom.setChatRoomName(it) }
 
         log.info("New Chat Room is created in the database: $newChatRoom")
         return chatRoomRepository.save(newChatRoom)
@@ -55,6 +56,7 @@ class ChatRoomServiceImpl(
                 this.chatRoomMembers = requestDto.updateChatRoomMembers
                 this.chatRoomMessages = requestDto.updateChatRoomMessages
             }
+            requestDto.updateChatRoomName?.let { chatRoomFound.get().setChatRoomName(it) }
             chatRoomRepository.save(chatRoomFound.get())
         } else throw ChatRoomNotFoundException("No matching chatroom was found with chatroom id: ${requestDto.chatRoomId}")
     }

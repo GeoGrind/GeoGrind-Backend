@@ -1,13 +1,11 @@
-package com.geogrind.geogrindbackend.models.sessions
+package io.grpc.kotlin.generator.sharedUtils.models.sessions
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.geogrind.geogrindbackend.dto.session.SuccessSessionResponse
-import com.geogrind.geogrindbackend.models.courses.Courses
-import com.geogrind.geogrindbackend.models.scheduling.UUIDSerializer
-import com.geogrind.geogrindbackend.models.user_profile.UserProfile
+import io.grpc.kotlin.generator.sharedUtils.models.courses.Courses
+import io.grpc.kotlin.generator.sharedUtils.models.scheduling.UUIDSerializer
+import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import org.hibernate.annotations.GenericGenerator
 import org.springframework.data.annotation.CreatedDate
@@ -33,7 +31,7 @@ data class Sessions (
     @JsonIgnore
     @JoinColumn(name = "fk_course_id", referencedColumnName = "course_id", nullable = false)
     @kotlinx.serialization.Transient
-    var course: Courses ?= null,
+    var course: Courses? = null,
 
     // One-To-One relationship with the user profile
     @OneToOne(fetch = FetchType.EAGER, targetEntity = UserProfile::class, cascade = [CascadeType.MERGE])
@@ -86,29 +84,5 @@ data class Sessions (
 
     override fun toString(): String {
         return "Session(sessionId=$sessionId, course=$course, startTime=$startTime, stopTime=$stopTime, description=$description"
-    }
-}
-
-fun Sessions.toSuccessHttpResponse(): SuccessSessionResponse {
-    return SuccessSessionResponse(
-        sessionId = this.sessionId,
-        course = this.course,
-        startTime = this.startTime,
-        stopTime = this.stopTime,
-        numberOfLikers = this.numberOfLikers,
-        description = this.description,
-    )
-}
-
-fun List<Sessions>.toSuccessHttpResponseList(): List<SuccessSessionResponse> {
-    return this.map {
-        SuccessSessionResponse(
-            sessionId = it.sessionId,
-            course = it.course,
-            startTime = it.startTime,
-            stopTime = it.stopTime,
-            numberOfLikers = it.numberOfLikers,
-            description = it.description,
-        )
     }
 }

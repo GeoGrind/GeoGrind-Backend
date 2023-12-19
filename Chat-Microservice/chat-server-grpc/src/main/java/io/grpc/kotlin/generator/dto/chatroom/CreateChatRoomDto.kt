@@ -1,9 +1,8 @@
 package io.grpc.kotlin.generator.dto.chatroom
 
-import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import io.grpc.kotlin.generator.models.message.Message
 import io.grpc.kotlin.generator.models.theme.Theme
-import jakarta.validation.constraints.NotBlank
+import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
@@ -13,4 +12,5 @@ data class CreateChatRoomDto (
     var chatRoomOwners: MutableSet<UserProfile>,
     var chatRoomMembers: MutableSet<UserProfile>,
     var chatRoomMessages: MutableSet<Message> = HashSet(),
+    var chatRoomName: String? = null,
 )

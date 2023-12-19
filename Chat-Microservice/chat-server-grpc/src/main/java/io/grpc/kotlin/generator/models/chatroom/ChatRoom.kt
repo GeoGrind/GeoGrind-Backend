@@ -1,9 +1,9 @@
 package io.grpc.kotlin.generator.models.chatroom
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.geogrind.geogrindbackend.models.user_profile.UserProfile
 import io.grpc.kotlin.generator.models.message.Message
 import io.grpc.kotlin.generator.models.theme.Theme
+import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.GenericGenerator
@@ -27,8 +27,6 @@ data class ChatRoom (
     @Column(name = "chatroom_description", length = 100, unique = false, nullable = false)
     var chatRoomDescription: String ?= null,
 
-    @Column(name = "chatroom_theme", length = 100)
-
     @OneToMany
     @JoinColumn(name = "chatroom_id")
     var chatRoomOwners: MutableSet<UserProfile>,
@@ -41,7 +39,7 @@ data class ChatRoom (
     @JoinColumn(name = "chatroom_id")
     var chatRoomMessages: MutableSet<Message> = HashSet(),
 
-    @OneToOne(mappedBy = "chatroom")
+    @OneToOne(mappedBy = "chatRoom")
     @JsonIgnore
     var chatRoomTheme: Theme? = null,
 
@@ -58,4 +56,12 @@ data class ChatRoom (
     @Column(name = "chatroom_name", length = 100, unique = false, nullable = false)
     @Size(min = 3)
     private var chatRoomName: String = chatRoomMembers.joinToString(", ") { it.username }
+
+    fun setChatRoomName(newChatRoomName: String) {
+        this.chatRoomName = newChatRoomName
+    }
+
+    fun getChatRoomName(): String {
+        return this.chatRoomName
+    }
 }

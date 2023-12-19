@@ -1,9 +1,8 @@
-package com.geogrind.geogrindbackend.models.user_account
+package io.grpc.kotlin.generator.sharedUtils.models.user_account
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
-import com.geogrind.geogrindbackend.models.permissions.Permissions
-import com.geogrind.geogrindbackend.models.user_profile.UserProfile
+import io.grpc.kotlin.generator.sharedUtils.models.scheduling.Permissions
+import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
 import jakarta.persistence.*
 import jakarta.validation.constraints.Size
 import org.hibernate.annotations.GenericGenerator
@@ -91,25 +90,5 @@ data class UserAccount(
 
     override fun toString(): String {
         return "User(id=${this.id}, email=${this.email}, username=${this.username})"
-    }
-}
-
-fun UserAccount.toSuccessHttpResponse(): SuccessUserAccountResponse {
-    return SuccessUserAccountResponse(
-        id = this.id,
-        username = this.username,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt,
-    )
-}
-
-fun List<UserAccount>.toSuccessHttpResponseList(): List<SuccessUserAccountResponse> {
-    return this.map {
-        SuccessUserAccountResponse(
-            id = it.id,
-            username = it.username,
-            createdAt = it.createdAt,
-            updatedAt = it.updatedAt,
-        )
     }
 }

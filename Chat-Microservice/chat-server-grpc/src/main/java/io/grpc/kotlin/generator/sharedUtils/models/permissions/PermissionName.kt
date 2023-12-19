@@ -1,4 +1,4 @@
-package com.geogrind.geogrindbackend.models.permissions
+package io.grpc.kotlin.generator.sharedUtils.models.scheduling
 
 enum class PermissionName {
     CAN_VERIFY_OTP,

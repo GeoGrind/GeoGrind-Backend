@@ -47,6 +47,9 @@ dependencies {
     // database connection pool
     implementation("com.zaxxer:HikariCP:5.0.1")
 
+    // psql driver
+    implementation("org.postgresql:postgresql:42.7.1")
+
     // dotenv
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
 
@@ -54,8 +57,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.0")
     implementation("org.slf4j:slf4j-api:1.7.32")
-
-//    implementation(project(":src:main"))
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")

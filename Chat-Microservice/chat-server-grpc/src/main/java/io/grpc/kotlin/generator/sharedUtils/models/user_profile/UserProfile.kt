@@ -1,12 +1,11 @@
-package com.geogrind.geogrindbackend.models.user_profile
+package io.grpc.kotlin.generator.sharedUtils.models.user_profile
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
-import com.geogrind.geogrindbackend.models.courses.Courses
-import com.geogrind.geogrindbackend.models.sessions.Sessions
-import com.geogrind.geogrindbackend.models.user_account.UserAccount
 import io.grpc.kotlin.generator.models.chatroom.ChatRoom
 import io.grpc.kotlin.generator.models.message.Message
+import io.grpc.kotlin.generator.sharedUtils.models.courses.Courses
+import io.grpc.kotlin.generator.sharedUtils.models.sessions.Sessions
+import io.grpc.kotlin.generator.sharedUtils.models.user_account.UserAccount
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -88,7 +87,7 @@ data class UserProfile(
     @JoinColumn(name = "chatroom_id", insertable = false, updatable = false)
     var chatRoom: ChatRoom? = null,
 
-    @OneToOne(mappedBy = "user_profile")
+    @OneToOne(mappedBy = "messageSender")
     @JsonIgnore
     var messageSender: Message? = null,
 
@@ -141,36 +140,5 @@ data class UserProfile(
 
     override fun toString(): String {
         return "UserProfile(profile_id=${this.profile_id}, username=${this.username}, emoji=${this.emoji}, program=${this.program}, year_of_graduation=${this.year_of_graduation}, university=${this.university}, user_account=${this.userAccount}, courses=${this.courses}, session=${this.session}"
-    }
-}
-
-// success response
-fun UserProfile.toSuccessHttpResponse(): SuccessUserProfileResponse {
-    return SuccessUserProfileResponse(
-        profile_id = this.profile_id,
-        username = this.username,
-        emoji = this.emoji,
-        program = this.program,
-        courses = this.courses,
-        year_of_graduation = this.year_of_graduation,
-        university = this.university,
-        createdAt = this.createdAt,
-        updatedAt = this.updatedAt,
-    )
-}
-
-fun List<UserProfile>.toSuccessHttpResponseList(): List<SuccessUserProfileResponse> {
-    return this.map {
-        SuccessUserProfileResponse(
-            profile_id = it.profile_id,
-            username = it.username,
-            emoji = it.emoji,
-            program = it.program,
-            courses = it.courses,
-            year_of_graduation = it.year_of_graduation,
-            university = it.university,
-            createdAt = it.createdAt,
-            updatedAt = it.updatedAt,
-        )
     }
 }
