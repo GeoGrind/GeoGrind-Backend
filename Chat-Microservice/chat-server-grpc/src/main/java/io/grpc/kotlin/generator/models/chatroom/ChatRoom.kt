@@ -51,7 +51,7 @@ data class ChatRoom (
     @LastModifiedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
-    var updatedAny: Date? = Date(),
+    var updatedAt: Date? = Date(),
 ) {
     @Column(name = "chatroom_name", length = 100, unique = false, nullable = false)
     @Size(min = 3)

@@ -6,10 +6,20 @@ plugins {
     // SpringBoot
     id("org.springframework.boot") version "3.1.4"
 
+    // kotlin + spring jpa
     kotlin("jvm") version "1.8.22"
     kotlin("plugin.spring") version "1.8.22"
     kotlin("plugin.jpa") version "1.8.22"
     kotlin("plugin.serialization") version "1.5.31"
+
+    // gRPC + WIRE
+    id("application")
+    id("com.squareup.wire") version "4.9.3"
+    application
+}
+
+application {
+    mainClass.set("io.grpc.kotlin.generator.ChatServerApplicationKt")
 }
 
 kotlin.sourceSets.all {
@@ -75,4 +85,23 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+// Wire protocol buffer plugin
+wire {
+    kotlin {
+        includes = listOf("io.grpc.kotlin.generator.chatroom.*")
+        excludes = emptyList()
+        exclusive = true
+        out = "${layout.buildDirectory}/generated"
+        android = false
+        javaInterop = false
+        buildersOnly = false
+        emitDeclaredOptions = false
+        emitAppliedOptions = true
+        rpcCallStyle = "suspending"
+        rpcRole = "server"
+        nameSuffix = "Suffix"
+        singleMethodServices = false
+    }
 }
