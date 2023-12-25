@@ -90,7 +90,7 @@ tasks.withType<Test> {
 // Wire protocol buffer plugin
 wire {
     kotlin {
-        includes = listOf("io.grpc.kotlin.generator.chatroom.*")
+        includes = listOf("io.grpc.kotlin.generator.*")
         excludes = emptyList()
         exclusive = true
         out = "${layout.buildDirectory}/generated"
@@ -103,5 +103,13 @@ wire {
         rpcRole = "server"
         nameSuffix = "Suffix"
         singleMethodServices = false
+    }
+}
+
+sourceSets {
+    main {
+        wire {
+            sourcePath("src/main/proto")
+        }
     }
 }
