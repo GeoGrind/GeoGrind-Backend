@@ -64,11 +64,11 @@ public class UserProfile(
   public val program: String = "",
   @field:WireField(
     tag = 6,
-    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    adapter = "com.squareup.wire.ProtoAdapter#INT32",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 5,
   )
-  public val yearOfGrad: String = "",
+  public val yearOfGrad: Int = 0,
   @field:WireField(
     tag = 7,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
@@ -198,7 +198,7 @@ public class UserProfile(
     result += """username=${sanitize(username)}"""
     result += """emoji=${sanitize(emoji)}"""
     result += """program=${sanitize(program)}"""
-    result += """yearOfGrad=${sanitize(yearOfGrad)}"""
+    result += """yearOfGrad=$yearOfGrad"""
     result += """university=${sanitize(university)}"""
     if (userAccount != null) result += """userAccount=$userAccount"""
     if (course.isNotEmpty()) result += """course=$course"""
@@ -217,7 +217,7 @@ public class UserProfile(
     username: String = this.username,
     emoji: String = this.emoji,
     program: String = this.program,
-    yearOfGrad: String = this.yearOfGrad,
+    yearOfGrad: Int = this.yearOfGrad,
     university: String = this.university,
     userAccount: UserAccount? = this.userAccount,
     course: List<Courses> = this.course,
@@ -251,7 +251,7 @@ public class UserProfile(
         if (value.username != "") size += ProtoAdapter.STRING.encodedSizeWithTag(3, value.username)
         if (value.emoji != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4, value.emoji)
         if (value.program != "") size += ProtoAdapter.STRING.encodedSizeWithTag(5, value.program)
-        if (value.yearOfGrad != "") size += ProtoAdapter.STRING.encodedSizeWithTag(6,
+        if (value.yearOfGrad != 0) size += ProtoAdapter.INT32.encodedSizeWithTag(6,
             value.yearOfGrad)
         if (value.university != "") size += ProtoAdapter.STRING.encodedSizeWithTag(7,
             value.university)
@@ -277,7 +277,7 @@ public class UserProfile(
         if (value.username != "") ProtoAdapter.STRING.encodeWithTag(writer, 3, value.username)
         if (value.emoji != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.emoji)
         if (value.program != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.program)
-        if (value.yearOfGrad != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.yearOfGrad)
+        if (value.yearOfGrad != 0) ProtoAdapter.INT32.encodeWithTag(writer, 6, value.yearOfGrad)
         if (value.university != "") ProtoAdapter.STRING.encodeWithTag(writer, 7, value.university)
         if (value.userAccount != null) UserAccount.ADAPTER.encodeWithTag(writer, 8,
             value.userAccount)
@@ -305,7 +305,7 @@ public class UserProfile(
         if (value.userAccount != null) UserAccount.ADAPTER.encodeWithTag(writer, 8,
             value.userAccount)
         if (value.university != "") ProtoAdapter.STRING.encodeWithTag(writer, 7, value.university)
-        if (value.yearOfGrad != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.yearOfGrad)
+        if (value.yearOfGrad != 0) ProtoAdapter.INT32.encodeWithTag(writer, 6, value.yearOfGrad)
         if (value.program != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.program)
         if (value.emoji != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.emoji)
         if (value.username != "") ProtoAdapter.STRING.encodeWithTag(writer, 3, value.username)
@@ -320,7 +320,7 @@ public class UserProfile(
         var username: String = ""
         var emoji: String = ""
         var program: String = ""
-        var yearOfGrad: String = ""
+        var yearOfGrad: Int = 0
         var university: String = ""
         var userAccount: UserAccount? = null
         val course = mutableListOf<Courses>()
@@ -337,7 +337,7 @@ public class UserProfile(
             3 -> username = ProtoAdapter.STRING.decode(reader)
             4 -> emoji = ProtoAdapter.STRING.decode(reader)
             5 -> program = ProtoAdapter.STRING.decode(reader)
-            6 -> yearOfGrad = ProtoAdapter.STRING.decode(reader)
+            6 -> yearOfGrad = ProtoAdapter.INT32.decode(reader)
             7 -> university = ProtoAdapter.STRING.decode(reader)
             8 -> userAccount = UserAccount.ADAPTER.decode(reader)
             9 -> course.add(Courses.ADAPTER.decode(reader))

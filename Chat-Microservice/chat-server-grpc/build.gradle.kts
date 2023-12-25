@@ -19,7 +19,7 @@ plugins {
 }
 
 application {
-    mainClass.set("io.grpc.kotlin.generator.ChatServerApplicationKt")
+    mainClass.set("io.grpc.kotlin.generator.ChatGrpcServerApplication")
 }
 
 kotlin.sourceSets.all {

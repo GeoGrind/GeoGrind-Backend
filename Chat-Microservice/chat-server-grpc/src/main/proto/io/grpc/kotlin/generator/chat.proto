@@ -115,7 +115,7 @@ message UserProfile {
   string username = 3;
   string emoji = 4;
   string program = 5;
-  string yearOfGrad = 6;
+  int32 yearOfGrad = 6;
   string university = 7;
   UserAccount userAccount = 8;
   repeated Courses course = 9;
