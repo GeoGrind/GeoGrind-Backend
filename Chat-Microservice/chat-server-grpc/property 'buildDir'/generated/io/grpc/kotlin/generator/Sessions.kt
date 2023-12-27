@@ -47,11 +47,11 @@ public class Sessions(
   public val userProfile: UserProfile? = null,
   @field:WireField(
     tag = 4,
-    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    adapter = "com.squareup.wire.ProtoAdapter#INT64",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 3,
   )
-  public val startTime: String = "",
+  public val startTime: Long = 0L,
   @field:WireField(
     tag = 5,
     adapter = "com.squareup.wire.ProtoAdapter#INT32",
@@ -61,11 +61,11 @@ public class Sessions(
   public val numberOfLikers: Int = 0,
   @field:WireField(
     tag = 6,
-    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    adapter = "com.squareup.wire.ProtoAdapter#INT64",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 5,
   )
-  public val stopTime: String = "",
+  public val stopTime: Long = 0L,
   @field:WireField(
     tag = 7,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
@@ -135,9 +135,9 @@ public class Sessions(
     result += """sessionId=${sanitize(sessionId)}"""
     if (course != null) result += """course=$course"""
     if (userProfile != null) result += """userProfile=$userProfile"""
-    result += """startTime=${sanitize(startTime)}"""
+    result += """startTime=$startTime"""
     result += """numberOfLikers=$numberOfLikers"""
-    result += """stopTime=${sanitize(stopTime)}"""
+    result += """stopTime=$stopTime"""
     result += """description=${sanitize(description)}"""
     result += """createdAt=${sanitize(createdAt)}"""
     result += """updatedAt=${sanitize(updatedAt)}"""
@@ -148,9 +148,9 @@ public class Sessions(
     sessionId: String = this.sessionId,
     course: Courses? = this.course,
     userProfile: UserProfile? = this.userProfile,
-    startTime: String = this.startTime,
+    startTime: Long = this.startTime,
     numberOfLikers: Int = this.numberOfLikers,
-    stopTime: String = this.stopTime,
+    stopTime: Long = this.stopTime,
     description: String = this.description,
     createdAt: String = this.createdAt,
     updatedAt: String = this.updatedAt,
@@ -175,11 +175,10 @@ public class Sessions(
         if (value.course != null) size += Courses.ADAPTER.encodedSizeWithTag(2, value.course)
         if (value.userProfile != null) size += UserProfile.ADAPTER.encodedSizeWithTag(3,
             value.userProfile)
-        if (value.startTime != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4,
-            value.startTime)
+        if (value.startTime != 0L) size += ProtoAdapter.INT64.encodedSizeWithTag(4, value.startTime)
         if (value.numberOfLikers != 0) size += ProtoAdapter.INT32.encodedSizeWithTag(5,
             value.numberOfLikers)
-        if (value.stopTime != "") size += ProtoAdapter.STRING.encodedSizeWithTag(6, value.stopTime)
+        if (value.stopTime != 0L) size += ProtoAdapter.INT64.encodedSizeWithTag(6, value.stopTime)
         if (value.description != "") size += ProtoAdapter.STRING.encodedSizeWithTag(7,
             value.description)
         if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(8,
@@ -194,10 +193,10 @@ public class Sessions(
         if (value.course != null) Courses.ADAPTER.encodeWithTag(writer, 2, value.course)
         if (value.userProfile != null) UserProfile.ADAPTER.encodeWithTag(writer, 3,
             value.userProfile)
-        if (value.startTime != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.startTime)
+        if (value.startTime != 0L) ProtoAdapter.INT64.encodeWithTag(writer, 4, value.startTime)
         if (value.numberOfLikers != 0) ProtoAdapter.INT32.encodeWithTag(writer, 5,
             value.numberOfLikers)
-        if (value.stopTime != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.stopTime)
+        if (value.stopTime != 0L) ProtoAdapter.INT64.encodeWithTag(writer, 6, value.stopTime)
         if (value.description != "") ProtoAdapter.STRING.encodeWithTag(writer, 7, value.description)
         if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 8, value.createdAt)
         if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 9, value.updatedAt)
@@ -209,10 +208,10 @@ public class Sessions(
         if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 9, value.updatedAt)
         if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 8, value.createdAt)
         if (value.description != "") ProtoAdapter.STRING.encodeWithTag(writer, 7, value.description)
-        if (value.stopTime != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.stopTime)
+        if (value.stopTime != 0L) ProtoAdapter.INT64.encodeWithTag(writer, 6, value.stopTime)
         if (value.numberOfLikers != 0) ProtoAdapter.INT32.encodeWithTag(writer, 5,
             value.numberOfLikers)
-        if (value.startTime != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.startTime)
+        if (value.startTime != 0L) ProtoAdapter.INT64.encodeWithTag(writer, 4, value.startTime)
         if (value.userProfile != null) UserProfile.ADAPTER.encodeWithTag(writer, 3,
             value.userProfile)
         if (value.course != null) Courses.ADAPTER.encodeWithTag(writer, 2, value.course)
@@ -223,9 +222,9 @@ public class Sessions(
         var sessionId: String = ""
         var course: Courses? = null
         var userProfile: UserProfile? = null
-        var startTime: String = ""
+        var startTime: Long = 0L
         var numberOfLikers: Int = 0
-        var stopTime: String = ""
+        var stopTime: Long = 0L
         var description: String = ""
         var createdAt: String = ""
         var updatedAt: String = ""
@@ -234,9 +233,9 @@ public class Sessions(
             1 -> sessionId = ProtoAdapter.STRING.decode(reader)
             2 -> course = Courses.ADAPTER.decode(reader)
             3 -> userProfile = UserProfile.ADAPTER.decode(reader)
-            4 -> startTime = ProtoAdapter.STRING.decode(reader)
+            4 -> startTime = ProtoAdapter.INT64.decode(reader)
             5 -> numberOfLikers = ProtoAdapter.INT32.decode(reader)
-            6 -> stopTime = ProtoAdapter.STRING.decode(reader)
+            6 -> stopTime = ProtoAdapter.INT64.decode(reader)
             7 -> description = ProtoAdapter.STRING.decode(reader)
             8 -> createdAt = ProtoAdapter.STRING.decode(reader)
             9 -> updatedAt = ProtoAdapter.STRING.decode(reader)

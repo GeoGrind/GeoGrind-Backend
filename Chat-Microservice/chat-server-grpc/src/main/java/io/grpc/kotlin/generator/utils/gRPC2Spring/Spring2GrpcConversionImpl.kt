@@ -11,8 +11,10 @@ import io.grpc.kotlin.generator.sharedUtils.models.scheduling.Permissions
 import io.grpc.kotlin.generator.sharedUtils.models.sessions.Sessions
 import io.grpc.kotlin.generator.sharedUtils.models.user_account.UserAccount
 import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
+import org.springframework.stereotype.Service
 
-class GrpcToSpringConversionImpl : GrpcToSpringConversion {
+@Service
+class Spring2GrpcConversionImpl : Spring2GrpcConversion {
     override fun convertAttachment(attachments: List<Attachment>): List<io.grpc.kotlin.generator.Attachment> {
         val gRPCAttachments: MutableSet<io.grpc.kotlin.generator.Attachment> = HashSet()
         attachments.forEach { attachment: Attachment ->
@@ -116,8 +118,7 @@ class GrpcToSpringConversionImpl : GrpcToSpringConversion {
                                         program = it2,
                                         yearOfGrad = it5,
                                         university = it3,
-                                        userAccount = convertUserAccount(
-                                            listOf(userProfile.userAccount)
+                                        userAccount = convertUserAccount(listOf(userProfile.userAccount)
                                         )[0],
                                         course = it4,
                                         sessions = convertSession(listOf(userProfile.session!!))[0],

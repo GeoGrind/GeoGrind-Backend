@@ -2,7 +2,6 @@
 // Source: io.grpc.kotlin.generator.Theme in io/grpc/kotlin/generator/chat.proto
 package io.grpc.kotlin.generator
 
-import com.squareup.wire.EnumAdapter
 import com.squareup.wire.FieldEncoding
 import com.squareup.wire.Message
 import com.squareup.wire.ProtoAdapter
@@ -10,10 +9,8 @@ import com.squareup.wire.ProtoReader
 import com.squareup.wire.ProtoWriter
 import com.squareup.wire.ReverseProtoWriter
 import com.squareup.wire.Syntax.PROTO_3
-import com.squareup.wire.WireEnum
 import com.squareup.wire.WireField
 import com.squareup.wire.`internal`.JvmField
-import com.squareup.wire.`internal`.JvmStatic
 import com.squareup.wire.`internal`.sanitize
 import kotlin.Any
 import kotlin.AssertionError
@@ -47,19 +44,26 @@ public class Theme(
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 2,
   )
-  public val themeDescription: String = "",
+  public val themeType: String = "",
   @field:WireField(
     tag = 4,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 3,
   )
-  public val createdAt: String = "",
+  public val themeDescription: String = "",
   @field:WireField(
     tag = 5,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 4,
+  )
+  public val createdAt: String = "",
+  @field:WireField(
+    tag = 6,
+    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    label = WireField.Label.OMIT_IDENTITY,
+    schemaIndex = 5,
   )
   public val updatedAt: String = "",
   unknownFields: ByteString = ByteString.EMPTY,
@@ -77,6 +81,7 @@ public class Theme(
     if (unknownFields != other.unknownFields) return false
     if (themeId != other.themeId) return false
     if (chatRoom != other.chatRoom) return false
+    if (themeType != other.themeType) return false
     if (themeDescription != other.themeDescription) return false
     if (createdAt != other.createdAt) return false
     if (updatedAt != other.updatedAt) return false
@@ -89,6 +94,7 @@ public class Theme(
       result = unknownFields.hashCode()
       result = result * 37 + themeId.hashCode()
       result = result * 37 + (chatRoom?.hashCode() ?: 0)
+      result = result * 37 + themeType.hashCode()
       result = result * 37 + themeDescription.hashCode()
       result = result * 37 + createdAt.hashCode()
       result = result * 37 + updatedAt.hashCode()
@@ -101,6 +107,7 @@ public class Theme(
     val result = mutableListOf<String>()
     result += """themeId=${sanitize(themeId)}"""
     if (chatRoom != null) result += """chatRoom=$chatRoom"""
+    result += """themeType=${sanitize(themeType)}"""
     result += """themeDescription=${sanitize(themeDescription)}"""
     result += """createdAt=${sanitize(createdAt)}"""
     result += """updatedAt=${sanitize(updatedAt)}"""
@@ -110,11 +117,13 @@ public class Theme(
   public fun copy(
     themeId: String = this.themeId,
     chatRoom: ChatRoom? = this.chatRoom,
+    themeType: String = this.themeType,
     themeDescription: String = this.themeDescription,
     createdAt: String = this.createdAt,
     updatedAt: String = this.updatedAt,
     unknownFields: ByteString = this.unknownFields,
-  ): Theme = Theme(themeId, chatRoom, themeDescription, createdAt, updatedAt, unknownFields)
+  ): Theme = Theme(themeId, chatRoom, themeType, themeDescription, createdAt, updatedAt,
+      unknownFields)
 
   public companion object {
     @JvmField
@@ -130,11 +139,13 @@ public class Theme(
         var size = value.unknownFields.size
         if (value.themeId != "") size += ProtoAdapter.STRING.encodedSizeWithTag(1, value.themeId)
         if (value.chatRoom != null) size += ChatRoom.ADAPTER.encodedSizeWithTag(2, value.chatRoom)
-        if (value.themeDescription != "") size += ProtoAdapter.STRING.encodedSizeWithTag(3,
+        if (value.themeType != "") size += ProtoAdapter.STRING.encodedSizeWithTag(3,
+            value.themeType)
+        if (value.themeDescription != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4,
             value.themeDescription)
-        if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4,
+        if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(5,
             value.createdAt)
-        if (value.updatedAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(5,
+        if (value.updatedAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(6,
             value.updatedAt)
         return size
       }
@@ -142,19 +153,21 @@ public class Theme(
       override fun encode(writer: ProtoWriter, `value`: Theme) {
         if (value.themeId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1, value.themeId)
         if (value.chatRoom != null) ChatRoom.ADAPTER.encodeWithTag(writer, 2, value.chatRoom)
-        if (value.themeDescription != "") ProtoAdapter.STRING.encodeWithTag(writer, 3,
+        if (value.themeType != "") ProtoAdapter.STRING.encodeWithTag(writer, 3, value.themeType)
+        if (value.themeDescription != "") ProtoAdapter.STRING.encodeWithTag(writer, 4,
             value.themeDescription)
-        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
-        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.updatedAt)
+        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.createdAt)
+        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.updatedAt)
         writer.writeBytes(value.unknownFields)
       }
 
       override fun encode(writer: ReverseProtoWriter, `value`: Theme) {
         writer.writeBytes(value.unknownFields)
-        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.updatedAt)
-        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
-        if (value.themeDescription != "") ProtoAdapter.STRING.encodeWithTag(writer, 3,
+        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.updatedAt)
+        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.createdAt)
+        if (value.themeDescription != "") ProtoAdapter.STRING.encodeWithTag(writer, 4,
             value.themeDescription)
+        if (value.themeType != "") ProtoAdapter.STRING.encodeWithTag(writer, 3, value.themeType)
         if (value.chatRoom != null) ChatRoom.ADAPTER.encodeWithTag(writer, 2, value.chatRoom)
         if (value.themeId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1, value.themeId)
       }
@@ -162,6 +175,7 @@ public class Theme(
       override fun decode(reader: ProtoReader): Theme {
         var themeId: String = ""
         var chatRoom: ChatRoom? = null
+        var themeType: String = ""
         var themeDescription: String = ""
         var createdAt: String = ""
         var updatedAt: String = ""
@@ -169,15 +183,17 @@ public class Theme(
           when (tag) {
             1 -> themeId = ProtoAdapter.STRING.decode(reader)
             2 -> chatRoom = ChatRoom.ADAPTER.decode(reader)
-            3 -> themeDescription = ProtoAdapter.STRING.decode(reader)
-            4 -> createdAt = ProtoAdapter.STRING.decode(reader)
-            5 -> updatedAt = ProtoAdapter.STRING.decode(reader)
+            3 -> themeType = ProtoAdapter.STRING.decode(reader)
+            4 -> themeDescription = ProtoAdapter.STRING.decode(reader)
+            5 -> createdAt = ProtoAdapter.STRING.decode(reader)
+            6 -> updatedAt = ProtoAdapter.STRING.decode(reader)
             else -> reader.readUnknownField(tag)
           }
         }
         return Theme(
           themeId = themeId,
           chatRoom = chatRoom,
+          themeType = themeType,
           themeDescription = themeDescription,
           createdAt = createdAt,
           updatedAt = updatedAt,
@@ -192,57 +208,5 @@ public class Theme(
     }
 
     private const val serialVersionUID: Long = 0L
-  }
-
-  public enum class themeType(
-    override val `value`: Int,
-  ) : WireEnum {
-    Football(0),
-    Wonka(1),
-    Hanukkah(2),
-    LouisVuitton(3),
-    Christmas(4),
-    Pizza(5),
-    Wish(6),
-    Trolls(7),
-    TheMarvels(8),
-    OnePiece(9),
-    Avocado(10),
-    Loki(11),
-    Rustle(12),
-    Pride(13),
-    NonBinary(14),
-    ;
-
-    public companion object {
-      @JvmField
-      public val ADAPTER: ProtoAdapter<themeType> = object : EnumAdapter<themeType>(
-        themeType::class, 
-        PROTO_3, 
-        themeType.Football
-      ) {
-        override fun fromValue(`value`: Int): themeType? = themeType.fromValue(value)
-      }
-
-      @JvmStatic
-      public fun fromValue(`value`: Int): themeType? = when (value) {
-        0 -> Football
-        1 -> Wonka
-        2 -> Hanukkah
-        3 -> LouisVuitton
-        4 -> Christmas
-        5 -> Pizza
-        6 -> Wish
-        7 -> Trolls
-        8 -> TheMarvels
-        9 -> OnePiece
-        10 -> Avocado
-        11 -> Loki
-        12 -> Rustle
-        13 -> Pride
-        14 -> NonBinary
-        else -> null
-      }
-    }
   }
 }

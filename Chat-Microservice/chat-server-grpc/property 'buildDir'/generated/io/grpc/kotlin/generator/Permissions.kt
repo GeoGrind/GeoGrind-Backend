@@ -2,7 +2,6 @@
 // Source: io.grpc.kotlin.generator.Permissions in io/grpc/kotlin/generator/chat.proto
 package io.grpc.kotlin.generator
 
-import com.squareup.wire.EnumAdapter
 import com.squareup.wire.FieldEncoding
 import com.squareup.wire.Message
 import com.squareup.wire.ProtoAdapter
@@ -10,10 +9,8 @@ import com.squareup.wire.ProtoReader
 import com.squareup.wire.ProtoWriter
 import com.squareup.wire.ReverseProtoWriter
 import com.squareup.wire.Syntax.PROTO_3
-import com.squareup.wire.WireEnum
 import com.squareup.wire.WireField
 import com.squareup.wire.`internal`.JvmField
-import com.squareup.wire.`internal`.JvmStatic
 import com.squareup.wire.`internal`.sanitize
 import kotlin.Any
 import kotlin.AssertionError
@@ -35,24 +32,31 @@ public class Permissions(
   )
   public val permissionId: String = "",
   @field:WireField(
+    tag = 2,
+    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    label = WireField.Label.OMIT_IDENTITY,
+    schemaIndex = 1,
+  )
+  public val permissionName: String = "",
+  @field:WireField(
     tag = 3,
     adapter = "io.grpc.kotlin.generator.UserAccount#ADAPTER",
     label = WireField.Label.OMIT_IDENTITY,
-    schemaIndex = 1,
+    schemaIndex = 2,
   )
   public val userAccount: UserAccount? = null,
   @field:WireField(
     tag = 4,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
-    schemaIndex = 2,
+    schemaIndex = 3,
   )
   public val createdAt: String = "",
   @field:WireField(
     tag = 5,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
-    schemaIndex = 3,
+    schemaIndex = 4,
   )
   public val updatedAt: String = "",
   unknownFields: ByteString = ByteString.EMPTY,
@@ -69,6 +73,7 @@ public class Permissions(
     if (other !is Permissions) return false
     if (unknownFields != other.unknownFields) return false
     if (permissionId != other.permissionId) return false
+    if (permissionName != other.permissionName) return false
     if (userAccount != other.userAccount) return false
     if (createdAt != other.createdAt) return false
     if (updatedAt != other.updatedAt) return false
@@ -80,6 +85,7 @@ public class Permissions(
     if (result == 0) {
       result = unknownFields.hashCode()
       result = result * 37 + permissionId.hashCode()
+      result = result * 37 + permissionName.hashCode()
       result = result * 37 + (userAccount?.hashCode() ?: 0)
       result = result * 37 + createdAt.hashCode()
       result = result * 37 + updatedAt.hashCode()
@@ -91,6 +97,7 @@ public class Permissions(
   override fun toString(): String {
     val result = mutableListOf<String>()
     result += """permissionId=${sanitize(permissionId)}"""
+    result += """permissionName=${sanitize(permissionName)}"""
     if (userAccount != null) result += """userAccount=$userAccount"""
     result += """createdAt=${sanitize(createdAt)}"""
     result += """updatedAt=${sanitize(updatedAt)}"""
@@ -99,11 +106,13 @@ public class Permissions(
 
   public fun copy(
     permissionId: String = this.permissionId,
+    permissionName: String = this.permissionName,
     userAccount: UserAccount? = this.userAccount,
     createdAt: String = this.createdAt,
     updatedAt: String = this.updatedAt,
     unknownFields: ByteString = this.unknownFields,
-  ): Permissions = Permissions(permissionId, userAccount, createdAt, updatedAt, unknownFields)
+  ): Permissions = Permissions(permissionId, permissionName, userAccount, createdAt, updatedAt,
+      unknownFields)
 
   public companion object {
     @JvmField
@@ -119,6 +128,8 @@ public class Permissions(
         var size = value.unknownFields.size
         if (value.permissionId != "") size += ProtoAdapter.STRING.encodedSizeWithTag(1,
             value.permissionId)
+        if (value.permissionName != "") size += ProtoAdapter.STRING.encodedSizeWithTag(2,
+            value.permissionName)
         if (value.userAccount != null) size += UserAccount.ADAPTER.encodedSizeWithTag(3,
             value.userAccount)
         if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4,
@@ -131,6 +142,8 @@ public class Permissions(
       override fun encode(writer: ProtoWriter, `value`: Permissions) {
         if (value.permissionId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1,
             value.permissionId)
+        if (value.permissionName != "") ProtoAdapter.STRING.encodeWithTag(writer, 2,
+            value.permissionName)
         if (value.userAccount != null) UserAccount.ADAPTER.encodeWithTag(writer, 3,
             value.userAccount)
         if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
@@ -144,18 +157,22 @@ public class Permissions(
         if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
         if (value.userAccount != null) UserAccount.ADAPTER.encodeWithTag(writer, 3,
             value.userAccount)
+        if (value.permissionName != "") ProtoAdapter.STRING.encodeWithTag(writer, 2,
+            value.permissionName)
         if (value.permissionId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1,
             value.permissionId)
       }
 
       override fun decode(reader: ProtoReader): Permissions {
         var permissionId: String = ""
+        var permissionName: String = ""
         var userAccount: UserAccount? = null
         var createdAt: String = ""
         var updatedAt: String = ""
         val unknownFields = reader.forEachTag { tag ->
           when (tag) {
             1 -> permissionId = ProtoAdapter.STRING.decode(reader)
+            2 -> permissionName = ProtoAdapter.STRING.decode(reader)
             3 -> userAccount = UserAccount.ADAPTER.decode(reader)
             4 -> createdAt = ProtoAdapter.STRING.decode(reader)
             5 -> updatedAt = ProtoAdapter.STRING.decode(reader)
@@ -164,6 +181,7 @@ public class Permissions(
         }
         return Permissions(
           permissionId = permissionId,
+          permissionName = permissionName,
           userAccount = userAccount,
           createdAt = createdAt,
           updatedAt = updatedAt,
@@ -178,68 +196,5 @@ public class Permissions(
     }
 
     private const val serialVersionUID: Long = 0L
-  }
-
-  public enum class permission_name(
-    override val `value`: Int,
-  ) : WireEnum {
-    CAN_VERIFY_OTP(0),
-    /**
-     * User Profile
-     */
-    CAN_VIEW_PROFILE(1),
-    CAN_EDIT_PROFILE(2),
-    /**
-     * Files upload
-     */
-    CAN_VIEW_FILES(3),
-    CAN_UPLOAD_FILES(4),
-    CAN_DELETE_FILES(5),
-    /**
-     * Map
-     */
-    CAN_VIEW_MAP(6),
-    /**
-     * Session
-     */
-    CAN_VIEW_SESSION(7),
-    CAN_CREATE_SESSION(8),
-    CAN_UPDATE_SESSION(9),
-    CAN_STOP_SESSION(10),
-    /**
-     * Message
-     */
-    CAN_VIEW_CHAT(11),
-    CAN_EDIT_CHAT(12),
-    ;
-
-    public companion object {
-      @JvmField
-      public val ADAPTER: ProtoAdapter<permission_name> = object : EnumAdapter<permission_name>(
-        permission_name::class, 
-        PROTO_3, 
-        permission_name.CAN_VERIFY_OTP
-      ) {
-        override fun fromValue(`value`: Int): permission_name? = permission_name.fromValue(value)
-      }
-
-      @JvmStatic
-      public fun fromValue(`value`: Int): permission_name? = when (value) {
-        0 -> CAN_VERIFY_OTP
-        1 -> CAN_VIEW_PROFILE
-        2 -> CAN_EDIT_PROFILE
-        3 -> CAN_VIEW_FILES
-        4 -> CAN_UPLOAD_FILES
-        5 -> CAN_DELETE_FILES
-        6 -> CAN_VIEW_MAP
-        7 -> CAN_VIEW_SESSION
-        8 -> CAN_CREATE_SESSION
-        9 -> CAN_UPDATE_SESSION
-        10 -> CAN_STOP_SESSION
-        11 -> CAN_VIEW_CHAT
-        12 -> CAN_EDIT_CHAT
-        else -> null
-      }
-    }
   }
 }

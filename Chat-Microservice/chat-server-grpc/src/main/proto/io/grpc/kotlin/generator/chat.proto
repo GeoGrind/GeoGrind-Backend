@@ -9,88 +9,32 @@ option java_outer_classname = "ChatProto";
 message Attachment {
   string attachmentId = 1;
   string url = 2;
-  enum attachmentType {
-    PDF = 0;
-    PNG = 1;
-    JPG = 2;
-    JPEG = 3;
-    DOCUMENT = 4;
-    VIDEO = 5;
-    LINK = 6;
-  }
+  string attachmentType = 3;
+  Messages message = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
+}
+
+message Reaction {
+  string reactionId = 1;
+  string reactionType = 2;
   Messages message = 3;
   string createdAt = 4;
   string updatedAt = 5;
 }
 
-message Reaction {
-  string reactionId = 1;
-  enum reactionType {
-    SMILE = 0;
-    SMIRK = 1;
-    SAD = 2;
-    CRY = 3;
-    LAUGH = 4;
-    ROCK = 5;
-    PAPER = 6;
-  }
-  Messages message = 2;
-  string createdAt = 3;
-  string updatedAt = 4;
-}
-
 message Theme {
   string themeId = 1;
   ChatRoom chatRoom = 2;
-  enum themeType {
-    Football = 0;
-    Wonka = 1;
-    Hanukkah = 2;
-    LouisVuitton = 3;
-    Christmas = 4;
-    Pizza = 5;
-    Wish = 6;
-    Trolls = 7;
-    TheMarvels = 8;
-    OnePiece = 9;
-    Avocado = 10;
-    Loki = 11;
-    Rustle = 12;
-    Pride = 13;
-    NonBinary = 14;
-  }
-  string themeDescription = 3;
-  string createdAt = 4;
-  string updatedAt = 5;
+  string themeType = 3;
+  string themeDescription = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
 }
 
 message Permissions {
   string permissionId = 1;
-  enum permission_name {
-    CAN_VERIFY_OTP = 0;
-
-    // User Profile
-    CAN_VIEW_PROFILE = 1;
-    CAN_EDIT_PROFILE = 2;
-
-    // Files upload
-    CAN_VIEW_FILES = 3;
-    CAN_UPLOAD_FILES = 4;
-    CAN_DELETE_FILES = 5;
-
-    // Map
-    CAN_VIEW_MAP = 6;
-
-    // Session
-    CAN_VIEW_SESSION = 7;
-    CAN_CREATE_SESSION = 8;
-    CAN_UPDATE_SESSION = 9;
-    CAN_STOP_SESSION = 10;
-
-    // Message
-    CAN_VIEW_CHAT = 11;
-    CAN_EDIT_CHAT = 12;
-  }
+  string permissionName = 2;
   UserAccount userAccount = 3;
   string createdAt = 4;
   string updatedAt = 5;
@@ -140,9 +84,9 @@ message Sessions {
   string sessionId = 1;
   Courses course = 2;
   UserProfile userProfile = 3;
-  string startTime = 4;
+  int64 startTime = 4;
   int32 numberOfLikers = 5;
-  string stopTime = 6;
+  int64 stopTime = 6;
   string description = 7;
   string createdAt = 8;
   string updatedAt = 9;

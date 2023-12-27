@@ -2,7 +2,6 @@
 // Source: io.grpc.kotlin.generator.Attachment in io/grpc/kotlin/generator/chat.proto
 package io.grpc.kotlin.generator
 
-import com.squareup.wire.EnumAdapter
 import com.squareup.wire.FieldEncoding
 import com.squareup.wire.Message
 import com.squareup.wire.ProtoAdapter
@@ -10,10 +9,8 @@ import com.squareup.wire.ProtoReader
 import com.squareup.wire.ProtoWriter
 import com.squareup.wire.ReverseProtoWriter
 import com.squareup.wire.Syntax.PROTO_3
-import com.squareup.wire.WireEnum
 import com.squareup.wire.WireField
 import com.squareup.wire.`internal`.JvmField
-import com.squareup.wire.`internal`.JvmStatic
 import com.squareup.wire.`internal`.sanitize
 import kotlin.Any
 import kotlin.AssertionError
@@ -43,23 +40,30 @@ public class Attachment(
   public val url: String = "",
   @field:WireField(
     tag = 3,
-    adapter = "io.grpc.kotlin.generator.Messages#ADAPTER",
+    adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 2,
   )
-  public val message: Messages? = null,
+  public val attachmentType: String = "",
   @field:WireField(
     tag = 4,
-    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    adapter = "io.grpc.kotlin.generator.Messages#ADAPTER",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 3,
   )
-  public val createdAt: String = "",
+  public val message: Messages? = null,
   @field:WireField(
     tag = 5,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 4,
+  )
+  public val createdAt: String = "",
+  @field:WireField(
+    tag = 6,
+    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    label = WireField.Label.OMIT_IDENTITY,
+    schemaIndex = 5,
   )
   public val updatedAt: String = "",
   unknownFields: ByteString = ByteString.EMPTY,
@@ -77,6 +81,7 @@ public class Attachment(
     if (unknownFields != other.unknownFields) return false
     if (attachmentId != other.attachmentId) return false
     if (url != other.url) return false
+    if (attachmentType != other.attachmentType) return false
     if (message != other.message) return false
     if (createdAt != other.createdAt) return false
     if (updatedAt != other.updatedAt) return false
@@ -89,6 +94,7 @@ public class Attachment(
       result = unknownFields.hashCode()
       result = result * 37 + attachmentId.hashCode()
       result = result * 37 + url.hashCode()
+      result = result * 37 + attachmentType.hashCode()
       result = result * 37 + (message?.hashCode() ?: 0)
       result = result * 37 + createdAt.hashCode()
       result = result * 37 + updatedAt.hashCode()
@@ -101,6 +107,7 @@ public class Attachment(
     val result = mutableListOf<String>()
     result += """attachmentId=${sanitize(attachmentId)}"""
     result += """url=${sanitize(url)}"""
+    result += """attachmentType=${sanitize(attachmentType)}"""
     if (message != null) result += """message=$message"""
     result += """createdAt=${sanitize(createdAt)}"""
     result += """updatedAt=${sanitize(updatedAt)}"""
@@ -110,11 +117,13 @@ public class Attachment(
   public fun copy(
     attachmentId: String = this.attachmentId,
     url: String = this.url,
+    attachmentType: String = this.attachmentType,
     message: Messages? = this.message,
     createdAt: String = this.createdAt,
     updatedAt: String = this.updatedAt,
     unknownFields: ByteString = this.unknownFields,
-  ): Attachment = Attachment(attachmentId, url, message, createdAt, updatedAt, unknownFields)
+  ): Attachment = Attachment(attachmentId, url, attachmentType, message, createdAt, updatedAt,
+      unknownFields)
 
   public companion object {
     @JvmField
@@ -131,10 +140,12 @@ public class Attachment(
         if (value.attachmentId != "") size += ProtoAdapter.STRING.encodedSizeWithTag(1,
             value.attachmentId)
         if (value.url != "") size += ProtoAdapter.STRING.encodedSizeWithTag(2, value.url)
-        if (value.message != null) size += Messages.ADAPTER.encodedSizeWithTag(3, value.message)
-        if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4,
+        if (value.attachmentType != "") size += ProtoAdapter.STRING.encodedSizeWithTag(3,
+            value.attachmentType)
+        if (value.message != null) size += Messages.ADAPTER.encodedSizeWithTag(4, value.message)
+        if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(5,
             value.createdAt)
-        if (value.updatedAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(5,
+        if (value.updatedAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(6,
             value.updatedAt)
         return size
       }
@@ -143,17 +154,21 @@ public class Attachment(
         if (value.attachmentId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1,
             value.attachmentId)
         if (value.url != "") ProtoAdapter.STRING.encodeWithTag(writer, 2, value.url)
-        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 3, value.message)
-        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
-        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.updatedAt)
+        if (value.attachmentType != "") ProtoAdapter.STRING.encodeWithTag(writer, 3,
+            value.attachmentType)
+        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 4, value.message)
+        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.createdAt)
+        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.updatedAt)
         writer.writeBytes(value.unknownFields)
       }
 
       override fun encode(writer: ReverseProtoWriter, `value`: Attachment) {
         writer.writeBytes(value.unknownFields)
-        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.updatedAt)
-        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
-        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 3, value.message)
+        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 6, value.updatedAt)
+        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.createdAt)
+        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 4, value.message)
+        if (value.attachmentType != "") ProtoAdapter.STRING.encodeWithTag(writer, 3,
+            value.attachmentType)
         if (value.url != "") ProtoAdapter.STRING.encodeWithTag(writer, 2, value.url)
         if (value.attachmentId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1,
             value.attachmentId)
@@ -162,6 +177,7 @@ public class Attachment(
       override fun decode(reader: ProtoReader): Attachment {
         var attachmentId: String = ""
         var url: String = ""
+        var attachmentType: String = ""
         var message: Messages? = null
         var createdAt: String = ""
         var updatedAt: String = ""
@@ -169,15 +185,17 @@ public class Attachment(
           when (tag) {
             1 -> attachmentId = ProtoAdapter.STRING.decode(reader)
             2 -> url = ProtoAdapter.STRING.decode(reader)
-            3 -> message = Messages.ADAPTER.decode(reader)
-            4 -> createdAt = ProtoAdapter.STRING.decode(reader)
-            5 -> updatedAt = ProtoAdapter.STRING.decode(reader)
+            3 -> attachmentType = ProtoAdapter.STRING.decode(reader)
+            4 -> message = Messages.ADAPTER.decode(reader)
+            5 -> createdAt = ProtoAdapter.STRING.decode(reader)
+            6 -> updatedAt = ProtoAdapter.STRING.decode(reader)
             else -> reader.readUnknownField(tag)
           }
         }
         return Attachment(
           attachmentId = attachmentId,
           url = url,
+          attachmentType = attachmentType,
           message = message,
           createdAt = createdAt,
           updatedAt = updatedAt,
@@ -192,41 +210,5 @@ public class Attachment(
     }
 
     private const val serialVersionUID: Long = 0L
-  }
-
-  public enum class attachmentType(
-    override val `value`: Int,
-  ) : WireEnum {
-    PDF(0),
-    PNG(1),
-    JPG(2),
-    JPEG(3),
-    DOCUMENT(4),
-    VIDEO(5),
-    LINK(6),
-    ;
-
-    public companion object {
-      @JvmField
-      public val ADAPTER: ProtoAdapter<attachmentType> = object : EnumAdapter<attachmentType>(
-        attachmentType::class, 
-        PROTO_3, 
-        attachmentType.PDF
-      ) {
-        override fun fromValue(`value`: Int): attachmentType? = attachmentType.fromValue(value)
-      }
-
-      @JvmStatic
-      public fun fromValue(`value`: Int): attachmentType? = when (value) {
-        0 -> PDF
-        1 -> PNG
-        2 -> JPG
-        3 -> JPEG
-        4 -> DOCUMENT
-        5 -> VIDEO
-        6 -> LINK
-        else -> null
-      }
-    }
   }
 }

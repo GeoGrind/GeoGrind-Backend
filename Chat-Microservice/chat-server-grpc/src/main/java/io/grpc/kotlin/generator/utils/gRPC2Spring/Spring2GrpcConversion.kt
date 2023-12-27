@@ -14,7 +14,7 @@ import io.grpc.kotlin.generator.sharedUtils.models.user_profile.UserProfile
 import org.springframework.stereotype.Service
 
 @Service
-interface GrpcToSpringConversion {
+interface Spring2GrpcConversion {
     fun convertAttachment(attachments: List<Attachment>): List<io.grpc.kotlin.generator.Attachment>
 
     fun convertReaction(reactions: List<Reaction>): List<io.grpc.kotlin.generator.Reaction>

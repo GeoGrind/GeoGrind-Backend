@@ -2,7 +2,6 @@
 // Source: io.grpc.kotlin.generator.Reaction in io/grpc/kotlin/generator/chat.proto
 package io.grpc.kotlin.generator
 
-import com.squareup.wire.EnumAdapter
 import com.squareup.wire.FieldEncoding
 import com.squareup.wire.Message
 import com.squareup.wire.ProtoAdapter
@@ -10,10 +9,8 @@ import com.squareup.wire.ProtoReader
 import com.squareup.wire.ProtoWriter
 import com.squareup.wire.ReverseProtoWriter
 import com.squareup.wire.Syntax.PROTO_3
-import com.squareup.wire.WireEnum
 import com.squareup.wire.WireField
 import com.squareup.wire.`internal`.JvmField
-import com.squareup.wire.`internal`.JvmStatic
 import com.squareup.wire.`internal`.sanitize
 import kotlin.Any
 import kotlin.AssertionError
@@ -36,23 +33,30 @@ public class Reaction(
   public val reactionId: String = "",
   @field:WireField(
     tag = 2,
-    adapter = "io.grpc.kotlin.generator.Messages#ADAPTER",
+    adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 1,
   )
-  public val message: Messages? = null,
+  public val reactionType: String = "",
   @field:WireField(
     tag = 3,
-    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    adapter = "io.grpc.kotlin.generator.Messages#ADAPTER",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 2,
   )
-  public val createdAt: String = "",
+  public val message: Messages? = null,
   @field:WireField(
     tag = 4,
     adapter = "com.squareup.wire.ProtoAdapter#STRING",
     label = WireField.Label.OMIT_IDENTITY,
     schemaIndex = 3,
+  )
+  public val createdAt: String = "",
+  @field:WireField(
+    tag = 5,
+    adapter = "com.squareup.wire.ProtoAdapter#STRING",
+    label = WireField.Label.OMIT_IDENTITY,
+    schemaIndex = 4,
   )
   public val updatedAt: String = "",
   unknownFields: ByteString = ByteString.EMPTY,
@@ -69,6 +73,7 @@ public class Reaction(
     if (other !is Reaction) return false
     if (unknownFields != other.unknownFields) return false
     if (reactionId != other.reactionId) return false
+    if (reactionType != other.reactionType) return false
     if (message != other.message) return false
     if (createdAt != other.createdAt) return false
     if (updatedAt != other.updatedAt) return false
@@ -80,6 +85,7 @@ public class Reaction(
     if (result == 0) {
       result = unknownFields.hashCode()
       result = result * 37 + reactionId.hashCode()
+      result = result * 37 + reactionType.hashCode()
       result = result * 37 + (message?.hashCode() ?: 0)
       result = result * 37 + createdAt.hashCode()
       result = result * 37 + updatedAt.hashCode()
@@ -91,6 +97,7 @@ public class Reaction(
   override fun toString(): String {
     val result = mutableListOf<String>()
     result += """reactionId=${sanitize(reactionId)}"""
+    result += """reactionType=${sanitize(reactionType)}"""
     if (message != null) result += """message=$message"""
     result += """createdAt=${sanitize(createdAt)}"""
     result += """updatedAt=${sanitize(updatedAt)}"""
@@ -99,11 +106,12 @@ public class Reaction(
 
   public fun copy(
     reactionId: String = this.reactionId,
+    reactionType: String = this.reactionType,
     message: Messages? = this.message,
     createdAt: String = this.createdAt,
     updatedAt: String = this.updatedAt,
     unknownFields: ByteString = this.unknownFields,
-  ): Reaction = Reaction(reactionId, message, createdAt, updatedAt, unknownFields)
+  ): Reaction = Reaction(reactionId, reactionType, message, createdAt, updatedAt, unknownFields)
 
   public companion object {
     @JvmField
@@ -119,46 +127,55 @@ public class Reaction(
         var size = value.unknownFields.size
         if (value.reactionId != "") size += ProtoAdapter.STRING.encodedSizeWithTag(1,
             value.reactionId)
-        if (value.message != null) size += Messages.ADAPTER.encodedSizeWithTag(2, value.message)
-        if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(3,
+        if (value.reactionType != "") size += ProtoAdapter.STRING.encodedSizeWithTag(2,
+            value.reactionType)
+        if (value.message != null) size += Messages.ADAPTER.encodedSizeWithTag(3, value.message)
+        if (value.createdAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4,
             value.createdAt)
-        if (value.updatedAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(4,
+        if (value.updatedAt != "") size += ProtoAdapter.STRING.encodedSizeWithTag(5,
             value.updatedAt)
         return size
       }
 
       override fun encode(writer: ProtoWriter, `value`: Reaction) {
         if (value.reactionId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1, value.reactionId)
-        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 2, value.message)
-        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 3, value.createdAt)
-        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.updatedAt)
+        if (value.reactionType != "") ProtoAdapter.STRING.encodeWithTag(writer, 2,
+            value.reactionType)
+        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 3, value.message)
+        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
+        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.updatedAt)
         writer.writeBytes(value.unknownFields)
       }
 
       override fun encode(writer: ReverseProtoWriter, `value`: Reaction) {
         writer.writeBytes(value.unknownFields)
-        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.updatedAt)
-        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 3, value.createdAt)
-        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 2, value.message)
+        if (value.updatedAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 5, value.updatedAt)
+        if (value.createdAt != "") ProtoAdapter.STRING.encodeWithTag(writer, 4, value.createdAt)
+        if (value.message != null) Messages.ADAPTER.encodeWithTag(writer, 3, value.message)
+        if (value.reactionType != "") ProtoAdapter.STRING.encodeWithTag(writer, 2,
+            value.reactionType)
         if (value.reactionId != "") ProtoAdapter.STRING.encodeWithTag(writer, 1, value.reactionId)
       }
 
       override fun decode(reader: ProtoReader): Reaction {
         var reactionId: String = ""
+        var reactionType: String = ""
         var message: Messages? = null
         var createdAt: String = ""
         var updatedAt: String = ""
         val unknownFields = reader.forEachTag { tag ->
           when (tag) {
             1 -> reactionId = ProtoAdapter.STRING.decode(reader)
-            2 -> message = Messages.ADAPTER.decode(reader)
-            3 -> createdAt = ProtoAdapter.STRING.decode(reader)
-            4 -> updatedAt = ProtoAdapter.STRING.decode(reader)
+            2 -> reactionType = ProtoAdapter.STRING.decode(reader)
+            3 -> message = Messages.ADAPTER.decode(reader)
+            4 -> createdAt = ProtoAdapter.STRING.decode(reader)
+            5 -> updatedAt = ProtoAdapter.STRING.decode(reader)
             else -> reader.readUnknownField(tag)
           }
         }
         return Reaction(
           reactionId = reactionId,
+          reactionType = reactionType,
           message = message,
           createdAt = createdAt,
           updatedAt = updatedAt,
@@ -173,41 +190,5 @@ public class Reaction(
     }
 
     private const val serialVersionUID: Long = 0L
-  }
-
-  public enum class reactionType(
-    override val `value`: Int,
-  ) : WireEnum {
-    SMILE(0),
-    SMIRK(1),
-    SAD(2),
-    CRY(3),
-    LAUGH(4),
-    ROCK(5),
-    PAPER(6),
-    ;
-
-    public companion object {
-      @JvmField
-      public val ADAPTER: ProtoAdapter<reactionType> = object : EnumAdapter<reactionType>(
-        reactionType::class, 
-        PROTO_3, 
-        reactionType.SMILE
-      ) {
-        override fun fromValue(`value`: Int): reactionType? = reactionType.fromValue(value)
-      }
-
-      @JvmStatic
-      public fun fromValue(`value`: Int): reactionType? = when (value) {
-        0 -> SMILE
-        1 -> SMIRK
-        2 -> SAD
-        3 -> CRY
-        4 -> LAUGH
-        5 -> ROCK
-        6 -> PAPER
-        else -> null
-      }
-    }
   }
 }
