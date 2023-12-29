@@ -1,5 +1,6 @@
-package com.geogrind.geogrindbackend.config.database
+package io.grpc.kotlin.generator.config.database
 
+import com.geogrind.geogrindbackend.config.database.DatabaseConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.github.cdimascio.dotenv.Dotenv
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -11,8 +12,8 @@ import javax.sql.DataSource
 
 @Configuration
 @EnableTransactionManagement
-@EnableJpaRepositories(basePackages = ["com.geogrind.geogrindbackend.repositories"])
-@EntityScan(basePackages = ["com.geogrind.geogrindbackend.models"])
+@EnableJpaRepositories(basePackages = ["io.grpc.kotlin.generator.repositories"])
+@EntityScan(basePackages = ["io.grpc.kotlin.generator.models", "io.grpc.kotlin.generator.sharedUtils.models"])
 class DatabaseConfigImpl : DatabaseConfig {
 
     @Bean
@@ -22,15 +23,14 @@ class DatabaseConfigImpl : DatabaseConfig {
         val dotenv = Dotenv.configure().directory(".").load()
 
         // Fetch the environment variables
-        val dbHost = dotenv["DB_DOCKER_HOST"]
+        val dbHost = dotenv["DB_LOCAL_HOST"]
         val dbPort = dotenv["DB_PORT"]
         val dbName = dotenv["DB_NAME"]
         val dbUserName = dotenv["DB_USERNAME"]
         val dbPassword = dotenv["DB_PASSWORD"]
 
         val jdbcUrl = "jdbc:postgresql://$dbHost:$dbPort/$dbName"
-
-        println("JDBC URL: $jdbcUrl")
+        print("JDBC: $jdbcUrl")
 
         val dataSource = HikariDataSource()
         dataSource.jdbcUrl = jdbcUrl

@@ -17,7 +17,7 @@ data class Theme (
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "chatroom_id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
+    @Column(name = "theme_id", columnDefinition = "uuid", updatable = false, nullable = false, unique = true)
     val themeId: UUID? = null,
 
     @OneToOne(targetEntity = ChatRoom::class, cascade = [CascadeType.ALL])
