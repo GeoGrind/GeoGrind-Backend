@@ -44,7 +44,6 @@ data class UserAccount(
     @Size(min = 3)
     var temp_token: String? = null,
 
-    // TO-DO: permissions whether user can go into a certain resource
     @OneToMany
     @JoinColumn(name = "id")
     @JsonIgnore

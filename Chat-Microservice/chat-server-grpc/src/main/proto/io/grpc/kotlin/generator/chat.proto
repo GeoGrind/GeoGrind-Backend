@@ -1,0 +1,198 @@
+syntax = "proto3";
+
+package io.grpc.kotlin.generator;
+
+option java_multiple_files = true;
+option java_package = "io.grpc.kotlin.generator";
+option java_outer_classname = "ChatProto";
+
+message Attachment {
+  string attachmentId = 1;
+  string url = 2;
+  string attachmentType = 3;
+  Messages message = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
+}
+
+message Reaction {
+  string reactionId = 1;
+  string reactionType = 2;
+  Messages message = 3;
+  string createdAt = 4;
+  string updatedAt = 5;
+}
+
+message Theme {
+  string themeId = 1;
+  ChatRoom chatRoom = 2;
+  string themeType = 3;
+  string themeDescription = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
+}
+
+message Permissions {
+  string permissionId = 1;
+  string permissionName = 2;
+  UserAccount userAccount = 3;
+  string createdAt = 4;
+  string updatedAt = 5;
+}
+
+message UserAccount {
+  string accountId = 1;
+  string email = 2;
+  string username = 3;
+  string hashedPassword = 4;
+  bool accountVerified = 5;
+  string tempToken = 6;
+  repeated Permissions permissions = 7;
+  UserProfile userProfile = 8;
+  string createdAt = 9;
+  string updatedAt = 10;
+}
+
+message UserProfile {
+  string profileId = 1;
+  string profileImage = 2;
+  string username = 3;
+  string emoji = 4;
+  string program = 5;
+  int32 yearOfGrad = 6;
+  string university = 7;
+  UserAccount userAccount = 8;
+  repeated Courses course = 9;
+  ChatRoom chatroom = 10;
+  Sessions sessions = 11;
+  Messages messageSender = 12;
+  repeated Messages messageRead = 13;
+  string createdAt = 14;
+  string updatedAt = 15;
+}
+
+message Courses {
+  string courseId = 1;
+  UserProfile userProfile = 2;
+  string courseCode = 3;
+  string courseName = 4;
+  string createdAt = 5;
+  string updatedAt = 6;
+}
+
+message Sessions {
+  string sessionId = 1;
+  Courses course = 2;
+  UserProfile userProfile = 3;
+  int64 startTime = 4;
+  int32 numberOfLikers = 5;
+  int64 stopTime = 6;
+  string description = 7;
+  string createdAt = 8;
+  string updatedAt = 9;
+}
+
+message Messages {
+  string messageId = 1;
+  UserProfile messageSender = 2;
+  string messageContent = 3;
+  repeated Attachment attachments = 4;
+  repeated Reaction reaction = 5;
+  repeated UserProfile messageReadBy = 6;
+  string createdAt = 7;
+  string updatedAt = 8;
+}
+
+message ChatRoom {
+  string chatRoomId = 1;
+  string chatRoomDescription = 2;
+  repeated UserProfile chatRoomOwners = 3;
+  repeated UserProfile chatRoomMembers = 4;
+  repeated Messages chatRoomMessages = 5;
+  Theme chatRoomTheme = 6;
+  string createdAt = 7;
+  string updatedAt = 8;
+  string chatRoomName = 9;
+}
+
+// ************************** UNARY METHOD CALLS **************************
+// ChatRoom services
+service ChatRoomService {
+  // Get all current chat rooms
+  rpc GetAllChatRooms (EmptyRequest) returns (GetAllChatRoomsResponse);
+
+  // Get chatroom by id
+  rpc GetChatRoomById (GetChatRoomByIdRequest) returns (GetChatRoomByIdResponse);
+
+  // Create new chatroom
+  rpc CreateChatRoom (CreateChatRoomRequest) returns (CreateChatRoomResponse);
+
+  // Update chatroom by chatroom id
+  rpc UpdateChatRoomById (UpdateChatRoomByIdRequest) returns (UpdateChatRoomByIdResponse);
+
+  // Delete chatroom by chatroom id
+  rpc DeleteChatRoomById (DeleteChatRoomByIdRequest) returns (DeleteChatRoomByIdResponse);
+
+}
+
+message EmptyRequest {}
+
+message GetAllChatRoomsResponse {
+  repeated ChatRoom chatRooms = 1;
+}
+
+message GetChatRoomByIdRequest {
+  string id = 1;
+}
+
+message GetChatRoomByIdResponse {
+  ChatRoom chatRoom = 1;
+}
+
+message CreateChatRoomRequest {
+  string chatRoomDescription = 1;
+  Theme chatRoomTheme = 2;
+  repeated UserProfile chatRoomOwners = 3;
+  repeated UserProfile chatRoomMembers = 4;
+  repeated Messages chatRoomMessages = 5;
+  string chatRoomName = 6;
+}
+
+message CreateChatRoomResponse {
+  ChatRoom newChatRoom = 1;
+}
+
+message UpdateChatRoomByIdRequest {
+  string chatRoomId = 1;
+  Theme updateChatRoomTheme = 2;
+  string updateChatRoomDescription = 3;
+  repeated UserProfile updateChatRoomOwners = 4;
+  repeated UserProfile updateChatRoomMembers = 5;
+  repeated Messages updateChatRoomMessages = 6;
+  string updateChatRoomName = 7;
+}
+
+message UpdateChatRoomByIdResponse {
+  ChatRoom updateChatRoom = 1;
+}
+
+message DeleteChatRoomByIdRequest {
+  string id = 1;
+}
+
+message DeleteChatRoomByIdResponse {
+  bool success = 1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -2,21 +2,22 @@ package com.geogrind.geogrindbackend.models.user_profile
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.geogrind.geogrindbackend.dto.profile.SuccessUserProfileResponse
-import com.geogrind.geogrindbackend.dto.registration.SuccessUserAccountResponse
 import com.geogrind.geogrindbackend.models.courses.Courses
 import com.geogrind.geogrindbackend.models.sessions.Sessions
 import com.geogrind.geogrindbackend.models.user_account.UserAccount
+import io.grpc.kotlin.generator.models.chatroom.ChatRoom
+import io.grpc.kotlin.generator.models.message.Message
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
+import jakarta.persistence.ManyToMany
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
@@ -83,6 +84,23 @@ data class UserProfile(
     @JsonIgnore
     var session: Sessions? = null,
 
+    @ManyToOne
+    @JoinColumn(name = "chatroom_id", insertable = false, updatable = false)
+    var chatRoom: ChatRoom? = null,
+
+    @OneToOne(mappedBy = "user_profile")
+    @JsonIgnore
+    var messageSender: Message? = null,
+
+    @ManyToMany(cascade = [CascadeType.ALL])
+    @JoinTable(
+        name = "UserProfile_Message",
+        joinColumns = [JoinColumn(name = "message_id")],
+        inverseJoinColumns = [JoinColumn(name = "profile_id")],
+    )
+    @JoinColumn(name = "message_id", insertable = false, updatable = false)
+    var messageRead: MutableSet<Message>? = HashSet(),
+
     @CreatedDate
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
@@ -107,9 +125,7 @@ data class UserProfile(
         if(program != other.program) return false
         if(year_of_graduation != other.year_of_graduation) return false
         if(university != other.university) return false
-        if(userAccount != other.userAccount) return false
-
-        return true
+        return userAccount == other.userAccount
     }
 
     override fun hashCode(): Int {

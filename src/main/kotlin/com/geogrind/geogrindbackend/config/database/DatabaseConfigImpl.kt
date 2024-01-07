@@ -22,7 +22,7 @@ class DatabaseConfigImpl : DatabaseConfig {
         val dotenv = Dotenv.configure().directory(".").load()
 
         // Fetch the environment variables
-        val dbHost = dotenv["DB_HOST"]
+        val dbHost = dotenv["DB_DOCKER_HOST"]
         val dbPort = dotenv["DB_PORT"]
         val dbName = dotenv["DB_NAME"]
         val dbUserName = dotenv["DB_USERNAME"]
